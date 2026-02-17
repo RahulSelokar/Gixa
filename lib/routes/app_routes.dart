@@ -1,0 +1,34 @@
+abstract class AppRoutes {
+  AppRoutes._();
+  
+  static const splash = '/splash';
+  static const onboarding = '/onboarding';
+  static const loginWithOtp = '/login-with-otp';
+  static const verifyOtp = '/verify-otp';
+  static const register = '/register';
+  static const home = '/home';
+  static const completeProfile = '/complete-profile';
+  static const profile = '/profile';
+  static const notifications = '/notifications';
+  static const search = '/search';
+  static const mainNav = '/main-nav';
+  static const subscription = '/subscription';
+  static const assistance = '/assistance';
+  static const collageDetails = '/collage-details';
+  static const collage = '/college';
+  static const documents = '/documents';
+  static const editProfile = '/edit-profile';
+  static const viewDocuments = '/view-documents';
+  static const fevouriteCollage = '/fevourite-collage';
+  static const compareCollage = '/compare-college';
+  static const savedComparision = '/save-compare-college';
+  static const chatBot = '/chat-bot';
+  static const settings = '/settings';
+  static const notificationSettings = '/notification-settings';
+  static const support = '/support';
+  static const myPackage = "/my-packages";
+  static const about = '/about';
+  static const feedback = '/feedback';
+  static const data_storage = '/data-storage';
+  static const updateDocs = '/update-docs';
+}

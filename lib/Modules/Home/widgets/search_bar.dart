@@ -1,0 +1,33 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+class HomeSearchBar extends StatelessWidget {
+  final Color background;
+  final Color hintColor;
+
+  const HomeSearchBar({
+    super.key,
+    required this.background,
+    required this.hintColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 50,
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        readOnly: true, // ✅ Prevent keyboard
+        decoration: InputDecoration(
+          hintText: "Search Colleges, Exams...",
+          hintStyle: GoogleFonts.poppins(color: hintColor),
+          prefixIcon: Icon(Icons.search, color: hintColor),
+          border: InputBorder.none,
+        ),
+      ),
+    );
+  }
+}
