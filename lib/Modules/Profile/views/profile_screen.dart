@@ -116,42 +116,42 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     _buildRow(
                       context,
-                      Icons.person_outline,
+                      "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Identification%20card/3D/identification_card_3d.png",
                       "First Name",
                       profileController.firstNameCtrl,
                     ),
                     _buildDivider(isDark),
                     _buildRow(
                       context,
-                      Icons.person_outline,
+                      "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Name%20badge/3D/name_badge_3d.png",
                       "Last Name",
                       profileController.lastNameCtrl,
                     ),
                     _buildDivider(isDark),
                     _buildRow(
                       context,
-                      Icons.location_on_outlined,
+                      "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Round%20pushpin/3D/round_pushpin_3d.png",
                       "Address",
                       profileController.addressCtrl,
                     ),
                     _buildDivider(isDark),
                     _buildRow(
                       context,
-                      Icons.calendar_today_outlined,
+                      "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Calendar/3D/calendar_3d.png",
                       "Date of Birth",
                       profileController.dobCtrl,
                     ),
                     _buildDivider(isDark),
                     _buildRow(
                       context,
-                      Icons.flag_outlined,
+                      "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Globe%20with%20meridians/3D/globe_with_meridians_3d.png",
                       "Nationality",
                       profileController.nationalityCtrl,
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-
+   
                 // 4. Academic Details
                 _buildSectionTitle(context, "Academic Details"),
                 _buildSectionContainer(
@@ -160,7 +160,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   children: [
                     _buildRow(
                       context,
-                      Icons.percent,
+                      "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Hundred%20points/3D/hundred_points_3d.png",
                       "10th Percentage",
                       profileController.tenthCtrl,
                       suffix: "%",
@@ -168,7 +168,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     _buildDivider(isDark),
                     _buildRow(
                       context,
-                      Icons.percent,
+                      "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Graduation%20cap/3D/graduation_cap_3d.png",
                       "12th Percentage",
                       profileController.twelthCtrl,
                       suffix: "%",
@@ -176,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     _buildDivider(isDark),
                     _buildRow(
                       context,
-                      Icons.science_outlined,
+                      "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Microscope/3D/microscope_3d.png",
                       "12th PCB",
                       profileController.pcbCtrl,
                       suffix: "%",
@@ -209,7 +209,7 @@ class _ProfilePageState extends State<ProfilePage> {
             surfaceColor,
             "NEET Score",
             profile.neetScore?.toString() ?? "-",
-            Icons.bar_chart_rounded,
+            "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png",
             Colors.orange,
           ),
         ),
@@ -221,7 +221,7 @@ class _ProfilePageState extends State<ProfilePage> {
             surfaceColor,
             "All India Rank",
             profile.allIndiaRank != null ? "#${profile.allIndiaRank}" : "-",
-            Icons.emoji_events_rounded,
+            "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Trophy/3D/trophy_3d.png",
             Colors.purple,
           ),
         ),
@@ -235,47 +235,56 @@ class _ProfilePageState extends State<ProfilePage> {
     Color surfaceColor,
     String label,
     String value,
-    IconData icon,
+    String imageUrl,
     Color accentColor,
   ) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 18),
-      // decoration: BoxDecoration(
-      //   color: surfaceColor,
-      //   borderRadius: BorderRadius.circular(20),
-      //   border: Border.all(color: accentColor.withOpacity(0.15)),
-      //   boxShadow: isDark
-      //       ? null
-      //       : [
-      //           BoxShadow(
-      //             color: accentColor.withOpacity(0.08),
-      //             blurRadius: 18,
-      //             offset: const Offset(0, 8),
-      //           ),
-      //         ],
-      // ),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: accentColor.withOpacity(isDark ? 0.3 : 0.15),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withOpacity(0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accentColor.withOpacity(isDark ? 0.2 : 0.05),
+            accentColor.withOpacity(isDark ? 0.05 : 0.01),
+          ],
+        ),
+      ),
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: accentColor.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: accentColor, size: 18),
+          Image.network(
+            imageUrl,
+            height: 48,
+            width: 48,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) =>
+                const SizedBox.shrink(),
           ),
           const SizedBox(height: 14),
           Text(
             value,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 6),
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+              fontSize: 12,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -474,15 +483,15 @@ class _ProfilePageState extends State<ProfilePage> {
         decoration: BoxDecoration(
           color: profileController.isEditMode.value
               ? Colors.transparent
-              : surfaceColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isDark ? Colors.grey[800]! : Colors.grey.withOpacity(0.08),
-          ),
+              : (isDark ? const Color(0xFF1E1E1E) : Colors.white),
+          borderRadius: BorderRadius.circular(24),
+          border: isDark
+              ? Border.all(color: Colors.white10)
+              : Border.all(color: Colors.black.withOpacity(0.05)),
           boxShadow: (!profileController.isEditMode.value && !isDark)
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withOpacity(0.04),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -510,7 +519,7 @@ class _ProfilePageState extends State<ProfilePage> {
   // ================= TRANSFORMING DATA ROW =================
   Widget _buildRow(
     BuildContext context,
-    IconData icon,
+    String imageUrl,
     String label,
     TextEditingController controller, {
     String? suffix,
@@ -544,7 +553,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 key: ValueKey('edit_$label'),
                 controller: controller,
                 label: label,
-                icon: icon,
+                imageUrl: imageUrl,
                 suffix: suffix,
                 theme: theme,
                 isDark: isDark,
@@ -556,7 +565,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 key: ValueKey('view_$label'),
                 controller: controller,
                 label: label,
-                icon: icon,
+                imageUrl: imageUrl,
                 suffix: suffix,
                 theme: theme,
                 isDark: isDark,
@@ -572,7 +581,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required Key key,
     required TextEditingController controller,
     required String label,
-    required IconData icon,
+    required String imageUrl,
     String? suffix,
     required ThemeData theme,
     required bool isDark,
@@ -604,10 +613,18 @@ class _ProfilePageState extends State<ProfilePage> {
             fontWeight: FontWeight.bold,
             color: primaryColor,
           ),
-          prefixIcon: Icon(
-            icon,
-            color: primaryColor.withOpacity(0.8),
-            size: 22,
+          prefixIcon: Padding(
+            padding: const EdgeInsets.all(14.0),
+            child: Image.network(
+              imageUrl,
+              height: 22,
+              width: 22,
+              errorBuilder: (context, error, stackTrace) => Icon(
+                Icons.edit,
+                color: primaryColor.withOpacity(0.8),
+                size: 22,
+              ),
+            ),
           ),
           filled: true,
           fillColor: fillColor,
@@ -648,7 +665,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required Key key,
     required TextEditingController controller,
     required String label,
-    required IconData icon,
+    required String imageUrl,
     String? suffix,
     required ThemeData theme,
     required bool isDark,
@@ -663,10 +680,18 @@ class _ProfilePageState extends State<ProfilePage> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconBgColor,
-              borderRadius: BorderRadius.circular(10),
+              color: isDark
+                  ? Colors.white.withOpacity(0.05)
+                  : const Color(0xFF1565C0).withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: primaryColor),
+            child: Image.network(
+              imageUrl,
+              height: 24,
+              width: 24,
+              errorBuilder: (context, error, stackTrace) =>
+                  Icon(Icons.info, color: primaryColor),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -687,6 +712,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       : "${controller.text}${suffix ?? ''}",
                   style: theme.textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w600,
+                    fontSize: 15,
                     color: controller.text.isEmpty
                         ? theme.hintColor.withOpacity(0.5)
                         : (isDark ? Colors.white : Colors.black87),

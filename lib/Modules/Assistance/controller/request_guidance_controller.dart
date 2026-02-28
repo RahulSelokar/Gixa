@@ -3,47 +3,73 @@ import '../model/request_guidance_model.dart';
 import 'package:Gixa/services/request_guidance_service.dart';
 
 class RequestGuidanceController extends GetxController {
+
   final RxBool isSubmitting = false.obs;
 
-  // 🔹 Rx fields
-  final RxString firstName = ''.obs;
-  final RxString lastName = ''.obs;
-  final RxString mobileNumber = ''.obs;
-  final RxString message = ''.obs;
-
+  // ─────────────────────────────────────────────
+  // 🚀 SUBMIT REQUEST
+  // ─────────────────────────────────────────────
   Future<void> submit(RequestGuidanceRequest request) async {
-    if (!_validate()) return;
+
+    if (!_validate(request)) return;
 
     try {
       isSubmitting.value = true;
 
       final response = await RequestGuidanceService.requestGuidance(
         counselorId: request.counselorId,
-        firstName: firstName.value,        // ✅ FIX
-        lastName: lastName.value,          // ✅ FIX
-        mobileNumber: mobileNumber.value,  // ✅ FIX
-        message: message.value,            // ✅ FIX
+        firstName: request.firstName.trim(),
+        lastName: request.lastName.trim(),
+        mobileNumber: request.mobileNumber.trim(),
+        message: request.message.trim(),
       );
 
       Get.back();
-      Get.snackbar("Success", response['message'] ?? "Request sent");
+
+      Get.snackbar(
+        "Request Sent",
+        response['message'] ?? "Your guidance request has been submitted successfully.",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
     } catch (e) {
-      Get.snackbar("Error", "Failed to send guidance request");
+
+      Get.snackbar(
+        "Submission Failed",
+        "Unable to send guidance request. Please try again.",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
     } finally {
       isSubmitting.value = false;
     }
   }
 
-  bool _validate() {
-    if (firstName.value.isEmpty ||
-        lastName.value.isEmpty ||
-        message.value.isEmpty) {
-      Get.snackbar("Error", "All fields are required");
+  // ─────────────────────────────────────────────
+  // ✅ VALIDATION
+  // ─────────────────────────────────────────────
+  bool _validate(RequestGuidanceRequest request) {
+
+    if (request.firstName.trim().isEmpty ||
+        request.lastName.trim().isEmpty ||
+        request.message.trim().isEmpty) {
+
+      Get.snackbar(
+        "Incomplete Form",
+        "Please fill in all required fields.",
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 
-    if (!RegExp(r'^[0-9]{10}$').hasMatch(mobileNumber.value)) {
-      Get.snackbar("Error", "Enter valid 10-digit mobile number");
+    if (!RegExp(r'^[0-9]{10}$')
+        .hasMatch(request.mobileNumber.trim())) {
+
+      Get.snackbar(
+        "Invalid Mobile Number",
+        "Please enter a valid 10-digit mobile number.",
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return false;
     }
 

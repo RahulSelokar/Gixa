@@ -14,10 +14,6 @@ class NotificationApiService {
         ApiEndpoints.notificationSettings,
       );
 
-      print("══════════════════════════════════════");
-      print("📥 NOTIFICATION SETTINGS RAW TYPE: ${response.runtimeType}");
-      print("📥 NOTIFICATION SETTINGS RAW DATA: $response");
-
       if (response is! Map<String, dynamic>) {
         throw AppException(
           message: "Invalid notification settings response",
@@ -25,20 +21,7 @@ class NotificationApiService {
         );
       }
 
-      final settings =
-          NotificationSettingsModel.fromJson(response);
-
-      print("🔔 PARSED NOTIFICATION SETTINGS:");
-      print("Push: ${settings.pushNotifications}");
-      print("Email: ${settings.emailNotifications}");
-      print("SMS: ${settings.smsNotifications}");
-      print("Prediction: ${settings.predictionUpdates}");
-      print("Chat: ${settings.chatMessages}");
-      print("Payment: ${settings.paymentAlerts}");
-      print("Announcements: ${settings.announcements}");
-      print("══════════════════════════════════════");
-
-      return settings;
+      return NotificationSettingsModel.fromJson(response);
 
     } catch (e) {
       if (e is AppException) rethrow;
@@ -51,30 +34,37 @@ class NotificationApiService {
   }
 
   // ─────────────────────────────────────────────
-  // 🔄 UPDATE NOTIFICATION SETTINGS
+  // 🔄 UPDATE SINGLE NOTIFICATION SETTING
   // ─────────────────────────────────────────────
   Future<void> updateNotificationSettings({
-    required Map<String, dynamic> data,
+    required String type,
+    required String channel,
+    required bool isEnabled,
   }) async {
     try {
-      print("══════════════════════════════════════");
-      print("📤 UPDATING NOTIFICATION SETTINGS:");
-      print("📤 PAYLOAD: $data");
+      final payload = {
+        "type": type,
+        "channel": channel,
+        "is_enabled": isEnabled,
+      };
 
       final response = await ApiClient.put(
         ApiEndpoints.notificationSettings,
-        body: data,
+        body: payload,
       );
 
-      print("📥 UPDATE RESPONSE TYPE: ${response.runtimeType}");
-      print("📥 UPDATE RESPONSE DATA: $response");
-      print("══════════════════════════════════════");
+      if (response is! Map<String, dynamic>) {
+        throw AppException(
+          message: "Invalid update response",
+          debugMessage: response.toString(),
+        );
+      }
 
     } catch (e) {
       if (e is AppException) rethrow;
 
       throw AppException(
-        message: "Unable to update notification settings",
+        message: "Unable to update notification setting",
         debugMessage: e.toString(),
       );
     }

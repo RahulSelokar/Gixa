@@ -1,17 +1,21 @@
+import 'package:Gixa/routes/app_routes.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CollegeCard extends StatelessWidget {
   final String name;
   final String location;
-  final String rank;
+  // final String rank;
   final String imageUrl;
+  final int id;
 
   const CollegeCard({
     super.key,
+    required this.id,
     required this.name,
     required this.location,
-    required this.rank,
+    // required this.rank,
     required this.imageUrl,
   });
 
@@ -19,7 +23,7 @@ class CollegeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // 🌓 Theme Detection
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // 🎨 Dynamic Colors
     final Color cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textColor = isDark ? Colors.white : const Color(0xFF111111);
@@ -52,7 +56,9 @@ class CollegeCard extends StatelessWidget {
             children: [
               // Main Image
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(19),
+                ),
                 child: Image.network(
                   imageUrl,
                   height: 150,
@@ -61,7 +67,9 @@ class CollegeCard extends StatelessWidget {
                   errorBuilder: (context, error, stackTrace) => Container(
                     height: 150,
                     color: Colors.grey[300],
-                    child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+                    child: const Center(
+                      child: Icon(Icons.broken_image, color: Colors.grey),
+                    ),
                   ),
                 ),
               ),
@@ -71,7 +79,10 @@ class CollegeCard extends StatelessWidget {
                 top: 12,
                 left: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(8),
@@ -80,16 +91,20 @@ class CollegeCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.emoji_events, color: Colors.amber, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        rank,
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      const Icon(
+                        Icons.emoji_events,
+                        color: Colors.amber,
+                        size: 12,
                       ),
+                      const SizedBox(width: 4),
+                      // Text(
+                      //   rank,
+                      //   style: GoogleFonts.poppins(
+                      //     color: Colors.white,
+                      //     fontSize: 10,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -136,13 +151,17 @@ class CollegeCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                
+
                 const SizedBox(height: 6),
-                
+
                 // Location Row
                 Row(
                   children: [
-                    Icon(Icons.location_on_outlined, size: 14, color: subTextColor),
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: subTextColor,
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -170,26 +189,44 @@ class CollegeCard extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 // 🦶 Footer: View Details
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "View Details",
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: primaryBlue,
-                      ),
+                InkWell(
+                  onTap: () {
+                    Get.toNamed(
+                      AppRoutes.collageDetails,
+                      arguments: {
+                        'collegeId': id,
+                      },
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "View Details",
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: primaryBlue,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: primaryBlue.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 14,
+                            color: primaryBlue,
+                          ),
+                        ),
+                      ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: primaryBlue.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.arrow_forward_rounded, size: 14, color: primaryBlue),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),

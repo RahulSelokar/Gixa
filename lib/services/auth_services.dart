@@ -55,7 +55,6 @@ class AuthServices {
         "device_id": deviceId,
       });
     } catch (e) {
-      // Ignore errors – this should not block login
     }
   }
 

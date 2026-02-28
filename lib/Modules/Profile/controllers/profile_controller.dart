@@ -31,24 +31,29 @@ class ProfileController extends GetxController {
   final nationalityCtrl = TextEditingController();
   final neetCtrl = TextEditingController();
 
-  // /// ───────── INIT ─────────
-  // @override
-  // void onInit() {
-  //   super.onInit();
-  //   progressController = Get.put(ProfileProgressController());
-  // }
+  /// ───────── INIT ─────────
+  @override
+  void onInit() {
+    super.onInit();
+    progressController = Get.put(ProfileProgressController());
+  }
 
-  // @override
-  // void onReady() {
-  //   super.onReady();
-  //   _safeFetchProfile();
-  // }
+  @override
+  void onReady() {
+    super.onReady();
+    _safeFetchProfile();
+  }
 
   /// ───────── SAFE FETCH ─────────
   Future<void> _safeFetchProfile() async {
-    await Future.delayed(const Duration(milliseconds: 300));
+    if (isLoading.value) return;
+
     final hasToken = await TokenService.hasValidToken();
-    if (!hasToken) return;
+    if (!hasToken) {
+      print("❌ No valid token found");
+      return;
+    }
+
     await fetchProfile();
   }
 

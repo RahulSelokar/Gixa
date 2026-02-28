@@ -8,10 +8,11 @@ class MainNavController extends GetxController {
   final isBottomBarVisible = true.obs;
 
   void updateScroll(ScrollDirection direction) {
-    if (direction == ScrollDirection.reverse) {
-      isBottomBarVisible.value = false; 
-    } else if (direction == ScrollDirection.forward) {
-      isBottomBarVisible.value = true; 
+    if (direction == ScrollDirection.reverse && isBottomBarVisible.value) {
+      isBottomBarVisible.value = false;
+    } else if (direction == ScrollDirection.forward &&
+        !isBottomBarVisible.value) {
+      isBottomBarVisible.value = true;
     }
   }
 

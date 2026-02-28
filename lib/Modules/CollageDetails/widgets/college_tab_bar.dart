@@ -10,6 +10,7 @@ class CollegeTabs extends GetView<CollegeDetailController> {
   static const List<String> tabs = [
     "Overview",
     "Courses",
+    "seats",
     "Fees",
     "Cutoffs",
     "Reviews",

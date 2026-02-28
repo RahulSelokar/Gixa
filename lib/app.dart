@@ -1,10 +1,11 @@
+import 'package:Gixa/bindings/initial_binding.dart';
+import 'package:Gixa/common/Error/error_controller.dart';
+import 'package:Gixa/common/Error/network_error.dart';
 import 'package:Gixa/common/langauge/app_translations.dart';
 import 'package:Gixa/routes/app_pages.dart';
 import 'package:Gixa/routes/app_routes.dart';
-import 'package:Gixa/routes/app_start_controller.dart';
 import 'package:Gixa/services/language_service.dart';
 import 'package:Gixa/utils/themes/app_theme.dart';
-import 'package:Gixa/utils/themes/theme_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,26 +14,32 @@ class Gixa extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    /// ✅ Global Controllers (once)
-    Get.put(ThemeController(), permanent: true);
-    Get.put(AppStartController(), permanent: true);
-
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      initialBinding: InitialBinding(),
 
-      /// 🌍 MULTI-LANGUAGE SUPPORT
       translations: AppTranslations(),
-      locale: LanguageService.getInitialLocale(), // ✅ FIXED
+      locale: LanguageService.getInitialLocale(),
       fallbackLocale: const Locale('en'),
 
-      /// 🚀 ALWAYS START WITH SPLASH
       initialRoute: AppRoutes.splash,
       getPages: AppPages.routes,
 
-      /// 🎨 THEMES
       theme: UAppTheme.lightTheme,
       darkTheme: UAppTheme.darkTheme,
-      themeMode: Get.find<ThemeController>().themeMode.value,
+
+      /// 🔥 IMPORTANT: Use builder safely
+      builder: (context, child) {
+        return GetBuilder<GlobalErrorController>(
+          builder: (controller) {
+            if (controller.hasError) {
+              return const NetworkErrorScreen();
+            }
+
+            return child ?? const SizedBox();
+          },
+        );
+      },
     );
   }
 }

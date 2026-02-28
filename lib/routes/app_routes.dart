@@ -31,4 +31,6 @@ abstract class AppRoutes {
   static const feedback = '/feedback';
   static const data_storage = '/data-storage';
   static const updateDocs = '/update-docs';
+  static const prediction = '/prediction';
+
 }

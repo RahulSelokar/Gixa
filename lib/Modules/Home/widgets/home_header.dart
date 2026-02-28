@@ -1,6 +1,5 @@
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/Profile/views/profile_screen.dart';
-import 'package:Gixa/Modules/settings/view/langauge_page.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,68 +23,123 @@ class HomeHeader extends StatelessWidget {
 
     return Obx(() {
       final profile = profileController.profile.value;
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final greetingColor = isDark
+          ? Colors.grey.shade400
+          : Colors.grey.shade600;
 
       return InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          Get.to(() =>  ProfilePage());
+          Get.to(() => ProfilePage());
         },
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            /// ───── PROFILE IMAGE (FROM PROFILE MODEL) ─────
-            CircleAvatar(
-              radius: 24,
-              backgroundColor: Colors.grey.shade200,
-              backgroundImage: (profile?.profilePictureUrl != null &&
-                      profile!.profilePictureUrl!.isNotEmpty)
-                  ? NetworkImage(
-                      profile.profilePictureUrl!,
-                    )
-                  : const AssetImage(
-                      'assets/images/default_avatar.png',
-                    ) as ImageProvider,
+            /// ───── MODERN PROFILE AVATAR ─────
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFF1565C0).withOpacity(0.2),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: CircleAvatar(
+                radius: 26,
+                backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
+                child: ClipOval(
+                  child:
+                      (profile?.profilePictureUrl != null &&
+                          profile!.profilePictureUrl!.isNotEmpty)
+                      ? Image.network(
+                          profile.profilePictureUrl!,
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.person, color: Colors.grey),
+                        )
+                      : Image.asset(
+                          'assets/images/default_avatar.png',
+                          width: 52,
+                          height: 52,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.person, color: Colors.grey),
+                        ),
+                ),
+              ),
             ),
 
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
 
-            /// ───── TEXT ─────
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Hello 👋",
-                  style: GoogleFonts.poppins(
-                    color: textSecondary,
-                    fontSize: 14,
+            /// ───── GREETING & NAME ─────
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Hii 👋", // Or dynamic based on time
+                    style: GoogleFonts.poppins(
+                      color: greetingColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                Text(
-                  profile?.user.firstName ?? "User",
-                  style: GoogleFonts.poppins(
-                    color: textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 2),
+                  Text(
+                    profile?.user.firstName ?? "Student",
+                    style: GoogleFonts.poppins(
+                      color: textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
 
-            const Spacer(),
-
-            /// 🔔 Notification icon
+            /// 🔔 NOTIFICATION BELL ─────
             GestureDetector(
               onTap: () {
                 Get.toNamed(AppRoutes.notifications);
               },
               child: Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
+                  color: isDark ? Colors.grey.shade900 : Colors.white,
                   shape: BoxShape.circle,
-                  border: Border.all(color: borderColor),
+                  border: Border.all(
+                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                  ),
+                  boxShadow: [
+                    if (!isDark)
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                  ],
                 ),
-                child: Icon(
-                  Icons.notifications_outlined,
-                  color: textPrimary,
+                child: Badge(
+                  backgroundColor: Colors.redAccent,
+                  smallSize: 8,
+                  child: Icon(
+                    Icons.notifications_none_rounded,
+                    color: textPrimary,
+                    size: 24,
+                  ),
                 ),
               ),
             ),

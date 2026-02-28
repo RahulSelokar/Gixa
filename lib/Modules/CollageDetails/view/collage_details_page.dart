@@ -5,6 +5,7 @@ import 'package:Gixa/Modules/CollageDetails/widgets/college_app_bar.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/college_hero_image.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/college_tab_bar.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/college_tab_content.dart';
+import 'package:Gixa/Modules/seatMatrix/controller/seat_matrix_controller.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,6 +15,9 @@ class CollegeDetailPage extends StatelessWidget {
 
   final CollegeDetailController controller =
       Get.put(CollegeDetailController());
+
+      final SeatMatrixController seatController =
+    Get.find<SeatMatrixController>();
 
   // 🎨 Brand Color
   static const Color kPrimaryBlue = Color(0xFF1565C0);

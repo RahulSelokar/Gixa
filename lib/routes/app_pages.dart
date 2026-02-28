@@ -11,6 +11,7 @@ import 'package:Gixa/Modules/Profile/views/profile_screen.dart';
 import 'package:Gixa/Modules/comparison/view/compare_colleges_page.dart';
 import 'package:Gixa/Modules/comparison/view/compare_history_save.dart';
 import 'package:Gixa/Modules/favourite/view/favourite_colleges_page.dart';
+import 'package:Gixa/Modules/predication/view/predication_view.dart';
 import 'package:Gixa/Modules/register/view/register_page.dart';
 import 'package:Gixa/Modules/settings/view/about_page.dart';
 import 'package:Gixa/Modules/settings/view/data_storage_page.dart';
@@ -145,5 +146,7 @@ class AppPages {
     GetPage(name: AppRoutes.about, page: () => AboutPage()),
     GetPage(name: AppRoutes.feedback, page: () => FeedbackPage()),
     GetPage(name: AppRoutes.data_storage, page: () => DataStoragePage()),
+    GetPage(name: AppRoutes.prediction, page: () => PredictionView()),
+
   ];
 }

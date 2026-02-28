@@ -7,6 +7,9 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:Gixa/services/token_services.dart';
 import 'package:Gixa/network/app_exception.dart';
+import 'package:get/get.dart' hide FormData, MultipartFile;
+
+import '../common/Error/error_controller.dart';
 
 class ApiClient {
   ApiClient._();
@@ -50,13 +53,16 @@ class ApiClient {
               final statusCode = error.response?.statusCode;
 
               if (statusCode == 401) {
-                print("⚠️ 401 DETECTED → CLEARING TOKENS");
+                print("⚠️ 401 DETECTED → SESSION EXPIRED");
 
                 await TokenService.clearTokens();
-                await Future.delayed(const Duration(milliseconds: 200));
-                await SessionService.forceLogout();
 
-                return;
+                if (!Get.currentRoute.contains('/login')) {
+                  await Future.delayed(const Duration(milliseconds: 200));
+                  Get.offAllNamed('/login');
+                }
+
+                return handler.reject(error);
               }
 
               return handler.next(error);
@@ -387,7 +393,6 @@ class ApiClient {
     print("STATUS CODE: $status");
     print("RESPONSE DATA: $data");
 
-    // 🔴 VALIDATION ERROR (400)
     if (status == 400 && data is Map) {
       final firstValue = data.values.first;
 
@@ -398,12 +403,10 @@ class ApiClient {
       throw AppException(message: data['message'] ?? "Invalid request data.");
     }
 
-    // 🔴 UNAUTHORIZED
-    if (status == 401) {
-      throw AppException(message: "Session expired. Please login again.");
-    }
+    // if (status == 401) {
+    //   throw AppException(message: "Session expired. Please login again.");
+    // }
 
-    // 🔴 FORBIDDEN
     if (status == 403) {
       throw AppException(
         message: "You don’t have permission to perform this action.",
@@ -424,6 +427,8 @@ class ApiClient {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.connectionError) {
+      Get.find<GlobalErrorController>().showNetworkError();
+
       throw AppException(
         message: "Network error. Please check your internet connection.",
       );
@@ -435,4 +440,78 @@ class ApiClient {
       debugMessage: e.message,
     );
   }
+  // static Never _handleDioError(DioException e) {
+  //   final status = e.response?.statusCode;
+  //   final data = e.response?.data;
+
+  //   GlobalErrorController? errorController;
+
+  //   // 🔹 Try to get controller safely
+  //   if (Get.isRegistered<GlobalErrorController>()) {
+  //     errorController = Get.find<GlobalErrorController>();
+  //   }
+
+  //   // 🔴 FILE TOO LARGE
+  //   if (status == 413) {
+  //     throw AppException(
+  //       message: "File size is too large. Please upload a smaller file.",
+  //       debugMessage: e.message,
+  //     );
+  //   }
+
+  //   print("STATUS CODE: $status");
+  //   print("RESPONSE DATA: $data");
+
+  //   // 🔴 VALIDATION ERROR (400)
+  //   if (status == 400 && data is Map) {
+  //     final firstValue = data.values.first;
+
+  //     if (firstValue is List && firstValue.isNotEmpty) {
+  //       throw AppException(message: firstValue.first.toString());
+  //     }
+
+  //     throw AppException(message: data['message'] ?? "Invalid request data.");
+  //   }
+
+  //   // 🔴 UNAUTHORIZED
+  //   if (status == 401) {
+  //     throw AppException(message: "Session expired. Please login again.");
+  //   }
+
+  //   // 🔴 FORBIDDEN
+  //   if (status == 403) {
+  //     throw AppException(
+  //       message: "You don’t have permission to perform this action.",
+  //     );
+  //   }
+
+  //   // 🔴 METHOD NOT ALLOWED
+  //   if (status == 405) {
+  //     throw AppException(message: "Request method not allowed.");
+  //   }
+
+  //   // 🔴 SERVER ERROR
+  //   if (status != null && status >= 500) {
+  //     errorController?.showServerError();
+
+  //     throw AppException(message: "Server error. Please try again later.");
+  //   }
+
+  //   // 🔴 NETWORK ERROR
+  //   if (e.type == DioExceptionType.connectionTimeout ||
+  //       e.type == DioExceptionType.receiveTimeout ||
+  //       e.type == DioExceptionType.connectionError) {
+  //     errorController?.showNetworkError();
+
+  //     throw AppException(
+  //       message: "Network error. Please check your internet connection.",
+  //     );
+  //   }
+
+  //   // 🔴 DEFAULT
+  //   throw AppException(
+  //     message: "Something went wrong. Please try again.",
+  //     debugMessage: e.message,
+  //   );
+  // }
 }

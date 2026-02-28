@@ -14,10 +14,11 @@ class HomeSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50,
+      height: 48,
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: hintColor.withOpacity(0.2), width: 1),
       ),
       child: TextField(
         readOnly: true, // ✅ Prevent keyboard

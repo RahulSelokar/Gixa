@@ -1,5 +1,6 @@
 import 'package:Gixa/Modules/Collage/controller/collage_list_controller.dart';
 import 'package:Gixa/Modules/comparison/controller/college_compare_controller.dart';
+import 'package:Gixa/Modules/seatMatrix/controller/seat_matrix_controller.dart';
 import 'package:Gixa/naivgation/controller/nav_bar_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,6 +14,7 @@ class CollegeListPage extends StatelessWidget {
   final controller = Get.put(CollegeListController());
   final comapreController = Get.put(CollegeCompareController());
   final navController = Get.find<MainNavController>();
+  final seatController = Get.put(SeatMatrixController());
 
   final Color kPrimaryBlue = const Color(0xFF1565C0);
 
@@ -249,6 +251,53 @@ class CollegeListPage extends StatelessWidget {
                                             ),
                                           ],
                                         ),
+                                        const SizedBox(height: 8),
+
+                                        Obx(() {
+                                          if (seatController.isLoading.value) {
+                                            return const SizedBox(); 
+                                          }
+
+                                          final totalSeats = seatController
+                                              .getTotalSeats(college.id);
+
+                                          if (totalSeats == 0) {
+                                            return const SizedBox(); 
+                                          }
+
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green.withOpacity(
+                                                0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.event_seat,
+                                                  size: 14,
+                                                  color: Colors.green,
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  "Available Seats: $totalSeats",
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
                                       ],
                                     ),
                                   ),

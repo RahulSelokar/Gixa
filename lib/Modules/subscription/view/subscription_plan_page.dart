@@ -421,6 +421,7 @@
 
 import 'package:Gixa/Modules/Auth/model/Auth/user_model.dart';
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
+import 'package:Gixa/Modules/subscription/controller/subsciption_history_controller.dart';
 import 'package:Gixa/Modules/subscription/model/subscription_purchase_model.dart';
 import 'package:Gixa/Modules/subscription/view/subscription_history_page.dart';
 import 'package:flutter/material.dart';
@@ -431,10 +432,10 @@ import '../controller/subscription_controller.dart';
 import '../model/subscription_plan.dart';
 
 class SubscriptionPage extends StatelessWidget {
-  
   SubscriptionPage({super.key});
 
   final controller = Get.put(SubscriptionController());
+  final historyController = Get.put(SubscriptionHistoryController());
 
   int _parseAmount(String value) {
     final cleaned = value.replaceAll(RegExp(r'[^0-9.]'), '');
@@ -454,8 +455,15 @@ class SubscriptionPage extends StatelessWidget {
             onPressed: () {
               Get.to(() => const SubscriptionHistoryPage());
             },
-            icon: const Icon(Icons.history, color: Colors.white, size: 20),
-            label: const Text('History', style: TextStyle(color: Colors.white)),
+            icon: Icon(
+              Icons.history,
+              size: 20,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+            label: Text(
+              'History',
+              style: TextStyle(color: isDark ? Colors.white : Colors.black),
+            ),
           ),
         ],
       ),
@@ -472,7 +480,6 @@ class SubscriptionPage extends StatelessWidget {
             final plan = controller.plans[i];
             final preview = controller.previewFor(plan.id);
             final couponController = TextEditingController();
-
             final amount = _parseAmount(plan.amount);
             final payable = preview != null
                 ? _parseAmount(preview.finalPayableAmount)
@@ -570,26 +577,40 @@ class SubscriptionPage extends StatelessWidget {
                   const Divider(height: 28),
 
                   /// 🎟 COUPON
-                  TextField(
-                    controller: couponController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter coupon code',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  Obx(() {
+                    final isPurchased = historyController.isPlanActive(plan.id);
+
+                    return TextField(
+                      controller: couponController,
+                      enabled: !isPurchased, // 🔥 Disable entire field
+                      decoration: InputDecoration(
+                        hintText: isPurchased
+                            ? 'Plan already purchased'
+                            : 'Enter coupon code',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        suffixIcon: TextButton(
+                          onPressed: isPurchased
+                              ? null // 🔥 Disable apply button
+                              : () {
+                                  controller.applyCoupon(
+                                    planId: plan.id,
+                                    couponCode: couponController.text
+                                        .trim()
+                                        .toUpperCase(),
+                                  );
+                                },
+                          child: Text(
+                            isPurchased ? 'N/A' : 'Apply',
+                            style: TextStyle(
+                              color: isPurchased ? Colors.grey : null,
+                            ),
+                          ),
+                        ),
                       ),
-                      suffixIcon: TextButton(
-                        onPressed: () {
-                          controller.applyCoupon(
-                            planId: plan.id,
-                            couponCode: couponController.text
-                                .trim()
-                                .toUpperCase(),
-                          );
-                        },
-                        child: const Text('Apply'),
-                      ),
-                    ),
-                  ),
+                    );
+                  }),
 
                   /// ❌ COUPON ERROR
                   Obx(() {
@@ -619,20 +640,36 @@ class SubscriptionPage extends StatelessWidget {
                   const SizedBox(height: 14),
 
                   /// 💳 PAY BUTTON
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  Obx(() {
+                    final isPurchased = historyController.isPlanActive(plan.id);
+
+                    return SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          backgroundColor: isPurchased
+                              ? Colors.grey
+                              : Theme.of(context).primaryColor,
+                        ),
+                        onPressed: isPurchased
+                            ? null
+                            : () => _openConfirmSheet(
+                                context,
+                                plan,
+                                preview,
+                                payable,
+                              ),
+                        child: Text(
+                          isPurchased ? 'Purchased' : 'Proceed to Payment',
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ),
-                      onPressed: () =>
-                          _openConfirmSheet(context, plan, preview, payable),
-                      child: const Text('Proceed to Payment'),
-                    ),
-                  ),
+                    );
+                  }),
                 ],
               ),
             );

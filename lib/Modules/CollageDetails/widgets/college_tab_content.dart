@@ -82,8 +82,7 @@
 //   }
 // }
 
-
-
+import 'package:Gixa/Modules/CollageDetails/widgets/seat_tabs.dart';
 import 'package:Gixa/common/widgets/primeum_dailog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -102,10 +101,7 @@ import 'package:Gixa/Modules/CollageDetails/widgets/stats_grid.dart';
 class CollegeTabContent extends GetView<CollegeDetailController> {
   final CollegeDetail college;
 
-  const CollegeTabContent({
-    super.key,
-    required this.college,
-  });
+  const CollegeTabContent({super.key, required this.college});
 
   @override
   Widget build(BuildContext context) {
@@ -116,14 +112,22 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
         switch (controller.selectedTabIndex.value) {
           case 0:
             return _overview(context);
+
           case 1:
             return _courses();
+
           case 2:
-            return _fees(context);
+            return _seatTab();
+
           case 3:
-            return _cutoffs(context);
+            return _fees(context);
+
           case 4:
+            return _cutoffs(context);
+
+          case 5:
             return _reviews(context);
+
           default:
             return const SizedBox();
         }
@@ -158,6 +162,9 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
     return CoursesSection(college: college);
   }
 
+  Widget _seatTab() {
+  return SeatsTab(seatMatrix: college.seatMatrix);
+}
   // ───────────────── PREMIUM TABS (FEES & CUTOFFS) ─────────────────
 
   Widget _fees(BuildContext context) {
@@ -185,7 +192,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
 
   Widget _reviews(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 60),
       alignment: Alignment.center,
@@ -195,7 +202,9 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isDark ? Colors.grey[800]!.withOpacity(0.5) : Colors.grey[100],
+              color: isDark
+                  ? Colors.grey[800]!.withOpacity(0.5)
+                  : Colors.grey[100],
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -247,13 +256,15 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
         color: cardBg,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: borderColor),
-        boxShadow: isDark ? [] : [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
       ),
       child: Column(
         children: [
@@ -271,7 +282,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Title
           Text(
             title,
@@ -283,7 +294,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           // Description
           Text(
             description,

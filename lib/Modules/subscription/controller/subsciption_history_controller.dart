@@ -16,6 +16,14 @@ class SubscriptionHistoryController extends GetxController {
   /// Error message
   final errorMessage = ''.obs;
 
+  bool isPlanActive(int planId) {
+  return historyList.any(
+    (history) =>
+        history.plan.id == planId && history.isActive == true,
+  );
+}
+
+
   /// 🔹 Safe getter for userId
   int? get userId => profileController.profile.value?.user.id;
 

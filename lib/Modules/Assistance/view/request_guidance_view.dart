@@ -4,18 +4,25 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:Gixa/Modules/Assistance/controller/request_guidance_controller.dart';
 import 'package:Gixa/Modules/Assistance/model/request_guidance_model.dart';
 
-class RequestGuidanceDialog extends StatelessWidget {
+class RequestGuidanceDialog extends StatefulWidget {
   final int counselorId;
   final String counselorName;
 
-  RequestGuidanceDialog({
+  const RequestGuidanceDialog({
     super.key,
     required this.counselorId,
     required this.counselorName,
   });
 
-  // Ideally, use Get.find() if initialized elsewhere, or keep put if scoped to dialog
-  final controller = Get.put(RequestGuidanceController());
+  @override
+  State<RequestGuidanceDialog> createState() =>
+      _RequestGuidanceDialogState();
+}
+
+class _RequestGuidanceDialogState
+    extends State<RequestGuidanceDialog> {
+
+  late final RequestGuidanceController controller;
 
   final firstNameCtrl = TextEditingController();
   final lastNameCtrl = TextEditingController();
@@ -23,240 +30,202 @@ class RequestGuidanceDialog extends StatelessWidget {
   final messageCtrl = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    controller = Get.put(RequestGuidanceController());
+  }
+
+  @override
+  void dispose() {
+    firstNameCtrl.dispose();
+    lastNameCtrl.dispose();
+    mobileCtrl.dispose();
+    messageCtrl.dispose();
+    Get.delete<RequestGuidanceController>();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Access theme data for dynamic light/dark mode support
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Dialog(
       backgroundColor: colorScheme.surface,
-      surfaceTintColor: colorScheme.surfaceTint,
-      insetPadding: const EdgeInsets.all(20),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24)),
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Obx(
-          () => SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 🔹 Header Section
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Request Guidance",
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () => Get.back(),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.close,
-                            size: 20, color: colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+        child: Obx(() => SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                children: [
 
-                // 🔹 Counselor Info Card
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer.withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colorScheme.primary.withOpacity(0.1),
+                  /// ───────── HEADER
+                  Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Request Guidance",
+                        style: GoogleFonts.poppins(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Get.back(),
+                      )
+                    ],
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  /// ───────── COUNSELOR CARD
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer
+                          .withOpacity(0.4),
+                      borderRadius:
+                          BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor:
+                              colorScheme.primary,
+                          child: const Icon(Icons.person,
+                              color: Colors.white),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            widget.counselorName,
+                            style: GoogleFonts.poppins(
+                              fontWeight:
+                                  FontWeight.w600,
+                            ),
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                  child: Row(
+
+                  const SizedBox(height: 24),
+
+                  /// ───────── FORM
+                  Row(
                     children: [
-                      CircleAvatar(
-                        backgroundColor: colorScheme.primary,
-                        radius: 16,
-                        child: Icon(Icons.person,
-                            size: 18, color: colorScheme.onPrimary),
+                      Expanded(
+                        child: _buildTextField(
+                            "First Name",
+                            firstNameCtrl),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Counselor",
-                              style: GoogleFonts.poppins(
-                                fontSize: 10,
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            Text(
-                              counselorName,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14,
-                                color: colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
+                        child: _buildTextField(
+                            "Last Name",
+                            lastNameCtrl),
                       ),
                     ],
                   ),
-                ),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                // 🔹 Input Fields
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        context,
-                        label: "First Name",
-                        controller: firstNameCtrl,
-                        icon: Icons.badge_outlined,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildTextField(
-                        context,
-                        label: "Last Name",
-                        controller: lastNameCtrl,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  context,
-                  label: "Mobile Number",
-                  controller: mobileCtrl,
-                  keyboard: TextInputType.phone,
-                  icon: Icons.phone_android_rounded,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  context,
-                  label: "How can we help?",
-                  controller: messageCtrl,
-                  maxLines: 4,
-                  icon: Icons.chat_bubble_outline_rounded,
-                  isLast: true,
-                ),
-
-                const SizedBox(height: 24),
-
-                // 🔹 Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: controller.isSubmitting.value
-                        ? null
-                        : () {
-                            controller.submit(
-                              RequestGuidanceRequest(
-                                counselorId: counselorId,
-                                firstName: firstNameCtrl.text,
-                                lastName: lastNameCtrl.text,
-                                mobileNumber: mobileCtrl.text,
-                                message: messageCtrl.text,
-                              ),
-                            );
-                          },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: controller.isSubmitting.value
-                        ? SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: colorScheme.onPrimary,
-                            ),
-                          )
-                        : Text(
-                            "Submit Request",
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                            ),
-                          ),
+                  _buildTextField(
+                    "Mobile Number",
+                    mobileCtrl,
+                    keyboard: TextInputType.phone,
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
+
+                  const SizedBox(height: 16),
+
+                  _buildTextField(
+                    "How can we help?",
+                    messageCtrl,
+                    maxLines: 4,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  /// ───────── SUBMIT BUTTON
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed:
+                          controller.isSubmitting.value
+                              ? null
+                              : _handleSubmit,
+                      style: ElevatedButton.styleFrom(
+                        shape:
+                            RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(
+                                  14),
+                        ),
+                      ),
+                      child: controller
+                              .isSubmitting.value
+                          ? const SizedBox(
+                              height: 22,
+                              width: 22,
+                              child:
+                                  CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              "Submit Request",
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            )),
       ),
     );
   }
 
-  Widget _buildTextField(
-    BuildContext context, {
-    required String label,
-    required TextEditingController controller,
-    IconData? icon,
-    int maxLines = 1,
-    TextInputType keyboard = TextInputType.text,
-    bool isLast = false,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
+  /// ─────────────────────────────────────────────
+  /// 🚀 HANDLE SUBMIT
+  /// ─────────────────────────────────────────────
+  void _handleSubmit() {
+    controller.submit(
+      RequestGuidanceRequest(
+        counselorId: widget.counselorId,
+        firstName: firstNameCtrl.text.trim(),
+        lastName: lastNameCtrl.text.trim(),
+        mobileNumber: mobileCtrl.text.trim(),
+        message: messageCtrl.text.trim(),
+      ),
+    );
+  }
 
+  /// ─────────────────────────────────────────────
+  /// 🧾 TEXT FIELD BUILDER
+  /// ─────────────────────────────────────────────
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    int maxLines = 1,
+    TextInputType keyboard =
+        TextInputType.text,
+  }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboard,
-      textInputAction: isLast ? TextInputAction.done : TextInputAction.next,
-      style: GoogleFonts.poppins(fontSize: 14, color: colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.poppins(
-          fontSize: 13,
-          color: colorScheme.onSurfaceVariant,
-        ),
-        alignLabelWithHint: maxLines > 1,
-        prefixIcon: icon != null
-            ? Padding(
-                padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
-                child: Icon(icon, size: 20, color: colorScheme.primary),
-              )
-            : null,
-        prefixIconConstraints: const BoxConstraints(minWidth: 40),
-        filled: true,
-        fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.5),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderRadius:
+              BorderRadius.circular(12),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }

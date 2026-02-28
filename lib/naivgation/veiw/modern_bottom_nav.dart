@@ -21,12 +21,14 @@ class ModernBottomNav extends StatelessWidget {
 
     // 🎨 Dynamic Colors
     final Color navBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color inactiveIconColor = isDark ? Colors.grey[400]! : Colors.grey[400]!;
+    final Color inactiveIconColor = isDark
+        ? Colors.grey[400]!
+        : Colors.grey[400]!;
     final Color borderColor = isDark ? Colors.grey[800]! : Colors.transparent;
-    
+
     // Shadows only for Light Mode (Shadows look messy in Dark Mode)
-    final List<BoxShadow> shadows = isDark 
-        ? [] 
+    final List<BoxShadow> shadows = isDark
+        ? []
         : [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
@@ -46,22 +48,49 @@ class ModernBottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         color: navBgColor,
         borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: borderColor, width: 1), // Thin border for Dark Mode definition
+        border: Border.all(
+          color: borderColor,
+          width: 1,
+        ), // Thin border for Dark Mode definition
         boxShadow: shadows,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildNavItem(0, Icons.home_rounded, Icons.home_outlined, "Home", inactiveIconColor),
-          _buildNavItem(1, Icons.school_rounded, Icons.school_outlined, "Colleges", inactiveIconColor),
+          _buildNavItem(
+            0,
+            Icons.home_rounded,
+            Icons.home_outlined,
+            "Home",
+            inactiveIconColor,
+          ),
+          _buildNavItem(
+            1,
+            Icons.school_rounded,
+            Icons.school_outlined,
+            "Colleges",
+            inactiveIconColor,
+          ),
           // Note: Index adjusted to 2 because you commented out "Predictor" in the Page List
-          _buildNavItem(2, Icons.person_rounded, Icons.person_outline_rounded, "Profile", inactiveIconColor),
+          _buildNavItem(
+            2,
+            Icons.person_rounded,
+            Icons.person_outline_rounded,
+            "Profile",
+            inactiveIconColor,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label, Color inactiveColor) {
+  Widget _buildNavItem(
+    int index,
+    IconData activeIcon,
+    IconData inactiveIcon,
+    String label,
+    Color inactiveColor,
+  ) {
     bool isSelected = currentIndex == index;
 
     return GestureDetector(
@@ -72,7 +101,9 @@ class ModernBottomNav extends StatelessWidget {
         curve: Curves.fastOutSlowIn,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? kPrimaryBlue.withOpacity(0.1) : Colors.transparent,
+          color: isSelected
+              ? kPrimaryBlue.withOpacity(0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -83,13 +114,13 @@ class ModernBottomNav extends StatelessWidget {
               color: isSelected ? kPrimaryBlue : inactiveColor,
               size: 26,
             ),
-            
+
             // Text Label (Animated width)
-            AnimatedSize(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              child: SizedBox(
-                width: isSelected ? null : 0,
+            ClipRRect(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                width: isSelected ? 70 : 0,
                 child: Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: Text(
@@ -100,7 +131,7 @@ class ModernBottomNav extends StatelessWidget {
                       fontSize: 13,
                     ),
                     maxLines: 1,
-                    overflow: TextOverflow.clip,
+                    overflow: TextOverflow.visible,
                   ),
                 ),
               ),

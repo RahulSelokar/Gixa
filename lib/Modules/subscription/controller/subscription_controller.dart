@@ -83,26 +83,21 @@
 //   }
 // }
 
-
+import 'package:Gixa/Modules/subscription/controller/subsciption_history_controller.dart';
 import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
-
 import '../model/subscription_plan.dart';
 import '../model/subscription_purchase_model.dart';
 import '../model/create_order_model.dart';
 import '../../../services/subscription_plan_services.dart';
-
-// ✅ ADD THIS IMPORT
 import 'package:Gixa/Modules/payment/controller/payment_controller.dart';
 
 class SubscriptionController extends GetxController {
-  /// 📦 Subscription plans
   final plans = <SubscriptionPlan>[].obs;
+  late final SubscriptionHistoryController _historyController;
 
-  /// ⏳ Loading
   final isLoading = false.obs;
 
-  /// 💸 Coupon preview per plan
   final previewMap = <int, SubscriptionPurchaseData>{}.obs;
 
   /// ❌ Coupon error per plan
@@ -179,7 +174,6 @@ class SubscriptionController extends GetxController {
     }
   }
 
-  /// ❌ Remove applied coupon
   void clearCoupon(int planId) {
     previewMap.remove(planId);
     couponErrorMap.remove(planId);
@@ -192,6 +186,13 @@ class SubscriptionController extends GetxController {
   /// 💳 Create order & open Razorpay
   Future<void> createOrderAndPay(int planId) async {
     try {
+      if (_historyController.isPlanActive(planId)) {
+        Get.snackbar(
+          'Subscription Active',
+          'You already have an active subscription for this plan.',
+        );
+        return;
+      }
       final plan = plans.firstWhere((p) => p.id == planId);
       final preview = previewMap[planId];
 
@@ -212,7 +213,10 @@ class SubscriptionController extends GetxController {
 
       _openRazorpay(finalAmount);
     } catch (e) {
-      Get.snackbar('Payment Error', 'This plan is already purchased');
+      Get.snackbar(
+        'Subscription Active',
+        'You already have an active subscription for this plan.',
+      );
     }
   }
 
@@ -221,7 +225,10 @@ class SubscriptionController extends GetxController {
     final key = _paymentController.razorpayKey;
 
     if (key.isEmpty) {
-      Get.snackbar('Payment Error', 'Payment service not ready');
+      Get.snackbar(
+        'Already Subscribed',
+        'You already have an active subscription for this plan.',
+      );
       return;
     }
 
@@ -261,10 +268,7 @@ class SubscriptionController extends GetxController {
 
   /// ❌ Payment failed
   void _onPaymentError(PaymentFailureResponse res) {
-    Get.snackbar(
-      'Payment Failed',
-      res.message ?? 'Something went wrong',
-    );
+    Get.snackbar('Payment Failed', res.message ?? 'Something went wrong');
   }
 
   // ─────────────────────────────────────────────

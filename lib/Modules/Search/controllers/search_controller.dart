@@ -1,81 +1,96 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:Gixa/Modules/Collage/model/collage_model.dart';
 import 'package:Gixa/services/college_api_service.dart';
-import 'package:get/get.dart';
-// Replace these with your actual package paths
 
 class CollegeSearchController extends GetxController {
-  // Service Instance (Assuming you have a repository or static class)
-  // If your searchColleges is a standalone function, just call it directly.
-  
-  // Observables for UI State
-  var isLoading = false.obs;
-  var colleges = <College>[].obs;
-
-  // Filter Observables
-  var searchText = ''.obs;
-  var selectedInstituteType = RxnString(); // Nullable
-  var selectedState = ''.obs;
-  var selectedYear = ''.obs;
-  var selectedQuota = ''.obs;
-  var selectedRound = ''.obs;
-  
-  // Seat Range
-  var minSeats = RxnInt();
-  var maxSeats = RxnInt();
-
-  // Debounce Timer
+ 
+  late final TextEditingController searchController;
+  final isLoading = false.obs;
+  final colleges = <College>[].obs;
+  final searchText = ''.obs;
+  final selectedInstituteType = RxnString();
+  final selectedState = ''.obs;
+  final selectedYear = ''.obs;
+  final selectedQuota = ''.obs;
+  final selectedRound = ''.obs;
+  final minSeats = RxnInt();
+  final maxSeats = RxnInt();
   Timer? _debounce;
-
   @override
   void onInit() {
     super.onInit();
-    // Load initial data
+
+    searchController = TextEditingController();
+
+    /// Listen to search input
+    searchController.addListener(_onSearchTextChanged);
+
+    /// Initial load
     fetchColleges();
   }
 
-  /// Triggered by Search Bar (with delay)
-  void onSearchChanged(String val) {
-    searchText.value = val;
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+  // ==========================================================
+  // SEARCH LISTENER
+  // ==========================================================
+  void _onSearchTextChanged() {
+    searchText.value = searchController.text;
+
+    if (_debounce?.isActive ?? false) {
+      _debounce!.cancel();
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 400), () {
       fetchColleges();
     });
   }
 
-  /// Main Fetch Function
+  // ==========================================================
+  // CLEAN STRING HELPER
+  // ==========================================================
+  String? _clean(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  
   Future<void> fetchColleges() async {
     try {
       isLoading.value = true;
-      
-      // Clean up empty strings to null for the API
-      String? clean(String? val) => (val == null || val.trim().isEmpty) ? null : val.trim();
 
       final result = await CollegeApiService.searchColleges(
-        search: clean(searchText.value),
-        instituteType: clean(selectedInstituteType.value),
-        state: clean(selectedState.value),
-        year: clean(selectedYear.value),
-        quota: clean(selectedQuota.value),
-        round: clean(selectedRound.value),
+        search: _clean(searchText.value),
+        instituteType: _clean(selectedInstituteType.value),
+        state: _clean(selectedState.value),
+        year: _clean(selectedYear.value),
+        quota: _clean(selectedQuota.value),
+        round: _clean(selectedRound.value),
         minSeats: minSeats.value,
         maxSeats: maxSeats.value,
       );
 
       colleges.assignAll(result);
     } catch (e) {
-      print("Error fetching colleges: $e");
-      // Optionally show a snackbar here
-      // Get.snackbar("Error", e.toString()); 
+      debugPrint("College fetch error: $e");
       colleges.clear();
+
+      Get.snackbar(
+        "Error",
+        "Unable to fetch colleges. Please try again.",
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 3),
+      );
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// Reset all filters
+  
   void clearFilters() {
-    searchText.value = '';
+    searchController.clear();
+
     selectedInstituteType.value = null;
     selectedState.value = '';
     selectedYear.value = '';
@@ -83,7 +98,22 @@ class CollegeSearchController extends GetxController {
     selectedRound.value = '';
     minSeats.value = null;
     maxSeats.value = null;
+
     fetchColleges();
-    Get.back(); // Close bottom sheet if open
+
+    if (Get.isBottomSheetOpen ?? false) {
+      Get.back();
+    }
+  }
+
+  // ==========================================================
+  // DISPOSE
+  // ==========================================================
+  @override
+  void onClose() {
+    _debounce?.cancel();
+    searchController.removeListener(_onSearchTextChanged);
+    searchController.dispose();
+    super.onClose();
   }
 }

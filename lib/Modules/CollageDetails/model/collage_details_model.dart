@@ -1,3 +1,5 @@
+import 'package:Gixa/Modules/seatMatrix/model/seat_matrix_model.dart';
+
 import '../../Collage/model/collage_model.dart';
 
 class CollegeDetail extends College {
@@ -10,6 +12,7 @@ class CollegeDetail extends College {
   final String contactEmail;
   final String contactMobile;
   final List<GalleryImage> gallery; // ✅ NEW
+  final List<SeatMatrixModel> seatMatrix;
 
   CollegeDetail({
     required super.id,
@@ -31,6 +34,7 @@ class CollegeDetail extends College {
     required this.contactEmail,
     required this.contactMobile,
     required this.gallery,
+    required this.seatMatrix,
   });
 
   factory CollegeDetail.fromJson(Map<String, dynamic> json) {
@@ -43,7 +47,7 @@ class CollegeDetail extends College {
       yearEstablished: json['year_established'],
       hostelAvailable: json['hostel_available'],
       hostelFor: json['hostel_for'],
-      coverImage: null, 
+      coverImage: null,
       courses: Courses.fromJson(json['courses']),
       website: json['college_website'] ?? '',
       videoUrl: json['college_video_url'] ?? '',
@@ -55,6 +59,9 @@ class CollegeDetail extends College {
       contactMobile: json['contact_mobile'] ?? '',
       gallery: (json['gallery'] as List? ?? [])
           .map((e) => GalleryImage.fromJson(e))
+          .toList(),
+      seatMatrix: (json['seat_matrix'] as List? ?? [])
+          .map((e) => SeatMatrixModel.fromJson(e))
           .toList(),
     );
   }

@@ -3,7 +3,7 @@ import 'package:Gixa/Modules/Home/Veiw/home_page.dart';
 import 'package:Gixa/Modules/Profile/views/profile_screen.dart';
 import 'package:Gixa/Modules/settings/view/settings_page.dart';
 import 'package:Gixa/naivgation/controller/nav_bar_controller.dart';
-import 'package:Gixa/naivgation/veiw/modern_bottom_nav.dart'; 
+import 'package:Gixa/naivgation/veiw/modern_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -17,7 +17,7 @@ class MainNavPage extends StatelessWidget {
     const HomePage(), // Index 0
     CollegeListPage(), // Index 1
     // ProfilePage(), // Index 2 (Changed from 3 to match list size)
-    AccountManageScreen()
+    AccountManageScreen(),
   ];
 
   @override

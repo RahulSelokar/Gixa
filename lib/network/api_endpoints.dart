@@ -32,12 +32,16 @@ class ApiEndpoints {
   static const String addToFavourite = '/api/student/favourite-colleges/';
   static const String removeFromFavourite= '/api/student/favourite-colleges/remove/';
   static const String favourite= '/api/student/favourite-colleges/';
+  //seat matrix
+  static const String seatMatrix = "/api/seat-matrix/";
 
   // Compare Collage
   static const String compareColleges = '/api/colleges/compare/';
   static const String saveCompareColleges ='/api/colleges/compare/save/';
   static const String compareHistory ='/api/colleges/compare/history/';
 
+//prediction
+  static const String predictCollege = "/api/predict/";
 
 
   /// 💳 SUBSCRIPTIONS
@@ -79,5 +83,7 @@ static const String requestGuidance = "/api/request-guidance/";
 static const String notificationSettings= '/api/user/notification-settings/';
 static const String putNotifcationSettings= '/api/user/notification-settings/';
 static const String supportContact = "/api/support/contact/";
+//version check
+static const String versionCheck = "/app/version-check/";
 
 }

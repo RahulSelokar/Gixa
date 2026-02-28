@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:Gixa/Modules/version/controller/version_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -36,17 +37,11 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _spacingAnimation = Tween<double>(begin: 0.0, end: 8.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutQuart,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutQuart),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
     );
 
     /// 3️⃣ Start Animation
@@ -54,6 +49,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     /// 4️⃣ Navigate after splash
     _navigateToNext();
+    // _checkVersionAndNavigate();
   }
 
   @override
@@ -62,7 +58,23 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  /// 🚦 Navigation handled by AppStartController
+  Future<void> _checkVersionAndNavigate() async {
+    final versionController = Get.put(VersionController());
+
+    
+    await Future.delayed(const Duration(seconds: 2));
+
+    
+    await versionController.checkAppVersion();
+
+    if (versionController.versionData?.updateType == "force" &&
+        versionController.versionData?.updateRequired == true) {
+      return;
+    }
+
+    Get.find<AppStartController>().decideNextRoute();
+  }
+
   Future<void> _navigateToNext() async {
     // Total splash time (animation + buffer)
     await Future.delayed(const Duration(seconds: 3));
@@ -157,10 +169,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ShaderMask(
                           shaderCallback: (bounds) {
                             return const LinearGradient(
-                              colors: [
-                                Color(0xFF1F2937),
-                                Color(0xFF4F46E5),
-                              ],
+                              colors: [Color(0xFF1F2937), Color(0xFF4F46E5)],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ).createShader(bounds);

@@ -28,7 +28,7 @@ class College {
   factory College.fromJson(Map<String, dynamic> json) {
     return College(
       collegeCode: json['college_code'].toString(),
-      id: json['id'],
+      id: json['id'] is int ? json['id'] : int.parse(json['id'].toString()),
       name: json['college_name'],
       state: StateModel.fromJson(json['state']),
       instituteType: InstituteType.fromJson(json['institute_type']),
@@ -109,9 +109,9 @@ class UgCourse {
 class PgCourse {
   final int courseId;
   final String courseName;
-  final int specialtyId;
+  final int? specialtyId;
   final String specialtyName;
-  final String specialtyType;
+  final String? specialtyType;
 
   PgCourse({
     required this.courseId,
