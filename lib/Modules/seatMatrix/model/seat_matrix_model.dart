@@ -9,6 +9,10 @@ class SeatMatrixModel {
   final String quota;
   final String counsellingRound;
   final int totalSeats;
+
+  final int aiqSeats;
+  final int stateQuotaSeats;
+
   final List<CategorySeat> categories;
 
   SeatMatrixModel({
@@ -22,24 +26,37 @@ class SeatMatrixModel {
     required this.quota,
     required this.counsellingRound,
     required this.totalSeats,
+    required this.aiqSeats,
+    required this.stateQuotaSeats,
     required this.categories,
   });
 
   factory SeatMatrixModel.fromJson(Map<String, dynamic> json) {
-    return SeatMatrixModel(
-      collegeId: json['college_id'] ?? 0,
-      collegeName: json['college_name'] ?? '',
-      state: json['state'] ?? '',
-      instituteType: json['institute_type'] ?? '',
-      year: json['year'] ?? 0,
-      courseName: json['course_name'] ?? '',
-      courseLevel: json['course_level'] ?? '',
-      quota: json['quota'] ?? '',
-      counsellingRound: json['counselling_round'] ?? '',
-      totalSeats: json['total_seats'] ?? 0,
-      categories: (json['categories'] as List? ?? [])
+    // Extract categories from state_quota
+    List<CategorySeat> categoryList = [];
+
+    if (json['state_quota'] != null &&
+        json['state_quota']['categories'] != null) {
+      categoryList = (json['state_quota']['categories'] as List)
           .map((e) => CategorySeat.fromJson(e))
-          .toList(),
+          .toList();
+    }
+
+    return SeatMatrixModel(
+      collegeId: int.tryParse(json['college_code']?.toString() ?? '0') ?? 0,
+      collegeName: json['college_name']?.toString() ?? '',
+      state: json['state']?.toString() ?? '',
+      instituteType: json['institute_type']?.toString() ?? '',
+      year: (json['year'] as num?)?.toInt() ?? 0,
+      courseName: json['course_name']?.toString() ?? '',
+      courseLevel: json['course_level']?.toString() ?? '',
+      quota: json['quota']?.toString() ?? '',
+      counsellingRound: json['counselling_round']?.toString() ?? '',
+      totalSeats: (json['total_seats'] as num?)?.toInt() ?? 0,
+      aiqSeats: (json['aiq_seats'] as num?)?.toInt() ?? 0,
+      stateQuotaSeats:
+          (json['state_quota_seats'] as num?)?.toInt() ?? 0,
+      categories: categoryList,
     );
   }
 }
@@ -55,8 +72,8 @@ class CategorySeat {
 
   factory CategorySeat.fromJson(Map<String, dynamic> json) {
     return CategorySeat(
-      category: json['category'] ?? '',
-      seats: json['seats'] ?? 0,
+      category: (json['category_name'] ?? '').toString().trim(),
+      seats: (json['total_seats'] as num?)?.toInt() ?? 0,
     );
   }
 }

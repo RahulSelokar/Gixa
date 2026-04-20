@@ -1,52 +1,26 @@
 {
   "project_info": {
-    "project_number": "653935352283",
-    "project_id": "edutrack-gixa",
-    "storage_bucket": "edutrack-gixa.firebasestorage.app"
+    "project_number": "1009939672733",
+    "project_id": "gixa-dfe1d",
+    "storage_bucket": "gixa-dfe1d.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:653935352283:android:259828da92386d60fc6ffe",
+        "mobilesdk_app_id": "1:1009939672733:android:46c19b1d25bb521bcb6e74",
         "android_client_info": {
-          "package_name": "com.zappkode.ems"
+          "package_name": "com.gixa.services"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "653935352283-m2qkuvndmc8au8sng7dhroil658f8i7r.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.zappkode.ems",
-            "certificate_hash": "e2f440835581f3919957725659b2c8fd9a09d676"
-          }
-        },
-        {
-          "client_id": "653935352283-rfuv1d6coetbkuhvp8e6fdmoeg7k2cs8.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.zappkode.ems",
-            "certificate_hash": "f90233d97c72bdbb321856656689c649f9763cb9"
-          }
-        },
-        {
-          "client_id": "653935352283-vqtm31idqttkag9k4bnaspq5ca9397mp.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDJ8GsafQXH2R26F-ZXb23PW6qylPOfslk"
+          "current_key": "AIzaSyDeWeMfWVlFzeXjl9hE0DypUgxFY0HG7uY"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "653935352283-vqtm31idqttkag9k4bnaspq5ca9397mp.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

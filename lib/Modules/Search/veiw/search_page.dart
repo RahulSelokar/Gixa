@@ -6,55 +6,96 @@ import 'package:Gixa/Modules/Collage/model/collage_model.dart';
 import 'package:Gixa/Modules/Search/controllers/search_controller.dart';
 import 'package:Gixa/routes/app_routes.dart';
 
+// ─────────────────────────────────────────────
+//  Design Tokens
+// ─────────────────────────────────────────────
+class _AppColors {
+  // Primary brand
+  static const indigo = Color(0xFF4F46E5);
+  static const indigoLight = Color(0xFF818CF8);
+  static const indigoSoft = Color(0xFFEEF2FF);
+
+  // Dark theme surfaces
+  static const darkBg = Color(0xFF0A0A0F);
+  static const darkSurface = Color(0xFF13131A);
+  static const darkCard = Color(0xFF1C1C27);
+  static const darkBorder = Color(0xFF2A2A38);
+
+  // Light theme surfaces
+  static const lightBg = Color(0xFFF5F6FA);
+  static const lightSurface = Color(0xFFFFFFFF);
+  static const lightCard = Color(0xFFFFFFFF);
+  static const lightBorder = Color(0xFFE8EAF2);
+
+  // Accent
+  static const emerald = Color(0xFF10B981);
+  static const rose = Color(0xFFF43F5E);
+  static const amber = Color(0xFFF59E0B);
+}
+
 class CollegeSearchPage extends StatefulWidget {
-  const CollegeSearchPage({super.key});
+  CollegeSearchPage({super.key});
 
   @override
   State<CollegeSearchPage> createState() => _CollegeSearchPageState();
 }
 
-class _CollegeSearchPageState extends State<CollegeSearchPage>
-    with SingleTickerProviderStateMixin {
-  final CollegeSearchController controller =
-      Get.put(CollegeSearchController());
-
-  late AnimationController _animationController;
+class _CollegeSearchPageState extends State<CollegeSearchPage> {
+  final CollegeSearchController controller = Get.put(CollegeSearchController());
+  final ScrollController _scrollController = ScrollController();
+  int _displayCount = 20;
+  final int _loadBatch = 20;
 
   @override
   void initState() {
     super.initState();
-
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
-    _animationController.forward();
+    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      final total = controller.colleges.length;
+      if (_displayCount < total) {
+        setState(() {
+          _displayCount = (_displayCount + _loadBatch).clamp(0, total);
+        });
+      }
+    }
+  }
+
+  // ─── Helpers ───
+  Color _bg(bool dark) => dark ? _AppColors.darkBg : _AppColors.lightBg;
+  Color _surface(bool dark) =>
+      dark ? _AppColors.darkSurface : _AppColors.lightSurface;
+  Color _card(bool dark) => dark ? _AppColors.darkCard : _AppColors.lightCard;
+  Color _border(bool dark) =>
+      dark ? _AppColors.darkBorder : _AppColors.lightBorder;
+  Color _textPrimary(bool dark) =>
+      dark ? const Color(0xFFF1F1F8) : const Color(0xFF0F0F1A);
+  Color _textSecondary(bool dark) =>
+      dark ? const Color(0xFF8B8BA8) : const Color(0xFF6B6B8A);
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF121212) : const Color(0xFFF7F8FA),
+      backgroundColor: _bg(isDark),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: isDark
-            ? SystemUiOverlayStyle.light
-            : SystemUiOverlayStyle.dark,
+        value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         child: SafeArea(
           child: Column(
             children: [
-              _buildHeader(isDark),
-              _buildFilterChips(),
-              _buildResultCount(),
+              _buildHeader(context, isDark),
+              _buildActiveFilters(isDark),
+              _buildResultCount(isDark),
               Expanded(child: _buildCollegeList(isDark)),
             ],
           ),
@@ -63,135 +104,370 @@ class _CollegeSearchPageState extends State<CollegeSearchPage>
     );
   }
 
-  // ================= HEADER =================
-
-  Widget _buildHeader(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+  // ════════════════════════════════════════════
+  //  HEADER
+  // ════════════════════════════════════════════
+  Widget _buildHeader(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Explore Colleges",
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 15,
-                )
-              ],
-            ),
-            child: TextField(
-              controller: controller.searchController,
-              decoration: InputDecoration(
-                hintText: "Search colleges...",
-                prefixIcon: const Icon(Icons.search_rounded),
-                suffixIcon: Obx(() =>
-                    controller.searchText.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              controller.searchController.clear();
-                            },
-                          )
-                        : const SizedBox()),
-                border: InputBorder.none,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 16),
+          // Page title
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Discover",
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2.0,
+                        color: _AppColors.indigo,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      "Colleges",
+                      style: TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                        height: 1.1,
+                        color: _textPrimary(isDark),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+              // Stats pill
+              Obx(() {
+                final count = controller.colleges.length;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [_AppColors.indigo, _AppColors.indigoLight],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: _AppColors.indigo.withOpacity(0.35),
+                    //     blurRadius: 12,
+                    //     offset: const Offset(0, 4),
+                    //   ),
+                    // ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.school_rounded,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "$count",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Search + Filter row
+          Row(
+            children: [
+              Expanded(child: _buildSearchField(isDark)),
+              const SizedBox(width: 12),
+              _buildFilterButton(context, isDark),
+            ],
           ),
         ],
       ),
     );
   }
 
-  // ================= FILTER CHIPS =================
-
-  Widget _buildFilterChips() {
-    final filters = ["Government", "Private", "Autonomous"];
-
-    return SizedBox(
-      height: 50,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        scrollDirection: Axis.horizontal,
-        itemCount: filters.length,
-        itemBuilder: (_, index) {
-          final filter = filters[index];
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: Obx(() {
-              final selected =
-                  controller.selectedInstituteType.value == filter;
-
-              return ChoiceChip(
-                label: Text(filter),
-                selected: selected,
-                onSelected: (_) {
-                  controller.selectedInstituteType.value =
-                      selected ? null : filter;
-                  controller.fetchColleges();
-                },
-              );
-            }),
-          );
-        },
+  Widget _buildSearchField(bool isDark) {
+    return Container(
+      height: 52,
+      decoration: BoxDecoration(
+        color: _surface(isDark),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _border(isDark), width: 1.5),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
+      child: TextField(
+        controller: controller.searchController,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: isDark ? const Color(0xFFF1F1F8) : const Color(0xFF0F0F1A),
+        ),
+        decoration: InputDecoration(
+          hintText: "Search by name, city...",
+          hintStyle: TextStyle(
+            color: _textSecondary(isDark),
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: _AppColors.indigo,
+            size: 20,
+          ),
+          suffixIcon: Obx(
+            () => controller.searchText.isNotEmpty
+                ? GestureDetector(
+                    onTap: () => controller.searchController.clear(),
+                    child: Container(
+                      margin: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: _border(isDark),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 14,
+                        color: _textSecondary(isDark),
+                      ),
+                    ),
+                  )
+                : const SizedBox(),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 16,
+            horizontal: 4,
+          ),
+        ),
       ),
     );
   }
 
-  // ================= RESULT COUNT =================
+  Widget _buildFilterButton(BuildContext context, bool isDark) {
+    return Obx(() {
+      final count = controller.activeFilterCount;
+      final isActive = count > 0;
 
-  Widget _buildResultCount() {
-    return Obx(() => Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "${controller.colleges.length} Colleges Found",
-              style: const TextStyle(fontSize: 13),
+      return GestureDetector(
+        onTap: () => _showFilterSheet(context),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          height: 52,
+          width: 52,
+          decoration: BoxDecoration(
+            color: isActive ? _AppColors.indigo : _surface(isDark),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isActive ? Colors.transparent : _border(isDark),
+              width: 1.5,
             ),
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: _AppColors.indigo.withOpacity(0.4),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : isDark
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
           ),
-        ));
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Icon(
+                Icons.tune_rounded,
+                size: 20,
+                color: isActive
+                    ? Colors.white
+                    : (isDark
+                          ? const Color(0xFF8B8BA8)
+                          : const Color(0xFF6B6B8A)),
+              ),
+              if (isActive)
+                Positioned(
+                  top: 9,
+                  right: 9,
+                  child: Container(
+                    height: 16,
+                    width: 16,
+                    decoration: const BoxDecoration(
+                      color: _AppColors.rose,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        count.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
-  // ================= COLLEGE LIST =================
-
-  Widget _buildCollegeList(bool isDark) {
+  // ════════════════════════════════════════════
+  //  ACTIVE FILTER CHIPS
+  // ════════════════════════════════════════════
+  Widget _buildActiveFilters(bool isDark) {
     return Obx(() {
-      if (controller.isLoading.value) {
-        return _buildShimmerList(isDark);
+      final chips = <_FilterChipData>[];
+
+      void addChip(String? value, String label, VoidCallback onRemove) {
+        if (value != null)
+          chips.add(_FilterChipData(label: label, onRemove: onRemove));
       }
 
-      if (controller.colleges.isEmpty) {
-        return _buildEmptyState();
-      }
+      addChip(
+        controller.selectedInstituteType.value,
+        controller.selectedInstituteType.value ?? '',
+        () {
+          controller.selectedInstituteType.value = null;
+          controller.fetchColleges();
+        },
+      );
+      addChip(
+        controller.selectedState.value,
+        controller.selectedState.value ?? '',
+        () {
+          controller.selectedState.value = null;
+          controller.fetchColleges();
+        },
+      );
+      addChip(
+        controller.selectedYear.value,
+        "📅 ${controller.selectedYear.value}",
+        () {
+          controller.selectedYear.value = null;
+          controller.fetchColleges();
+        },
+      );
+      addChip(
+        controller.selectedQuota.value,
+        controller.selectedQuota.value ?? '',
+        () {
+          controller.selectedQuota.value = null;
+          controller.fetchColleges();
+        },
+      );
+      if (controller.minSeats.value != null)
+        chips.add(
+          _FilterChipData(
+            label: "Min ${controller.minSeats.value} seats",
+            onRemove: () {
+              controller.minSeats.value = null;
+              controller.minSeatsCtrl.clear();
+              controller.fetchColleges();
+            },
+          ),
+        );
+      if (controller.maxSeats.value != null)
+        chips.add(
+          _FilterChipData(
+            label: "Max ${controller.maxSeats.value} seats",
+            onRemove: () {
+              controller.maxSeats.value = null;
+              controller.maxSeatsCtrl.clear();
+              controller.fetchColleges();
+            },
+          ),
+        );
 
-      return RefreshIndicator(
-        onRefresh: controller.fetchColleges,
-        child: ListView.builder(
-          padding:
-              const EdgeInsets.fromLTRB(20, 10, 20, 30),
-          itemCount: controller.colleges.length,
+      if (chips.isEmpty) return const SizedBox.shrink();
+
+      return Container(
+        height: 42,
+        margin: const EdgeInsets.only(bottom: 4),
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          scrollDirection: Axis.horizontal,
+          itemCount: chips.length + 1,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
-            final college = controller.colleges[index];
-            return FadeTransition(
-              opacity: _animationController,
-              child: _buildCollegeCard(
-                  context, college, isDark),
+            if (index == chips.length) {
+              return GestureDetector(
+                onTap: controller.clearFilters,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _AppColors.rose.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _AppColors.rose.withOpacity(0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(
+                        Icons.delete_sweep_rounded,
+                        size: 13,
+                        color: _AppColors.rose,
+                      ),
+                      SizedBox(width: 5),
+                      Text(
+                        "Clear all",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: _AppColors.rose,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            final chip = chips[index];
+            return _ActiveFilterChip(
+              label: chip.label,
+              onRemove: chip.onRemove,
+              isDark: isDark,
             );
           },
         ),
@@ -199,107 +475,744 @@ class _CollegeSearchPageState extends State<CollegeSearchPage>
     });
   }
 
-  // ================= COLLEGE CARD =================
-
-  Widget _buildCollegeCard(
-      BuildContext context, College college, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color:
-            isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            color: Colors.black.withOpacity(0.05),
-          )
-        ],
-      ),
-      child: ListTile(
-        onTap: () {
-          Get.toNamed(
-            AppRoutes.collageDetails,
-            arguments: {'collegeId': college.id},
-          );
-        },
-        contentPadding: const EdgeInsets.all(16),
-        leading: const CircleAvatar(radius: 28),
-        title: Text(
-          college.name ?? "",
-          style:
-              const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(college.state.name),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+  // ════════════════════════════════════════════
+  //  RESULT COUNT
+  // ════════════════════════════════════════════
+  Widget _buildResultCount(bool isDark) {
+    return Obx(
+      () => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
+        child: Row(
           children: [
-            IconButton(
-              icon: const Icon(Icons.compare_arrows),
-              onPressed: () {},
+            Text(
+              "${controller.colleges.length} colleges found",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: _textSecondary(isDark),
+              ),
             ),
-            IconButton(
-              icon:
-                  const Icon(Icons.bookmark_border),
-              onPressed: () {},
-            ),
+            const SizedBox(width: 8),
+            if (!controller.isLoading.value && controller.colleges.isNotEmpty)
+              Container(
+                height: 4,
+                width: 4,
+                decoration: const BoxDecoration(
+                  color: _AppColors.emerald,
+                  shape: BoxShape.circle,
+                ),
+              ),
           ],
         ),
       ),
     );
   }
 
-  // ================= SHIMMER =================
+  // ════════════════════════════════════════════
+  //  COLLEGE LIST
+  // ════════════════════════════════════════════
+  Widget _buildCollegeList(bool isDark) {
+    return Obx(() {
+      if (controller.isLoading.value) return _buildShimmerList(isDark);
+      if (controller.colleges.isEmpty) return _buildEmptyState(isDark);
 
+      return RefreshIndicator(
+        color: _AppColors.indigo,
+        backgroundColor: _card(isDark),
+        onRefresh: () async {
+          setState(() {
+            _displayCount = _loadBatch;
+          });
+          await controller.fetchColleges();
+        },
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+          itemCount: (_displayCount < controller.colleges.length)
+              ? _displayCount + 1
+              : controller.colleges.length,
+          itemBuilder: (context, index) {
+            if (index >= _displayCount &&
+                _displayCount < controller.colleges.length) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: CircularProgressIndicator(color: _AppColors.indigo),
+                ),
+              );
+            }
+            final college = controller.colleges[index];
+            return _CollegeCard(college: college, isDark: isDark, index: index);
+          },
+        ),
+      );
+    });
+  }
+
+  // ════════════════════════════════════════════
+  //  SHIMMER
+  // ════════════════════════════════════════════
   Widget _buildShimmerList(bool isDark) {
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: 6,
-      itemBuilder: (_, __) {
-        return Padding(
-          padding:
-              const EdgeInsets.only(bottom: 16),
-          child: Shimmer.fromColors(
-            baseColor: isDark
-                ? Colors.grey[800]!
-                : Colors.grey[300]!,
-            highlightColor: isDark
-                ? Colors.grey[700]!
-                : Colors.grey[100]!,
-            child: Container(
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius:
-                    BorderRadius.circular(20),
-              ),
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+      itemCount: 5,
+      itemBuilder: (_, i) => Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: Shimmer.fromColors(
+          baseColor: isDark ? const Color(0xFF1C1C27) : const Color(0xFFE8EAF2),
+          highlightColor: isDark
+              ? const Color(0xFF252535)
+              : const Color(0xFFF5F6FA),
+          child: Container(
+            height: 96,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
-  // ================= EMPTY STATE =================
-
-  Widget _buildEmptyState() {
-    return const Center(
+  // ════════════════════════════════════════════
+  //  EMPTY STATE
+  // ════════════════════════════════════════════
+  Widget _buildEmptyState(bool isDark) {
+    return Center(
       child: Column(
-        mainAxisAlignment:
-            MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off_rounded,
-              size: 50),
-          SizedBox(height: 10),
+          Container(
+            height: 88,
+            width: 88,
+            decoration: BoxDecoration(
+              color: _AppColors.indigo.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.search_off_rounded,
+              size: 40,
+              color: _AppColors.indigo,
+            ),
+          ),
+          const SizedBox(height: 20),
           Text(
             "No colleges found",
-            style:
-                TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: isDark ? const Color(0xFFF1F1F8) : const Color(0xFF0F0F1A),
+            ),
           ),
-          SizedBox(height: 5),
-          Text("Try adjusting filters or search."),
+          const SizedBox(height: 8),
+          Text(
+            "Try adjusting your filters\nor search with different keywords.",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: isDark ? const Color(0xFF8B8BA8) : const Color(0xFF6B6B8A),
+            ),
+          ),
         ],
       ),
     );
   }
+
+  // ════════════════════════════════════════════
+  //  FILTER BOTTOM SHEET
+  // ════════════════════════════════════════════
+  void _showFilterSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0A0A0F) : const Color(0xFFF5F6FA);
+    final surfaceColor = isDark
+        ? const Color(0xFF1C1C27)
+        : const Color(0xFFFFFFFF);
+
+    controller.minSeatsCtrl.text = controller.minSeats.value?.toString() ?? '';
+    controller.maxSeatsCtrl.text = controller.maxSeats.value?.toString() ?? '';
+
+    Get.bottomSheet(
+      _FilterSheet(
+        controller: controller,
+        isDark: isDark,
+        bgColor: bgColor,
+        surfaceColor: surfaceColor,
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  College Card Widget
+// ─────────────────────────────────────────────
+class _CollegeCard extends StatelessWidget {
+  final College college;
+  final bool isDark;
+  final int index;
+
+  const _CollegeCard({
+    required this.college,
+    required this.isDark,
+    required this.index,
+  });
+
+  static const _avatarColors = [
+    Color(0xFF4F46E5),
+    Color(0xFF0EA5E9),
+    Color(0xFF10B981),
+    Color(0xFFF59E0B),
+    Color(0xFFF43F5E),
+    Color(0xFF8B5CF6),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarColor = _avatarColors[index % _avatarColors.length];
+    final initial = (college.name?.isNotEmpty == true)
+        ? college.name![0].toUpperCase()
+        : 'C';
+
+    return GestureDetector(
+      onTap: () => Get.toNamed(
+        AppRoutes.collageDetails,
+        arguments: {'collegeId': college.id},
+      ),
+      child: Container(
+        // margin: const EdgeInsets.only(bottom: 12),
+        // decoration: BoxDecoration(
+        //   color: isDark ? const Color(0xFF1C1C27) : Colors.white,
+        //   borderRadius: BorderRadius.circular(18),
+        //   border: Border.all(
+        //     color: isDark
+        //         ? const Color(0xFF2A2A38)
+        //         : const Color(0xFFE8EAF2),
+        //     width: 1,
+        //   ),
+        //   boxShadow: isDark
+        //       ? []
+        //       : [
+        //           BoxShadow(
+        //             color: Colors.black.withOpacity(0.05),
+        //             blurRadius: 16,
+        //             offset: const Offset(0, 4),
+        //           ),
+        //         ],
+        // ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Avatar
+              Container(
+                height: 45,
+                width: 45,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [avatarColor, avatarColor.withOpacity(0.7)],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: avatarColor.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    initial,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 14),
+
+              // Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      college.name ?? "",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1,
+                        color: isDark
+                            ? const Color(0xFFF1F1F8)
+                            : const Color(0xFF0F0F1A),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_rounded,
+                          size: 13,
+                          color: isDark
+                              ? const Color(0xFF8B8BA8)
+                              : const Color(0xFF6B6B8A),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          college.state.name,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: isDark
+                                ? const Color(0xFF8B8BA8)
+                                : const Color(0xFF6B6B8A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              // Arrow
+              Container(
+                height: 34,
+                width: 34,
+                // decoration: BoxDecoration(
+                //   color: isDark
+                //       ? const Color(0xFF252535)
+                //       : const Color(0xFFF5F6FA),
+                //   borderRadius: BorderRadius.circular(10),
+                // ),
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 18,
+                  color: isDark
+                      ? const Color(0xFF8B8BA8)
+                      : const Color(0xFF6B6B8A),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Active Filter Chip
+// ─────────────────────────────────────────────
+class _ActiveFilterChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onRemove;
+  final bool isDark;
+
+  const _ActiveFilterChip({
+    required this.label,
+    required this.onRemove,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(left: 12, right: 6, top: 6, bottom: 6),
+      decoration: BoxDecoration(
+        color: _AppColors.indigo.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _AppColors.indigo.withOpacity(0.25),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: _AppColors.indigo,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onRemove,
+            child: Container(
+              height: 16,
+              width: 16,
+              decoration: BoxDecoration(
+                color: _AppColors.indigo.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.close_rounded,
+                size: 10,
+                color: _AppColors.indigo,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Filter Bottom Sheet (extracted widget)
+// ─────────────────────────────────────────────
+class _FilterSheet extends StatelessWidget {
+  final CollegeSearchController controller;
+  final bool isDark;
+  final Color bgColor;
+  final Color surfaceColor;
+
+  const _FilterSheet({
+    required this.controller,
+    required this.isDark,
+    required this.bgColor,
+    required this.surfaceColor,
+  });
+
+  Color get _textPrimary =>
+      isDark ? const Color(0xFFF1F1F8) : const Color(0xFF0F0F1A);
+  Color get _textSecondary =>
+      isDark ? const Color(0xFF8B8BA8) : const Color(0xFF6B6B8A);
+  Color get _divider =>
+      isDark ? const Color(0xFF2A2A38) : const Color(0xFFE8EAF2);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.88,
+      ),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border.all(color: _divider, width: 1),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle
+          Container(
+            margin: const EdgeInsets.only(top: 14),
+            height: 4,
+            width: 36,
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF3A3A4A) : const Color(0xFFCDD0E0),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+
+          // Header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+            child: Row(
+              children: [
+                Text(
+                  "Filter",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    color: _textPrimary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Obx(() {
+                  final count = controller.activeFilterCount;
+                  if (count == 0) return const SizedBox.shrink();
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _AppColors.indigo,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      "$count active",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  );
+                }),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    controller.clearFilters();
+                    Get.back();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _AppColors.rose.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _AppColors.rose.withOpacity(0.2),
+                      ),
+                    ),
+                    child: const Text(
+                      "Reset",
+                      style: TextStyle(
+                        color: _AppColors.rose,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Divider(height: 1, color: _divider),
+
+          // Scrollable content
+          Flexible(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _sectionLabel("Institute Type"),
+                  const SizedBox(height: 10),
+                  Obx(
+                    () => _chipGroup(
+                      ["Government", "Private", "Autonomous"],
+                      controller.selectedInstituteType.value,
+                      (val) => controller.selectedInstituteType.value = val,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  _sectionLabel("Year"),
+                  const SizedBox(height: 10),
+                  Obx(
+                    () => _chipGroup(
+                      [
+                        for (
+                          int y = DateTime.now().year;
+                          y >= DateTime.now().year - 4;
+                          y--
+                        )
+                          y.toString(),
+                      ],
+                      controller.selectedYear.value,
+                      (val) => controller.selectedYear.value = val,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  _sectionLabel("Seats Range"),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildTextField(
+                          controller.minSeatsCtrl,
+                          "Min seats",
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildTextField(
+                          controller.maxSeatsCtrl,
+                          "Max seats",
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 28),
+                ],
+              ),
+            ),
+          ),
+
+          // Apply button
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 28),
+            decoration: BoxDecoration(
+              color: bgColor,
+              border: Border(top: BorderSide(color: _divider, width: 1)),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: () {
+                  controller.minSeats.value = int.tryParse(
+                    controller.minSeatsCtrl.text,
+                  );
+                  controller.maxSeats.value = int.tryParse(
+                    controller.maxSeatsCtrl.text,
+                  );
+                  controller.fetchColleges();
+                  Get.back();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _AppColors.indigo,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.check_rounded, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      "Apply Filters",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 1.2,
+        color: _textSecondary,
+      ),
+    );
+  }
+
+  Widget _chipGroup(
+    List<String> options,
+    String? selected,
+    ValueChanged<String?> onSelected,
+  ) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.map((option) {
+        final isSelected = selected == option;
+        return GestureDetector(
+          onTap: () => onSelected(isSelected ? null : option),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? _AppColors.indigo
+                  : (isDark
+                        ? const Color(0xFF1C1C27)
+                        : const Color(0xFFFFFFFF)),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isSelected
+                    ? Colors.transparent
+                    : (isDark
+                          ? const Color(0xFF2A2A38)
+                          : const Color(0xFFE8EAF2)),
+                width: 1.5,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: _AppColors.indigo.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Text(
+              option,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark
+                          ? const Color(0xFFB0B0C8)
+                          : const Color(0xFF4A4A6A)),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController ctrl, String hint) {
+    return TextField(
+      controller: ctrl,
+      keyboardType: TextInputType.number,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: isDark ? const Color(0xFFF1F1F8) : const Color(0xFF0F0F1A),
+      ),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: _textSecondary, fontSize: 13),
+        filled: true,
+        fillColor: surfaceColor,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _divider, width: 1.5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: _divider, width: 1.5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: _AppColors.indigo, width: 1.5),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Data classes
+// ─────────────────────────────────────────────
+class _FilterChipData {
+  final String label;
+  final VoidCallback onRemove;
+  _FilterChipData({required this.label, required this.onRemove});
 }

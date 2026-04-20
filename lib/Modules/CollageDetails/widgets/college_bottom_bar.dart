@@ -10,7 +10,9 @@ class CollegeBottomBar extends StatelessWidget {
 
     // --- Theme Palette ---
     final Color barBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.transparent;
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : Colors.transparent;
     final Color kPrimaryBlue = const Color(0xFF1565C0);
 
     return Container(
@@ -18,11 +20,11 @@ class CollegeBottomBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: barBg,
         // Dark mode gets a border, Light mode gets a shadow
-        border: isDark 
-            ? Border(top: BorderSide(color: borderColor, width: 1)) 
+        border: isDark
+            ? Border(top: BorderSide(color: borderColor, width: 1))
             : null,
-        boxShadow: isDark 
-            ? [] 
+        boxShadow: isDark
+            ? []
             : [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.05),
@@ -56,7 +58,7 @@ class CollegeBottomBar extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   "Save to Favorites",
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.5,

@@ -1,10 +1,15 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../controller/profile_progress_controller.dart';
 import '../model/profile_section_model.dart';
 
+// ─────────────────────────────────────────────
+//  ENTRY WIDGET
+// ─────────────────────────────────────────────
 class ProfileCompletionSlider extends StatefulWidget {
   const ProfileCompletionSlider({super.key});
 
@@ -14,7 +19,7 @@ class ProfileCompletionSlider extends StatefulWidget {
 }
 
 class _ProfileCompletionSliderState extends State<ProfileCompletionSlider> {
-  final PageController _pageController = PageController(viewportFraction: 0.92);
+  final PageController _pageController = PageController(viewportFraction: 0.94);
   Timer? _autoScrollTimer;
   int _currentPage = 0;
   int _totalPages = 0;
@@ -22,10 +27,7 @@ class _ProfileCompletionSliderState extends State<ProfileCompletionSlider> {
   @override
   void initState() {
     super.initState();
-    // Delay slightly to let the controller initialize
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _startAutoScroll();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startAutoScroll());
   }
 
   @override
@@ -37,30 +39,19 @@ class _ProfileCompletionSliderState extends State<ProfileCompletionSlider> {
 
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
-    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+    _autoScrollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
       if (_totalPages > 1 && _pageController.hasClients) {
-        int nextPage = _currentPage + 1;
-        if (nextPage >= _totalPages) {
-          nextPage = 0;
-          _pageController.animateToPage(
-            nextPage,
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.fastOutSlowIn,
-          );
-        } else {
-          _pageController.animateToPage(
-            nextPage,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-          );
-        }
+        final next = (_currentPage + 1) % _totalPages;
+        _pageController.animateToPage(
+          next,
+          duration: Duration(milliseconds: next == 0 ? 800 : 600),
+          curve: next == 0 ? Curves.fastOutSlowIn : Curves.easeInOut,
+        );
       }
     });
   }
 
-  void _stopAutoScroll() {
-    _autoScrollTimer?.cancel();
-  }
+  void _stopAutoScroll() => _autoScrollTimer?.cancel();
 
   @override
   Widget build(BuildContext context) {
@@ -69,24 +60,22 @@ class _ProfileCompletionSliderState extends State<ProfileCompletionSlider> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Obx(() {
-      if (controller.isProfileComplete) {
-        return const SizedBox.shrink();
-      }
+      if (controller.isProfileComplete) return const SizedBox.shrink();
 
       final cards = controller.incompleteSectionCards;
       _totalPages = 1 + cards.length;
 
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Wrap in Listener to pause auto-scroll on user interaction
           Listener(
             onPointerDown: (_) => _stopAutoScroll(),
             onPointerUp: (_) => _startAutoScroll(),
             child: SizedBox(
-              height: 200, // Slightly taller for modern spacing
+              height: 110,
               child: PageView(
                 controller: _pageController,
-                onPageChanged: (index) => setState(() => _currentPage = index),
+                onPageChanged: (i) => setState(() => _currentPage = i),
                 physics: const BouncingScrollPhysics(),
                 children: [
                   _MainProgressCard(controller),
@@ -96,16 +85,15 @@ class _ProfileCompletionSliderState extends State<ProfileCompletionSlider> {
             ),
           ),
           if (_totalPages > 1) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             SmoothPageIndicator(
               controller: _pageController,
               count: _totalPages,
-              effect: ExpandingDotsEffect(
-                dotHeight: 6,
-                dotWidth: 6,
-                expansionFactor: 4,
+              effect: WormEffect(
+                dotHeight: 5,
+                dotWidth: 5,
                 activeDotColor: theme.primaryColor,
-                dotColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                dotColor: isDark ? Colors.white12 : Colors.black12,
               ),
             ),
           ],
@@ -115,7 +103,9 @@ class _ProfileCompletionSliderState extends State<ProfileCompletionSlider> {
   }
 }
 
-// ───────── MAIN CARD ─────────
+// ─────────────────────────────────────────────
+//  MAIN PROGRESS CARD  — Naukri-style
+// ─────────────────────────────────────────────
 class _MainProgressCard extends StatelessWidget {
   final ProfileProgressController controller;
   const _MainProgressCard(this.controller);
@@ -124,96 +114,188 @@ class _MainProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final pct = controller.completionPercentInt;
 
-    return _BaseCard(
-      child: Row(
-        children: [
-          // Circular Progress Section
-          SizedBox(
-            height: 90,
-            width: 90,
-            child: Stack(
-              alignment: Alignment.center,
+    final cardBg = isDark ? const Color(0xFF1C1C1E) : Colors.white;
+    final borderColor = isDark
+        ? Colors.white.withOpacity(0.07)
+        : Colors.black.withOpacity(0.07);
+    final subtitleColor = isDark ? Colors.white38 : Colors.black38;
+    final titleColor = isDark ? Colors.white : const Color(0xFF111111);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => Get.toNamed('/profile'),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Background Circle
-                SizedBox(
-                  height: 90,
-                  width: 90,
-                  child: CircularProgressIndicator(
-                    value: 1.0,
-                    strokeWidth: 8,
-                    color: isDark ? Colors.grey[800] : Colors.grey[100],
+                // ── Circular avatar with arc progress ──
+                _CircularProgressAvatar(
+                  percent: controller.completionPercent,
+                  percentInt: pct,
+                  primaryColor: theme.primaryColor,
+                  isDark: isDark,
+                ),
+
+                const SizedBox(width: 14),
+
+                // ── Text block ──
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Your profile",
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: titleColor,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _subtext(pct),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: subtitleColor,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _actionLabel(pct),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: theme.primaryColor,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                // Actual Progress
-                TweenAnimationBuilder<double>(
-                  tween: Tween(begin: 0, end: controller.completionPercent),
-                  duration: const Duration(seconds: 1),
-                  builder: (context, value, _) {
-                    return SizedBox(
-                      height: 90,
-                      width: 90,
-                      child: CircularProgressIndicator(
-                        value: value,
-                        strokeWidth: 8,
-                        strokeCap: StrokeCap.round,
-                        color: theme.primaryColor,
-                      ),
-                    );
-                  },
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "${controller.completionPercentInt}%",
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.primaryColor,
-                      ),
-                    ),
-                  ],
+
+                // ── Right chevron ──
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: subtitleColor,
+                  size: 22,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 20),
-          // Text Content
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Almost there!",
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  String _subtext(int pct) {
+    if (pct >= 90) return "Almost complete!";
+    if (pct >= 60) return "Looking good, keep going";
+    if (pct >= 30) return "Add more to stand out";
+    return "Complete your profile";
+  }
+
+  String _actionLabel(int pct) {
+    final remaining = controller.incompleteSectionCards.length;
+    if (remaining == 0) return "View profile →";
+    return "$remaining pending action${remaining > 1 ? 's' : ''}";
+  }
+}
+
+// ─────────────────────────────────────────────
+//  CIRCULAR PROGRESS AVATAR
+// ─────────────────────────────────────────────
+class _CircularProgressAvatar extends StatelessWidget {
+  final double percent;
+  final int percentInt;
+  final Color primaryColor;
+  final bool isDark;
+
+  const _CircularProgressAvatar({
+    required this.percent,
+    required this.percentInt,
+    required this.primaryColor,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 72,
+      height: 72,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Arc painter
+          TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: percent),
+            duration: const Duration(milliseconds: 1400),
+            curve: Curves.easeOutCubic,
+            builder: (_, value, __) => CustomPaint(
+              size: const Size(72, 72),
+              painter: _ArcPainter(
+                progress: value,
+                primaryColor: primaryColor,
+                trackColor: isDark
+                    ? Colors.white10
+                    : Colors.black.withOpacity(0.08),
+              ),
+            ),
+          ),
+
+          // Avatar image
+          ClipOval(
+            child: Image.asset(
+              "assets/images/student.png",
+              width: 52,
+              height: 52,
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          // Percent label at bottom
+          Positioned(
+            bottom: 0,
+            child: TweenAnimationBuilder<int>(
+              tween: IntTween(begin: 0, end: percentInt),
+              duration: const Duration(milliseconds: 1400),
+              curve: Curves.easeOutCubic,
+              builder: (_, val, __) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  "$val%",
+                  style: GoogleFonts.inter(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "Complete your profile to unlock all insights.",
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.hintColor,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 36,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () => Get.toNamed('/profile'),
-                    child: const Text("Finish Setup"),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -222,7 +304,64 @@ class _MainProgressCard extends StatelessWidget {
   }
 }
 
-// ───────── SECTION CARD ─────────
+// ─────────────────────────────────────────────
+//  ARC PAINTER
+// ─────────────────────────────────────────────
+class _ArcPainter extends CustomPainter {
+  final double progress;
+  final Color primaryColor;
+  final Color trackColor;
+
+  _ArcPainter({
+    required this.progress,
+    required this.primaryColor,
+    required this.trackColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width / 2) - 4;
+    const strokeWidth = 4.0;
+    const startAngle = math.pi * 0.75;
+    const sweepTotal = math.pi * 1.5;
+
+    // Track
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepTotal,
+      false,
+      Paint()
+        ..color = trackColor
+        ..strokeWidth = strokeWidth
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round,
+    );
+
+    // Progress
+    if (progress > 0) {
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sweepTotal * progress.clamp(0.0, 1.0),
+        false,
+        Paint()
+          ..color = primaryColor
+          ..strokeWidth = strokeWidth
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ArcPainter old) => old.progress != progress;
+}
+
+// ─────────────────────────────────────────────
+//  SECTION CARD  — Naukri-style (clean, light)
+// ─────────────────────────────────────────────
 class _SectionCard extends StatelessWidget {
   final ProfileSectionCard data;
   const _SectionCard(this.data);
@@ -232,92 +371,177 @@ class _SectionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return _BaseCard(
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+    final cardBg = isDark ? const Color(0xFF1C1C1E) : Colors.white;
+    final borderColor = isDark
+        ? Colors.white.withOpacity(0.07)
+        : Colors.black.withOpacity(0.07);
+    final titleColor = isDark ? Colors.white : const Color(0xFF111111);
+    final subtitleColor = isDark ? Colors.white54 : Colors.black54;
+    final boostColor = isDark
+        ? const Color(0xFF4CAF50)
+        : const Color(0xFF2E7D32);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: () => Get.toNamed(data.route),
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // ── Icon block ──
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  width: 46,
+                  height: 46,
                   decoration: BoxDecoration(
-                    color: theme.primaryColor.withOpacity(0.1),
+                    color: theme.primaryColor.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(data.icon, color: theme.primaryColor, size: 28),
+                  padding: const EdgeInsets.all(6),
+                  child: Image.asset(data.image, fit: BoxFit.contain),
                 ),
-                const Spacer(),
-                Text(
-                  data.title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+
+                const SizedBox(width: 14),
+
+                // ── Text ──
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Boost badge + title row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Boost ${data.boostPercent ?? 5}%",
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: boostColor,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Icon(
+                            Icons.arrow_upward_rounded,
+                            size: 11,
+                            color: boostColor,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        data.title,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: titleColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        data.description,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: subtitleColor,
+                          height: 1.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  data.description,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.hintColor,
+
+                const SizedBox(width: 10),
+
+                // ── Action button ──
+                OutlinedButton(
+                  onPressed: () => Get.toNamed(data.route),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.primaryColor,
+                    side: BorderSide(color: theme.primaryColor, width: 1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  child: Text(
+                    data.actionLabel ?? "Add",
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 16),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              SizedBox(
-                height: 40,
-                child: FilledButton.tonal(
-                  style: FilledButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  onPressed: () => Get.toNamed(data.route),
-                  child: const Text("Start"),
-                ),
-              ),
-            ],
-          )
-        ],
+        ),
       ),
     );
   }
 }
 
-// ───────── BASE CARD ─────────
+// ─────────────────────────────────────────────
+//  BASE CARD  (kept for compatibility)
+// ─────────────────────────────────────────────
 class _BaseCard extends StatelessWidget {
   final Widget child;
-  const _BaseCard({required this.child});
+  final EdgeInsetsGeometry padding;
+
+  const _BaseCard({
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+  });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+      padding: padding,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white10 : Colors.transparent,
-          width: 1,
+          color: isDark
+              ? Colors.white.withOpacity(0.07)
+              : Colors.black.withOpacity(0.07),
         ),
         boxShadow: [
           if (!isDark)
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
-              blurRadius: 15,
-              offset: const Offset(0, 8),
-              spreadRadius: 2,
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
         ],
       ),

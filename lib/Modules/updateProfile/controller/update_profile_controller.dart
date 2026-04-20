@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/Profile/models/profile_model.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:get/get.dart';
@@ -27,11 +28,40 @@ class UpdateProfileController extends GetxController {
   /// 📸 Profile image
   final Rx<File?> profileImage = Rx<File?>(null);
 
+  @override
+  void onInit() {
+    super.onInit();
+    // Pre-fill from existing profile data
+    try {
+      final profileCtrl = Get.find<ProfileController>();
+      final profile = profileCtrl.profile.value;
+      if (profile != null) {
+        loadFromProfile(profile);
+      }
+    } catch (_) {}
+  }
+
   // ─────────────────────────────────────────────
   // SET PROFILE IMAGE
   // ─────────────────────────────────────────────
   void setProfileImage(File image) {
     profileImage.value = image;
+  }
+
+  // ─────────────────────────────────────────────
+  // NORMALIZE DATE (handle DD-MM-YYYY, DD/MM/YYYY, ISO)
+  // ─────────────────────────────────────────────
+  String _normalizeDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
+    final iso = DateTime.tryParse(raw);
+    if (iso != null) return raw.split('T').first;
+    final parts = raw.split(RegExp(r'[-/.]'));
+    if (parts.length == 3 && parts[0].length <= 2) {
+      final reordered =
+          '${parts[2]}-${parts[1].padLeft(2, '0')}-${parts[0].padLeft(2, '0')}';
+      if (DateTime.tryParse(reordered) != null) return reordered;
+    }
+    return raw;
   }
 
   // ─────────────────────────────────────────────
@@ -46,7 +76,7 @@ class UpdateProfileController extends GetxController {
     twelthPcbCtrl.text = profile.twelthPcb ?? '';
     casteCtrl.text = profile.caste ?? '';
     nationalityCtrl.text = profile.nationality ?? '';
-    dobCtrl.text = profile.dateOfBirth ?? '';
+    dobCtrl.text = _normalizeDate(profile.dateOfBirth);
     addressCtrl.text = profile.address ?? '';
   }
 
@@ -69,7 +99,7 @@ class UpdateProfileController extends GetxController {
         caste: casteCtrl.text.trim(),
         nationality: nationalityCtrl.text.trim(),
         dateOfBirth: dobCtrl.text.isNotEmpty
-            ? DateTime.tryParse(dobCtrl.text)
+            ? DateTime.tryParse(_normalizeDate(dobCtrl.text))
             : null,
         state: 3, // TODO: dropdown
         course: 3, // TODO: dropdown
@@ -88,7 +118,11 @@ class UpdateProfileController extends GetxController {
         snackPosition: SnackPosition.BOTTOM,
       );
 
-      /// ✅ Navigate back & refresh profile page
+      /// ✅ Refresh profile data & navigate back
+      try {
+        final profileCtrl = Get.find<ProfileController>();
+        await profileCtrl.fetchProfile();
+      } catch (_) {}
       Get.offNamed(AppRoutes.profile);
     } catch (e) {
       Get.snackbar(

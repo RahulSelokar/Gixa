@@ -82,7 +82,10 @@
 //   }
 // }
 
+import 'package:Gixa/Modules/CollageDetails/widgets/seat_graph_section.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/seat_tabs.dart';
+import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
+import 'package:Gixa/Modules/subscription/features/feature_names.dart';
 import 'package:Gixa/common/widgets/primeum_dailog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -100,39 +103,53 @@ import 'package:Gixa/Modules/CollageDetails/widgets/stats_grid.dart';
 
 class CollegeTabContent extends GetView<CollegeDetailController> {
   final CollegeDetail college;
+  SubscriptionController get _subscriptionController =>
+      Get.find<SubscriptionController>();
 
   const CollegeTabContent({super.key, required this.college});
 
   @override
   Widget build(BuildContext context) {
-    // We handle padding here to ensure all tabs align perfectly
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Obx(() {
-        switch (controller.selectedTabIndex.value) {
-          case 0:
-            return _overview(context);
+    return Obx(() {
+      Widget content;
 
-          case 1:
-            return _courses();
+      switch (controller.selectedTabIndex.value) {
+        case 0:
+          content = _overview(context);
+          break;
 
-          case 2:
-            return _seatTab();
+        case 1:
+          content = _courses();
+          break;
 
-          case 3:
-            return _fees(context);
+        case 2:
+          content = _seatGraphTab();
+          break;
 
-          case 4:
-            return _cutoffs(context);
+        case 3:
+          content = _fees(context);
+          break;
 
-          case 5:
-            return _reviews(context);
+        case 4:
+          content = _cutoffs(context);
+          break;
 
-          default:
-            return const SizedBox();
-        }
-      }),
-    );
+        case 5:
+          content = _reviews(context);
+          break;
+
+        default:
+          content = const SizedBox();
+      }
+
+      return SizedBox(
+        width: double.infinity,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: content,
+        ),
+      );
+    });
   }
 
   // ───────────────── OVERVIEW TAB ─────────────────
@@ -141,15 +158,15 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const AIMatchCard(),
-        const SizedBox(height: 24),
+        // const AIMatchCard(),
+        // const SizedBox(height: 24),
         AboutSection(college: college),
         const SizedBox(height: 20),
         StatsGrid(college: college),
         const SizedBox(height: 24),
         ContactCard(college: college),
-        const SizedBox(height: 24),
-        FacilitiesSection(college: college),
+        // const SizedBox(height: 24),
+        // FacilitiesSection(college: college),
         const SizedBox(height: 24),
         const LocationMap(),
       ],
@@ -162,30 +179,58 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
     return CoursesSection(college: college);
   }
 
-  Widget _seatTab() {
-  return SeatsTab(seatMatrix: college.seatMatrix);
-}
+  // Widget _seatTab() {
+  //   return SeatsTab(seatMatrix: college.seatMatrix);
+  // }
+
+  Widget _seatGraphTab() {
+    return SeatGraphTab(
+      seatMatrix: college.seatMatrix,
+      instituteType: college.instituteType,
+    );
+  }
   // ───────────────── PREMIUM TABS (FEES & CUTOFFS) ─────────────────
 
   Widget _fees(BuildContext context) {
-    // return _buildPremiumPlaceholder(
-    //   context,
-    //   title: "Fee Structure Locked",
-    //   description: "Unlock detailed fee breakdown for all courses, hostel fees, and hidden charges.",
-    //   icon: Icons.monetization_on_outlined,
-    // );
+    return Obx(() {
+      final hasAccess =
+          _subscriptionController.activePlan.value != null &&
+          _subscriptionController.hasFeature(
+            FeatureNames.selectedStateFeeStructure,
+          );
 
-    return PremiumLockDialog();
+      if (!hasAccess) {
+        return PremiumLockDialog();
+      }
+
+      return _buildPremiumPlaceholder(
+        context,
+        title: "Fee Structure",
+        description:
+            "Fee structure details are being prepared for this college.",
+        icon: Icons.monetization_on_outlined,
+      );
+    });
   }
 
   Widget _cutoffs(BuildContext context) {
-    // return _buildPremiumPlaceholder(
-    //   context,
-    //   title: "Previous Year Cutoffs",
-    //   description: "Get access to last 5 years' cutoff trends for JEE, NEET, and Board exams.",
-    //   icon: Icons.trending_up_rounded,
-    // );
-    return PremiumLockDialog();
+    return Obx(() {
+      final hasAccess =
+          _subscriptionController.activePlan.value != null &&
+          _subscriptionController.hasFeature(FeatureNames.selectedStateCutoff);
+
+      if (!hasAccess) {
+        return PremiumLockDialog();
+      }
+
+      return _buildPremiumPlaceholder(
+        context,
+        title: "Previous Year Cutoffs",
+        description:
+            "Cutoff trends for this college will be available shortly.",
+        icon: Icons.trending_up_rounded,
+      );
+    });
   }
 
   // ───────────────── REVIEWS TAB ─────────────────
@@ -216,7 +261,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
           const SizedBox(height: 16),
           Text(
             "No Reviews Yet",
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: isDark ? Colors.white : const Color(0xFF111111),
@@ -225,7 +270,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
           const SizedBox(height: 8),
           Text(
             "Be the first one to review this college!",
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 14,
               color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
@@ -287,7 +332,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: textColor,
@@ -299,7 +344,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
           Text(
             description,
             textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 14,
               color: subTextColor,
               height: 1.5,
@@ -331,7 +376,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
                   const SizedBox(width: 8),
                   Text(
                     "Unlock Now",
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),

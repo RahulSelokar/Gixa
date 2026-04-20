@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:Gixa/Modules/Auth/model/Auth/send_otp_request.dart';
 import 'package:Gixa/Modules/Auth/model/Auth/verify_otp_request.dart';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/routes/app_start_controller.dart';
 import 'package:Gixa/services/auth_services.dart';
@@ -10,26 +11,33 @@ import 'package:Gixa/utils/device_utils.dart';
 import 'package:Gixa/utils/fcm_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 class OtpController extends GetxController {
-  /// 📥 INPUT
+  /// Call this on logout to clear state
+  void reset() {
+    mobileNumber.value = '';
+    otp.value = '';
+    secondsRemaining.value = 30;
+    canResendOtp.value = false;
+    isLoading.value = false;
+    otpFromBackend.value = '';
+    otpRequestStartTime.value = null;
+    otpResponseTime.value = null;
+    _timer?.cancel();
+    print('🔴 OtpController state reset');
+  }
+
   final mobileNumber = ''.obs;
   final otp = ''.obs;
-
-  /// ⏱ TIMER
   final secondsRemaining = 30.obs;
   final canResendOtp = false.obs;
   Timer? _timer;
-
-  /// 🔄 UI STATE
   final isLoading = false.obs;
-
-  /// 🧪 DEBUG / DEV ONLY
   final otpFromBackend = ''.obs;
   final otpRequestStartTime = Rxn<DateTime>();
   final otpResponseTime = Rxn<DateTime>();
-
-  // ───────────────────────── SEND OTP ─────────────────────────
 
   Future<void> sendOtp(String number) async {
     if (!RegExp(r'^[0-9]{10}$').hasMatch(number)) {
@@ -50,13 +58,14 @@ class OtpController extends GetxController {
 
       otpResponseTime.value = DateTime.now();
 
-      /// 🧪 DEV: capture OTP
       if (response.data?.otp != null) {
         otpFromBackend.value = response.data!.otp;
-        // _showOtpSnackBar(otpFromBackend.value);
+        _showOtpSnackBar(otpFromBackend.value);
       }
 
       _startTimer();
+
+      Get.toNamed(AppRoutes.verifyOtp, arguments: {'mobileNumber': number});
     } catch (e) {
       Get.snackbar('Error', e.toString());
     } finally {
@@ -96,7 +105,7 @@ class OtpController extends GetxController {
 
       if (response.data?.otp != null) {
         otpFromBackend.value = response.data!.otp;
-        // _showOtpSnackBar(otpFromBackend.value);
+        _showOtpSnackBar(otpFromBackend.value);
       }
 
       _startTimer();
@@ -122,6 +131,7 @@ class OtpController extends GetxController {
 
     if (!RegExp(r'^[0-9]{6}$').hasMatch(cleanOtp)) {
       Get.snackbar('Invalid OTP', 'Enter a valid 6-digit OTP');
+      isLoading.value = false;
       return;
     }
 
@@ -131,6 +141,7 @@ class OtpController extends GetxController {
         'Please enter the correct OTP',
         snackPosition: SnackPosition.BOTTOM,
       );
+      isLoading.value = false;
       return;
     }
 
@@ -178,10 +189,18 @@ class OtpController extends GetxController {
           accessToken: data.accessToken!,
           refreshToken: data.refreshToken!,
         );
+        final box = GetStorage();
+        Map<String, dynamic> decodedToken = JwtDecoder.decode(
+          data.accessToken!,
+        );
+
+        final userId = decodedToken['user_id'];
+
+        print("Saving USER ID: $userId");
+
+        box.write("user_id", int.parse(userId.toString()));
 
         await appStart.registrationCompleted();
-
-        /// ✅ SHOW SUCCESS DIALOG THEN NAVIGATE
         _showOtpSuccessDialog(
           message: data.message ?? "OTP Verified Successfully",
           navigateTo: AppRoutes.mainNav,
@@ -234,9 +253,25 @@ class OtpController extends GetxController {
         actions: [
           TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Get.back();
-              _forceLogoutOtherDeviceAndRetry(mobile: mobile);
+              // Call logout-other-device API
+              try {
+                isLoading.value = true;
+                await AuthServices.logoutOtherDevice(
+                  deviceId: await DeviceUtils.getDeviceId(),
+                );
+                Get.snackbar(
+                  "Success",
+                  "Logged out from other device successfully",
+                );
+                // Retry OTP verification for current device
+                await verifyOtp();
+              } catch (e) {
+                Get.snackbar('Error', e.toString());
+              } finally {
+                isLoading.value = false;
+              }
             },
             child: const Text("Logout Other Device"),
           ),
@@ -248,20 +283,20 @@ class OtpController extends GetxController {
 
   // ───────────────────────── SNACKBARS ─────────────────────────
 
-  // /// 🧪 DEV ONLY – REMOVE BEFORE PROD
-  // void _showOtpSnackBar(String otp) {
-  //   Get.snackbar(
-  //     'OTP (DEV MODE)',
-  //     'Your OTP is $otp',
-  //     snackPosition: SnackPosition.TOP,
-  //     backgroundColor: const Color(0xFF4F46E5),
-  //     colorText: Colors.white,
-  //     margin: const EdgeInsets.all(16),
-  //     borderRadius: 16,
-  //     icon: const Icon(Icons.lock_open, color: Colors.white),
-  //     duration: const Duration(seconds: 3),
-  //   );
-  // }
+  /// 🧪 DEV ONLY – REMOVE BEFORE PROD
+  void _showOtpSnackBar(String otp) {
+    Get.snackbar(
+      'OTP (DEV MODE)',
+      'Your OTP is $otp',
+      snackPosition: SnackPosition.TOP,
+      backgroundColor: const Color(0xFF4F46E5),
+      colorText: Colors.white,
+      margin: const EdgeInsets.all(16),
+      borderRadius: 16,
+      icon: const Icon(Icons.lock_open, color: Colors.white),
+      duration: const Duration(seconds: 3),
+    );
+  }
 
   void _showWelcomeSnackBar(String message) {
     Get.snackbar(
@@ -346,17 +381,14 @@ class OtpController extends GetxController {
 
       print("🔐 Logging out other device...");
 
-      // 🔑 1️⃣ Logout other device
       await AuthServices.logoutOtherDevice(
         deviceId: await DeviceUtils.getDeviceId(),
       );
 
       print("✅ Other device logged out successfully");
 
-      // 🔥 2️⃣ Send NEW OTP
       await sendOtp(mobile);
 
-      // 🔔 3️⃣ Inform user
       Get.snackbar(
         "Logged out from other device",
         "A new OTP has been sent. Please verify again.",
@@ -455,8 +487,11 @@ class _ModernOtpSuccessDialog extends StatelessWidget {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: () {
-                Get.back();
+              onPressed: () async {
+                try {
+                  final profileController = Get.find<ProfileController>();
+                  await profileController.fetchProfile();
+                } catch (_) {}
                 Get.offAllNamed(navigateTo, arguments: arguments);
               },
               style: ElevatedButton.styleFrom(

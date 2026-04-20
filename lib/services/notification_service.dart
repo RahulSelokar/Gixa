@@ -42,7 +42,7 @@ class NotificationService {
       description: 'Reminder before subscription expiry',
       importance: Importance.high,
       sound: RawResourceAndroidNotificationSound(
-        'plan_expiry_sound', // ✅ BACKEND SOUND
+        'plan_expiry_sound',
       ),
     );
 

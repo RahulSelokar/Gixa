@@ -11,7 +11,7 @@ class CollegeDetail extends College {
   final String contactDesignation;
   final String contactEmail;
   final String contactMobile;
-  final List<GalleryImage> gallery; // ✅ NEW
+  final List<GalleryImage> gallery;
   final List<SeatMatrixModel> seatMatrix;
 
   CollegeDetail({
@@ -39,27 +39,42 @@ class CollegeDetail extends College {
 
   factory CollegeDetail.fromJson(Map<String, dynamic> json) {
     return CollegeDetail(
-      id: json['id'],
-      collegeCode: json['college_code'] ?? '',
-      name: json['college_name'],
-      state: StateModel.fromJson(json['state']),
-      instituteType: InstituteType.fromJson(json['institute_type']),
-      yearEstablished: json['year_established'],
-      hostelAvailable: json['hostel_available'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      collegeCode: json['college_code']?.toString() ?? '',
+      name: json['college_name']?.toString() ?? '',
+
+      // ✅ SAFE nested parsing
+      state: json['state'] != null
+          ? StateModel.fromJson(json['state'])
+          : StateModel.fromJson({}),
+
+      instituteType: json['institute_type'] != null
+          ? InstituteType.fromJson(json['institute_type'])
+          : InstituteType.fromJson({}),
+
+      yearEstablished: (json['year_established'] as num?)?.toInt(),
+      hostelAvailable: json['hostel_available'] ?? false,
       hostelFor: json['hostel_for'],
+
       coverImage: null,
-      courses: Courses.fromJson(json['courses']),
-      website: json['college_website'] ?? '',
-      videoUrl: json['college_video_url'] ?? '',
-      about: json['about_us'] ?? '',
-      address: json['address'] ?? '',
-      contactName: json['contact_person_name'] ?? '',
-      contactDesignation: json['contact_person_designation'] ?? '',
-      contactEmail: json['contact_email'] ?? '',
-      contactMobile: json['contact_mobile'] ?? '',
+
+      courses: json['courses'] != null
+          ? Courses.fromJson(json['courses'])
+          : Courses.fromJson({}),
+
+      website: json['college_website']?.toString() ?? '',
+      videoUrl: json['college_video_url']?.toString() ?? '',
+      about: json['about_us']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      contactName: json['contact_person_name']?.toString() ?? '',
+      contactDesignation: json['contact_person_designation']?.toString() ?? '',
+      contactEmail: json['contact_email']?.toString() ?? '',
+      contactMobile: json['contact_mobile']?.toString() ?? '',
+
       gallery: (json['gallery'] as List? ?? [])
           .map((e) => GalleryImage.fromJson(e))
           .toList(),
+
       seatMatrix: (json['seat_matrix'] as List? ?? [])
           .map((e) => SeatMatrixModel.fromJson(e))
           .toList(),

@@ -25,7 +25,7 @@ class CounselorDetailPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: bg,
       appBar: AppBar(
-        title: const Text("Counselor Profile"),
+        title: Text('counselor_profile'.tr),
         backgroundColor: surface,
         elevation: 0,
       ),
@@ -36,7 +36,7 @@ class CounselorDetailPage extends StatelessWidget {
 
         final counselor = controller.counselor.value;
         if (counselor == null) {
-          return const Center(child: Text("No data found"));
+          return Center(child: Text('no_data_found'.tr));
         }
 
         return Stack(
@@ -73,7 +73,7 @@ class CounselorDetailPage extends StatelessWidget {
                             children: [
                               Text(
                                 counselor.name,
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.inter(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
                                   color: textPrimary,
@@ -82,7 +82,7 @@ class CounselorDetailPage extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 "${counselor.experienceYears} years experience",
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.inter(
                                   fontSize: 13,
                                   color: textSecondary,
                                 ),
@@ -90,12 +90,15 @@ class CounselorDetailPage extends StatelessWidget {
                               const SizedBox(height: 6),
                               Row(
                                 children: [
-                                  const Icon(Icons.star,
-                                      size: 14, color: Colors.amber),
+                                  const Icon(
+                                    Icons.star,
+                                    size: 14,
+                                    color: Colors.amber,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     "${counselor.rating} (${counselor.totalReviews} reviews)",
-                                    style: GoogleFonts.poppins(
+                                    style: GoogleFonts.inter(
                                       fontSize: 12,
                                       color: textSecondary,
                                     ),
@@ -117,7 +120,7 @@ class CounselorDetailPage extends StatelessWidget {
                       title: "About",
                       child: Text(
                         counselor.bio,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.inter(
                           fontSize: 13,
                           color: textSecondary,
                         ),
@@ -190,11 +193,13 @@ class CounselorDetailPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: GoogleFonts.poppins(
-                fontWeight: FontWeight.w600,
-                color: textPrimary,
-              )),
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              fontWeight: FontWeight.w600,
+              color: textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
           child,
         ],
@@ -274,8 +279,9 @@ class _ActionBar extends StatelessWidget {
         style: ElevatedButton.styleFrom(
           backgroundColor: enabled ? const Color(0xFF1565C0) : Colors.grey,
           padding: const EdgeInsets.symmetric(vertical: 12),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
         ),
       ),
     );

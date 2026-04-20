@@ -10,12 +10,14 @@ class LocationMap extends StatelessWidget {
 
     // --- Theme Palette ---
     final Color titleColor = isDark ? Colors.white : const Color(0xFF111111);
-    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.grey.shade200;
-    
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : Colors.grey.shade200;
+
     // Map Image Logic
     // In dark mode, we dim the map image slightly so it's not blindingly bright
-    final ColorFilter? mapFilter = isDark 
-        ? ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken) 
+    final ColorFilter? mapFilter = isDark
+        ? ColorFilter.mode(Colors.black.withOpacity(0.4), BlendMode.darken)
         : null;
 
     return Column(
@@ -30,12 +32,16 @@ class LocationMap extends StatelessWidget {
                 color: Colors.blue.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.map_outlined, color: Colors.blue, size: 18),
+              child: const Icon(
+                Icons.map_outlined,
+                color: Colors.blue,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 12),
             Text(
               "Location",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: titleColor,
@@ -59,13 +65,15 @@ class LocationMap extends StatelessWidget {
               color: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100],
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: borderColor),
-              boxShadow: isDark ? [] : [
-                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              boxShadow: isDark
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
             ),
             child: Stack(
               children: [
@@ -105,14 +113,14 @@ class LocationMap extends StatelessWidget {
                       ),
                       // Little point at bottom of pin
                       Container(
-                        width: 4, 
+                        width: 4,
                         height: 4,
                         margin: const EdgeInsets.only(top: 2),
                         decoration: BoxDecoration(
                           color: Colors.black.withOpacity(0.5),
                           shape: BoxShape.circle,
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -122,7 +130,10 @@ class LocationMap extends StatelessWidget {
                   bottom: 12,
                   right: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
                       borderRadius: BorderRadius.circular(30),
@@ -139,7 +150,7 @@ class LocationMap extends StatelessWidget {
                       children: [
                         Text(
                           "Open in Maps",
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: isDark ? Colors.white : Colors.black87,

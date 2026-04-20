@@ -8,8 +8,7 @@ class NotificationController extends GetxController {
   final Rxn<NotificationSettingsModel> settings =
       Rxn<NotificationSettingsModel>();
 
-  final NotificationApiService _service =
-      NotificationApiService();
+  final NotificationApiService _service = NotificationApiService();
 
   @override
   void onInit() {
@@ -24,15 +23,11 @@ class NotificationController extends GetxController {
     try {
       isLoading.value = true;
 
-      final result =
-          await _service.fetchNotificationSettings();
+      final result = await _service.fetchNotificationSettings();
 
       settings.value = result;
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "Failed to load notification settings",
-      );
+      Get.snackbar("Error", "Failed to load notification settings");
     } finally {
       isLoading.value = false;
     }
@@ -52,14 +47,18 @@ class NotificationController extends GetxController {
         ? settings.value!.email[type] ?? false
         : settings.value!.push[type] ?? false;
 
-    /// 🔥 Optimistic Update
+    /// Optimistic update
     settings.update((data) {
       if (data == null) return;
 
       if (channel == "EMAIL") {
-        data.email[type] = value;
+        if (data.email.containsKey(type)) {
+          data.email[type] = value;
+        }
       } else {
-        data.push[type] = value;
+        if (data.push.containsKey(type)) {
+          data.push[type] = value;
+        }
       }
     });
 
@@ -69,8 +68,8 @@ class NotificationController extends GetxController {
         channel: channel,
         isEnabled: value,
       );
-    } catch (e) {
-      /// 🔄 Rollback on failure
+    } on AppException catch (e) {
+      /// Rollback
       settings.update((data) {
         if (data == null) return;
 
@@ -81,10 +80,20 @@ class NotificationController extends GetxController {
         }
       });
 
-      Get.snackbar(
-        "Update Failed",
-        "Unable to update setting",
-      );
+      Get.snackbar("Error", e.message);
+    } catch (e) {
+      /// Rollback
+      settings.update((data) {
+        if (data == null) return;
+
+        if (channel == "EMAIL") {
+          data.email[type] = oldValue;
+        } else {
+          data.push[type] = oldValue;
+        }
+      });
+
+      Get.snackbar("Update Failed", "Unable to update setting");
     }
   }
 }

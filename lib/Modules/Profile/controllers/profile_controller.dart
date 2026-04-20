@@ -30,6 +30,11 @@ class ProfileController extends GetxController {
   final pcbCtrl = TextEditingController();
   final nationalityCtrl = TextEditingController();
   final neetCtrl = TextEditingController();
+  final courseCtrl = TextEditingController();
+  final categoryCtrl = TextEditingController();
+  final stateCtrl = TextEditingController();
+  final casteCtrl = TextEditingController();
+  final neetScoreCtrl = TextEditingController();
 
   /// ───────── INIT ─────────
   @override
@@ -75,12 +80,30 @@ class ProfileController extends GetxController {
 
       profile.value = result;
       _fillControllers(result);
+      progressController.updateProfile(result);
+      progressController.update();
     } catch (e) {
       print("❌ PROFILE ERROR → $e");
       Get.snackbar("Profile Error", e.toString());
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// ───────── NORMALIZE DATE ─────────
+  String _normalizeDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '';
+    // Try ISO format (YYYY-MM-DD or datetime)
+    final iso = DateTime.tryParse(raw);
+    if (iso != null) return raw.split('T').first;
+    // Try DD-MM-YYYY or DD/MM/YYYY
+    final parts = raw.split(RegExp(r'[-/.]'));
+    if (parts.length == 3 && parts[0].length <= 2) {
+      final reordered =
+          '${parts[2]}-${parts[1].padLeft(2, '0')}-${parts[0].padLeft(2, '0')}';
+      if (DateTime.tryParse(reordered) != null) return reordered;
+    }
+    return raw;
   }
 
   /// ───────── ENABLE EDIT ─────────
@@ -91,11 +114,16 @@ class ProfileController extends GetxController {
     firstNameCtrl.text = p.user.firstName ?? '';
     lastNameCtrl.text = p.user.lastName ?? '';
     addressCtrl.text = p.address ?? '';
-    dobCtrl.text = p.dateOfBirth ?? '';
+    dobCtrl.text = _normalizeDate(p.dateOfBirth);
     tenthCtrl.text = p.tenthPercentage?.toString() ?? '';
     twelthCtrl.text = p.twelthPercentage?.toString() ?? '';
     pcbCtrl.text = p.twelthPcb?.toString() ?? '';
     nationalityCtrl.text = p.nationality ?? '';
+    courseCtrl.text = p.course ?? '';
+    categoryCtrl.text = p.category ?? '';
+    stateCtrl.text = p.state ?? '';
+    casteCtrl.text = p.caste ?? '';
+    neetScoreCtrl.text = p.neetScore?.toString() ?? '';
 
     isEditMode.value = true;
   }
@@ -104,12 +132,17 @@ class ProfileController extends GetxController {
     firstNameCtrl.text = p.user.firstName ?? '';
     lastNameCtrl.text = p.user.lastName ?? '';
     addressCtrl.text = p.address ?? '';
-    dobCtrl.text = p.dateOfBirth ?? '';
+    dobCtrl.text = _normalizeDate(p.dateOfBirth);
     tenthCtrl.text = p.tenthPercentage ?? '';
     twelthCtrl.text = p.twelthPercentage ?? '';
     pcbCtrl.text = p.twelthPcb ?? '';
     nationalityCtrl.text = p.nationality ?? '';
     neetCtrl.text = p.neetScore?.toString() ?? '';
+    courseCtrl.text = p.course ?? '';
+    categoryCtrl.text = p.category ?? '';
+    stateCtrl.text = p.state ?? '';
+    casteCtrl.text = p.caste ?? '';
+    neetScoreCtrl.text = p.neetScore?.toString() ?? '';
   }
 
   void cancelEdit() {
@@ -142,7 +175,7 @@ class ProfileController extends GetxController {
         neetScore: int.tryParse(neetCtrl.text),
         nationality: nationalityCtrl.text.isEmpty ? null : nationalityCtrl.text,
         dateOfBirth: dobCtrl.text.isNotEmpty
-            ? DateTime.tryParse(dobCtrl.text)
+            ? DateTime.tryParse(_normalizeDate(dobCtrl.text))
             : null,
         profilePicture: selectedProfileImage,
       );

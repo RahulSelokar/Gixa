@@ -33,5 +33,7 @@ void main() async {
   /// Controllers
   Get.put(ProfileController(), permanent: true);
 
+  // IMPORTANT: Gixa is a GetMaterialApp (see app.dart)
+  // Do NOT replace with MaterialApp or navigation/snackbar will break!
   runApp(const Gixa());
 }

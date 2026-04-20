@@ -29,8 +29,8 @@ class CounselorListView extends StatelessWidget {
       backgroundColor: bg,
       appBar: AppBar(
         title: Text(
-          "Choose Counselor",
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          'choose_counselor'.tr,
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600),
         ),
         backgroundColor: surface,
         elevation: 0,
@@ -145,7 +145,7 @@ class _CounselorCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           counselor.name,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: textPrimary,
@@ -160,7 +160,7 @@ class _CounselorCard extends StatelessWidget {
 
                   Text(
                     counselor.specialization,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       fontSize: 13,
                       color: textSecondary,
                     ),
@@ -174,7 +174,7 @@ class _CounselorCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         "${counselor.experienceYears} yrs experience",
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.inter(
                           fontSize: 12,
                           color: textSecondary,
                         ),
@@ -190,7 +190,7 @@ class _CounselorCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         "${counselor.rating} (${counselor.totalReviews})",
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.inter(
                           fontSize: 12,
                           color: textSecondary,
                         ),
@@ -218,7 +218,7 @@ class _CounselorCard extends StatelessWidget {
                       ),
                       child: Text(
                         "Select",
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -282,15 +282,12 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             "No counselors available",
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+            style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 6),
           Text(
             "Please try again later",
-            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+            style: GoogleFonts.inter(fontSize: 13, color: Colors.grey),
           ),
         ],
       ),

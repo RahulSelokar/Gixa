@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/subscription/controller/subsciption_history_controller.dart';
+import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -10,7 +11,8 @@ class SubscriptionHistoryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-final controller = Get.put(SubscriptionHistoryController());
+    final controller = Get.put(SubscriptionHistoryController());
+    final subController = Get.find<SubscriptionController>();
 
     final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF6F7FB);
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -26,6 +28,12 @@ final controller = Get.put(SubscriptionHistoryController());
         foregroundColor: isDark ? Colors.white : Colors.black,
       ),
       body: Obx(() {
+        print("===== HISTORY PAGE DEBUG =====");
+        print("Is Subscribed: ${subController.isSubscribed}");
+        print("Active Plan: ${subController.activePlan.value?.planName}");
+        print("History Count: ${controller.historyList.length}");
+        print("==============================");
+
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator());
         }

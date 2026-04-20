@@ -46,7 +46,7 @@ class CollegeTags extends StatelessWidget {
             // Tag 3: Area (Orange)
             // Note: Assuming '320 Acres' is hardcoded or comes from a property not shown in the snippet
             _ModernTag(
-              text: "320 Acres", 
+              text: "320 Acres",
               icon: Icons.landscape_rounded,
               baseColor: const Color(0xFFFF9100),
               isDark: isDark,
@@ -74,20 +74,20 @@ class _ModernTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // --- Dynamic Theme Logic ---
-    
+
     // Light: Very faint pastel bg, Strong text
     // Dark: Slightly transparent colored bg, Lighter text for contrast
-    final Color bgColor = isDark 
-        ? baseColor.withOpacity(0.15) 
+    final Color bgColor = isDark
+        ? baseColor.withOpacity(0.15)
         : baseColor.withOpacity(0.1);
 
     // Light: No border
     // Dark: Subtle colored border to define edges against dark bg
-    final BoxBorder? border = isDark 
-        ? Border.all(color: baseColor.withOpacity(0.4), width: 1) 
+    final BoxBorder? border = isDark
+        ? Border.all(color: baseColor.withOpacity(0.4), width: 1)
         : null;
 
-    final Color contentColor = isDark 
+    final Color contentColor = isDark
         ? Colors.white.withOpacity(0.9) // White-ish in dark mode
         : baseColor.withOpacity(1.0); // Strong color in light mode
 
@@ -104,12 +104,12 @@ class _ModernTag extends StatelessWidget {
           Icon(
             icon,
             size: 14,
-            color: isDark ? baseColor.withOpacity(0.8) : baseColor, 
+            color: isDark ? baseColor.withOpacity(0.8) : baseColor,
           ),
           const SizedBox(width: 6),
           Text(
             text,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,
               color: contentColor,

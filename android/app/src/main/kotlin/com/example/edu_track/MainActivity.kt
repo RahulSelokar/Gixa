@@ -1,4 +1,4 @@
-package com.zappkode.ems
+package com.gixa.services
 
 import io.flutter.embedding.android.FlutterActivity
 

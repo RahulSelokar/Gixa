@@ -1,20 +1,29 @@
 import 'package:Gixa/routes/app_routes.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../controllers/otp_controller.dart';
 
 class LoginWithOtpPage extends StatelessWidget {
   LoginWithOtpPage({super.key});
 
-  final controller = Get.put(OtpController());
+  final controller = Get.find<OtpController>();
   final phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   // Modern Indigo Primary Color
   final Color primaryColor = const Color(0xFF4F46E5);
+
+  Future<void> openUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $url';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +32,17 @@ class LoginWithOtpPage extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     // Theme Colors
-    final backgroundColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
+    final backgroundColor = isDark
+        ? const Color(0xFF0F172A)
+        : const Color(0xFFF1F5F9);
     final surfaceColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final textColor = isDark ? Colors.white : const Color(0xFF1E293B);
     final subTextColor = isDark ? Colors.grey[400] : Colors.grey[600];
     final borderColor = isDark ? Colors.white12 : Colors.grey[200];
 
     return Scaffold(
-      backgroundColor: primaryColor, 
-      resizeToAvoidBottomInset: true, 
+      backgroundColor: primaryColor,
+      resizeToAvoidBottomInset: true,
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Stack(
@@ -141,15 +152,18 @@ class LoginWithOtpPage extends StatelessWidget {
                         const SizedBox(height: 32),
 
                         // Google Button
-                        _buildGoogleButton(isDark, borderColor, textColor),
-
+                        // _buildGoogleButton(isDark, borderColor, textColor),
                         const SizedBox(height: 40),
 
                         // Footer
                         _buildTermsText(subTextColor),
-                        
+
                         // Extra padding for keyboard
-                        SizedBox(height: MediaQuery.of(context).viewInsets.bottom > 0 ? 200 : 20),
+                        SizedBox(
+                          height: MediaQuery.of(context).viewInsets.bottom > 0
+                              ? 200
+                              : 20,
+                        ),
                       ],
                     ),
                   ),
@@ -198,7 +212,9 @@ class LoginWithOtpPage extends StatelessWidget {
             hintText: '00000 00000',
             hintStyle: TextStyle(color: Colors.grey[400], letterSpacing: 1.2),
             filled: true,
-            fillColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+            fillColor: isDark
+                ? const Color(0xFF0F172A)
+                : const Color(0xFFF8FAFC),
             counterText: '',
             prefixIcon: Container(
               width: 60,
@@ -237,55 +253,61 @@ class LoginWithOtpPage extends StatelessWidget {
   }
 
   Widget _buildLoginButton() {
-    return Obx(() => SizedBox(
-      height: 58,
-      child: ElevatedButton(
-        onPressed: controller.isLoading.value
-            ? null
-            : () async {
-                if (_formKey.currentState!.validate()) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                  await controller.sendOtp(phoneController.text);
-                  Get.toNamed(
-                    AppRoutes.verifyOtp,
-                    arguments: {'mobileNumber': phoneController.text},
-                  );
-                }
-              },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          elevation: 5,
-          shadowColor: primaryColor.withOpacity(0.4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+    return Obx(
+      () => SizedBox(
+        height: 58,
+        child: ElevatedButton(
+          onPressed: controller.isLoading.value
+              ? null
+              : () async {
+                  if (_formKey.currentState!.validate()) {
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    await controller.sendOtp(phoneController.text);
+                    Get.toNamed(
+                      AppRoutes.verifyOtp,
+                      arguments: {'mobileNumber': phoneController.text},
+                    );
+                  }
+                },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: primaryColor,
+            elevation: 5,
+            shadowColor: primaryColor.withOpacity(0.4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
           ),
-        ),
-        child: controller.isLoading.value
-            ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2.5,
-                ),
-              )
-            : const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Get OTP',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+          child: controller.isLoading.value
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
                   ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
-                ],
-              ),
+                )
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Get OTP',
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ],
+                ),
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildDivider(bool isDark, Color? subTextColor) {
@@ -340,7 +362,8 @@ class LoginWithOtpPage extends StatelessWidget {
               'assets/icons/google.png',
               height: 24,
               width: 24,
-              errorBuilder: (ctx, err, stack) => Icon(Icons.g_mobiledata, size: 28, color: textColor),
+              errorBuilder: (ctx, err, stack) =>
+                  Icon(Icons.g_mobiledata, size: 28, color: textColor),
             ),
             const SizedBox(width: 12),
             Text(
@@ -371,6 +394,10 @@ class LoginWithOtpPage extends StatelessWidget {
                 color: primaryColor,
                 fontWeight: FontWeight.w700,
               ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  openUrl("https://gixa.in/terms-conditions/");
+                },
             ),
             const TextSpan(text: " and "),
             TextSpan(
@@ -379,6 +406,10 @@ class LoginWithOtpPage extends StatelessWidget {
                 color: primaryColor,
                 fontWeight: FontWeight.w700,
               ),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () {
+                  openUrl("https://gixa.in/privacy-policy/");
+                },
             ),
           ],
         ),

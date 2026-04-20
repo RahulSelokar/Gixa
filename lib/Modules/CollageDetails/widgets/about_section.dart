@@ -5,24 +5,23 @@ import 'package:google_fonts/google_fonts.dart';
 class AboutSection extends StatelessWidget {
   final CollegeDetail college;
 
-  const AboutSection({
-    super.key,
-    required this.college,
-  });
+  const AboutSection({super.key, required this.college});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // --- Theme Palette ---
     final Color titleColor = isDark ? Colors.white : const Color(0xFF111111);
-    final Color bodyColor = isDark ? Colors.grey[400]! : const Color(0xFF666666);
+    final Color bodyColor = isDark
+        ? Colors.grey[400]!
+        : const Color(0xFF666666);
     final Color iconColor = isDark ? Colors.blue[300]! : Colors.blue[700]!;
 
     // Fallback text if API returns empty string
-    final String description = college.about.isNotEmpty
-        ? college.about
-        : "${college.name} is one of the premier institutes created to be a Centre of Excellence for training, research, and development in science, engineering, and technology. It offers a wide range of undergraduate and postgraduate programs with state-of-the-art facilities.";
+    // final String description = college.about.isNotEmpty
+    //     ? college.about
+    //     : "${college.name} is one of the premier institutes created to be a Centre of Excellence for training, research, and development in science, engineering, and technology. It offers a wide range of undergraduate and postgraduate programs with state-of-the-art facilities.";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +33,7 @@ class AboutSection extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               "About Institute",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: titleColor,
@@ -43,10 +42,10 @@ class AboutSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        
+
         // Expandable Body Text
         _ExpandableText(
-          text: description,
+          text: "Not Available", // Replace with 'description' when API is fixed
           textColor: bodyColor,
           linkColor: iconColor,
         ),
@@ -84,7 +83,7 @@ class _ExpandableTextState extends State<_ExpandableText> {
         // Create a TextSpan to measure
         final span = TextSpan(
           text: widget.text,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.inter(
             fontSize: 14,
             height: 1.6, // Good line height for readability
           ),
@@ -112,15 +111,17 @@ class _ExpandableTextState extends State<_ExpandableText> {
               child: Text(
                 widget.text,
                 maxLines: isExpanded ? null : maxLines,
-                overflow: isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
+                overflow: isExpanded
+                    ? TextOverflow.visible
+                    : TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
                   fontSize: 14,
                   color: widget.textColor,
                   height: 1.6,
                 ),
               ),
             ),
-            
+
             // The "Read More" Button (Only show if overflowing)
             if (isOverflowing) ...[
               const SizedBox(height: 6),
@@ -135,19 +136,19 @@ class _ExpandableTextState extends State<_ExpandableText> {
                   children: [
                     Text(
                       isExpanded ? "Read Less" : "Read More",
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: widget.linkColor,
                       ),
                     ),
                     Icon(
-                      isExpanded 
-                        ? Icons.keyboard_arrow_up_rounded 
-                        : Icons.keyboard_arrow_down_rounded,
+                      isExpanded
+                          ? Icons.keyboard_arrow_up_rounded
+                          : Icons.keyboard_arrow_down_rounded,
                       size: 16,
                       color: widget.linkColor,
-                    )
+                    ),
                   ],
                 ),
               ),

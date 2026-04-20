@@ -99,7 +99,7 @@ class CollegeCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       // Text(
                       //   rank,
-                      //   style: GoogleFonts.poppins(
+                      //   style: GoogleFonts.inter(
                       //     color: Colors.white,
                       //     fontSize: 10,
                       //     fontWeight: FontWeight.bold,
@@ -111,25 +111,25 @@ class CollegeCard extends StatelessWidget {
               ),
 
               // ❤️ Favorite Button (Top Right - Glassmorphism)
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  height: 32,
-                  width: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.25), // Glass effect
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.bookmark_border_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                  ),
-                ),
-              ),
+              // Positioned(
+              //   top: 12,
+              //   right: 12,
+              //   child: Container(
+              //     height: 32,
+              //     width: 32,
+              //     decoration: BoxDecoration(
+              //       color: Colors.white.withOpacity(0.25), // Glass effect
+              //       shape: BoxShape.circle,
+              //     ),
+              //     child: Center(
+              //       child: Icon(
+              //         Icons.bookmark_border_rounded,
+              //         color: Colors.white,
+              //         size: 18,
+              //       ),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
 
@@ -142,7 +142,7 @@ class CollegeCard extends StatelessWidget {
                 // College Name
                 Text(
                   name,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: textColor,
@@ -166,7 +166,7 @@ class CollegeCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         location,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.inter(
                           fontSize: 12,
                           color: subTextColor,
                           fontWeight: FontWeight.w500,
@@ -193,9 +193,7 @@ class CollegeCard extends StatelessWidget {
                   onTap: () {
                     Get.toNamed(
                       AppRoutes.collageDetails,
-                      arguments: {
-                        'collegeId': id,
-                      },
+                      arguments: {'collegeId': id},
                     );
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -206,7 +204,7 @@ class CollegeCard extends StatelessWidget {
                       children: [
                         Text(
                           "View Details",
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.inter(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: primaryBlue,

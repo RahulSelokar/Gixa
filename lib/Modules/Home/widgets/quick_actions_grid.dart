@@ -24,7 +24,9 @@ class QuickActionCard extends StatelessWidget {
 
     // Define card background based on theme
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final borderColor = isDark ? Colors.white.withOpacity(0.1) : Colors.grey.withOpacity(0.15);
+    final borderColor = isDark
+        ? Colors.white.withOpacity(0.1)
+        : Colors.grey.withOpacity(0.15);
 
     return Container(
       decoration: BoxDecoration(
@@ -33,7 +35,9 @@ class QuickActionCard extends StatelessWidget {
         border: Border.all(color: borderColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.2) : Colors.grey.withOpacity(0.08),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.grey.withOpacity(0.08),
             blurRadius: 24,
             offset: const Offset(0, 8),
             spreadRadius: -2,
@@ -77,18 +81,16 @@ class QuickActionCard extends StatelessWidget {
                           width: 1,
                         ),
                       ),
-                      child: Icon(
-                        icon,
-                        size: 26,
-                        color: iconBgColor,
-                      ),
+                      child: Icon(icon, size: 26, color: iconBgColor),
                     ),
 
                     // Arrow Indicator Circle
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.05),
+                        color: isDark
+                            ? Colors.white.withOpacity(0.05)
+                            : Colors.grey.withOpacity(0.05),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -110,7 +112,7 @@ class QuickActionCard extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: isDark ? Colors.white : const Color(0xFF1F2937),
@@ -122,7 +124,7 @@ class QuickActionCard extends StatelessWidget {
                       subtitle,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 12,
                         color: isDark ? Colors.grey[400] : Colors.grey[500],
                         height: 1.4,

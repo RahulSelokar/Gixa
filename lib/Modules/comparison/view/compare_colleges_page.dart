@@ -19,6 +19,7 @@ class _CompareCollegesViewState extends State<CompareCollegesView>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   final ScrollController _scrollController = ScrollController();
+  bool _isFromHistory = false;
 
   // Modern Color Palette
   final Color primaryBlue = const Color(0xFF2563EB);
@@ -29,14 +30,26 @@ class _CompareCollegesViewState extends State<CompareCollegesView>
   @override
   void initState() {
     super.initState();
+
+    // Determine source before the frame callback
+    final args = Get.arguments;
+    _isFromHistory = args != null && args is! Map;
+
+    // Defer controller init to avoid setState-during-build errors
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.find<CollegeCompareController>().initFromArgs(args);
+    });
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
+
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.fastOutSlowIn,
     );
+
     _animationController.forward();
   }
 
@@ -153,10 +166,53 @@ class _CompareCollegesViewState extends State<CompareCollegesView>
                           _buildDivider(isDark),
                           _buildComparisonRow(
                             label: "Established",
-                            // Assuming you have this data, otherwise replace with another field
-                            values: colleges.map((e) => "1995").toList(),
+                            values: colleges
+                                .map(
+                                  (e) => e.yearEstablished?.toString() ?? "N/A",
+                                )
+                                .toList(),
                             icon: Icons.history_edu_rounded,
                             color: const Color(0xFF10B981), // Green
+                            isDark: isDark,
+                          ),
+                          _buildDivider(isDark),
+                          _buildComparisonRow(
+                            label: "Institute Type",
+                            values: colleges
+                                .map((e) => e.instituteTypeName ?? "N/A")
+                                .toList(),
+                            icon: Icons.account_balance_rounded,
+                            color: const Color(0xFF6366F1),
+                            isDark: isDark,
+                          ),
+                          _buildDivider(isDark),
+                          _buildComparisonRow(
+                            label: "State",
+                            values: colleges
+                                .map((e) => e.stateName ?? "N/A")
+                                .toList(),
+                            icon: Icons.map_rounded,
+                            color: const Color(0xFF14B8A6),
+                            isDark: isDark,
+                          ),
+                          _buildDivider(isDark),
+                          _buildComparisonRow(
+                            label: "Total Seats",
+                            values: colleges
+                                .map((e) => e.totalSeatsCount.toString())
+                                .toList(),
+                            icon: Icons.event_seat_rounded,
+                            color: const Color(0xFFEC4899),
+                            isDark: isDark,
+                          ),
+                          _buildDivider(isDark),
+                          _buildComparisonRow(
+                            label: "Contact",
+                            values: colleges
+                                .map((e) => e.contactEmail ?? "Not Available")
+                                .toList(),
+                            icon: Icons.phone_rounded,
+                            color: const Color(0xFFF97316),
                             isDark: isDark,
                           ),
                         ],
@@ -179,7 +235,8 @@ class _CompareCollegesViewState extends State<CompareCollegesView>
             left: 20,
             right: 20,
             child: Obx(() {
-              if (!controller.isLoading.value &&
+              if (!_isFromHistory &&
+                  !controller.isLoading.value &&
                   controller.compareResult.value != null &&
                   controller.compareResult.value!.comparison.length >= 2) {
                 return _buildFloatingButton(controller);
@@ -664,29 +721,25 @@ class _CompareCollegesViewState extends State<CompareCollegesView>
   Widget _buildChartSection(List<CollegeComparison> colleges, bool isDark) {
     // Helper to determine bar height and color based on admission chance
     double getHeight(String chance) {
-      switch (chance.toLowerCase()) {
-        case 'high':
-          return 4.5;
-        case 'moderate':
-          return 3.0;
-        case 'low':
-          return 1.5;
-        default:
-          return 2.0;
-      }
+      final c = chance.toLowerCase();
+
+      if (c.contains("high")) return 4.5;
+      if (c.contains("moderate")) return 3.0;
+      if (c.contains("low")) return 1.5;
+      if (c.contains("no matching")) return 1.0;
+
+      return 2.0;
     }
 
     Color getColor(String chance) {
-      switch (chance.toLowerCase()) {
-        case 'high':
-          return const Color(0xFF10B981); // Emerald
-        case 'moderate':
-          return const Color(0xFFF59E0B); // Amber
-        case 'low':
-          return const Color(0xFFEF4444); // Red
-        default:
-          return Colors.grey;
-      }
+      final c = chance.toLowerCase();
+
+      if (c.contains("high")) return const Color(0xFF10B981);
+      if (c.contains("moderate")) return const Color(0xFFF59E0B);
+      if (c.contains("low")) return const Color(0xFFEF4444);
+      if (c.contains("no matching")) return Colors.grey;
+
+      return Colors.grey;
     }
 
     return Container(
@@ -880,6 +933,10 @@ class _CompareCollegesViewState extends State<CompareCollegesView>
   // 🤖 AI INSIGHT
   // ==========================================================
   Widget _buildAiInsightCard(List<CollegeComparison> colleges, bool isDark) {
+    final bestCollege = colleges.firstWhere(
+      (c) => c.admissionChances.toLowerCase().contains("high"),
+      orElse: () => colleges.first,
+    );
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -927,7 +984,7 @@ class _CompareCollegesViewState extends State<CompareCollegesView>
           ),
           const SizedBox(height: 16),
           Text(
-            "Based on your profile, ${colleges.first.collegeName} offers the highest admission probability with better infrastructure facilities.",
+            "Based on your profile, ${bestCollege.collegeName} looks like the better option considering available seats and admission probability.",
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,

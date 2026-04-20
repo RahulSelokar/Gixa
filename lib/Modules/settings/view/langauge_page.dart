@@ -9,9 +9,17 @@ class LangaugePage extends StatelessWidget {
   final LanguageController languageController = Get.put(LanguageController());
   final Map<String, String> languages = const {
     'en': 'English',
-    'hi': 'हिंदी',
+    'hi': 'हिन्दी',
     'mr': 'मराठी',
     'te': 'తెలుగు',
+    'bn': 'বাংলা',
+    'gu': 'ગુજરાતી',
+    'kn': 'ಕನ್ನಡ',
+    'ml': 'മലയാളം',
+    'or': 'ଓଡ଼ିଆ',
+    'pa': 'ਪੰਜਾਬੀ',
+    'ta': 'தமிழ்',
+    'ur': 'اردو',
   };
 
   @override
@@ -22,8 +30,7 @@ class LangaugePage extends StatelessWidget {
     final surface = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final border = isDark ? Colors.grey[800]! : Colors.grey[300]!;
     final textColor = isDark ? Colors.white : Colors.black;
-    final subtitleColor =
-        isDark ? Colors.grey[400]! : Colors.grey[600]!;
+    final subtitleColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
 
     return Scaffold(
       backgroundColor: bg,
@@ -50,12 +57,11 @@ class LangaugePage extends StatelessWidget {
             child: Obx(() {
               return DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
-                  value:
-                      languageController.locale.value.languageCode,
+                  value: languageController.locale.value.languageCode,
                   isExpanded: true,
                   icon: Icon(Icons.language, color: textColor),
                   dropdownColor: surface,
-                  style: GoogleFonts.poppins(color: textColor),
+                  style: GoogleFonts.inter(color: textColor),
 
                   items: languages.entries.map((entry) {
                     return DropdownMenuItem<String>(
@@ -84,10 +90,7 @@ class LangaugePage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'language_change_hint'.tr,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: subtitleColor,
-              ),
+              style: GoogleFonts.inter(fontSize: 12, color: subtitleColor),
             ),
           ),
         ],
@@ -103,7 +106,7 @@ class LangaugePage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
       child: Text(
         title,
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.inter(
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: Colors.grey,

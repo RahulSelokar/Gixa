@@ -66,19 +66,58 @@ class SubscriptionHistory {
 class Plan {
   final int id;
   final String planName;
+  final String planCode;
   final String planType;
+  final String amount;
+  final int durationDays;
+  final String description;
+  final bool isRecommended;
+  final List<Feature> features;
 
   Plan({
     required this.id,
     required this.planName,
+    required this.planCode,
     required this.planType,
+    required this.amount,
+    required this.durationDays,
+    required this.description,
+    required this.isRecommended,
+    required this.features,
   });
 
   factory Plan.fromJson(Map<String, dynamic> json) {
     return Plan(
       id: json['id'],
       planName: json['plan_name'],
+      planCode: json['plan_code'],
       planType: json['plan_type'],
+      amount: json['amount'],
+      durationDays: json['duration_days'],
+      description: json['description'],
+      isRecommended: json['is_recommended'],
+      features: (json['features'] as List)
+          .map((e) => Feature.fromJson(e))
+          .toList(),
+    );
+  }
+}
+class Feature {
+  final int id;
+  final String featureTitle;
+  final String featureDescription;
+
+  Feature({
+    required this.id,
+    required this.featureTitle,
+    required this.featureDescription,
+  });
+
+  factory Feature.fromJson(Map<String, dynamic> json) {
+    return Feature(
+      id: json['id'],
+      featureTitle: json['feature_title'],
+      featureDescription: json['feature_description'],
     );
   }
 }

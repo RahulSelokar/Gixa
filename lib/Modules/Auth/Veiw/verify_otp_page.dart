@@ -52,7 +52,11 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                     Align(
                       alignment: Alignment.topLeft,
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                        icon: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                         onPressed: () => Get.back(),
                       ),
                     ),
@@ -117,30 +121,33 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      
+
                       // Subtitle with Phone Number
-                      Obx(() => RichText(
-                        textAlign: TextAlign.center,
-                        text: TextSpan(
-                          text: 'We have sent the code verification to\n',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: subTextColor,
-                            height: 1.5,
-                            fontFamily: theme.textTheme.bodyMedium?.fontFamily,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: "+91 ${controller.mobileNumber.value}",
-                              style: TextStyle(
-                                color: textColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
+                      Obx(
+                        () => RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            text: 'We have sent the code verification to\n',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: subTextColor,
+                              height: 1.5,
+                              fontFamily:
+                                  theme.textTheme.bodyMedium?.fontFamily,
                             ),
-                          ],
+                            children: [
+                              TextSpan(
+                                text: "+91 ${controller.mobileNumber.value}",
+                                style: TextStyle(
+                                  color: textColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      )),
+                      ),
 
                       const SizedBox(height: 40),
 
@@ -163,8 +170,12 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
 
                       // Verify Button
                       _buildVerifyButton(),
-                      
-                      SizedBox(height: MediaQuery.of(context).viewInsets.bottom > 0 ? 200 : 20),
+
+                      SizedBox(
+                        height: MediaQuery.of(context).viewInsets.bottom > 0
+                            ? 200
+                            : 20,
+                      ),
                     ],
                   ),
                 ),
@@ -280,7 +291,10 @@ class OtpInputField extends StatefulWidget {
 
 class _OtpInputFieldState extends State<OtpInputField> {
   // Using 6 controllers for 6 boxes
-  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   @override
@@ -295,7 +309,7 @@ class _OtpInputFieldState extends State<OtpInputField> {
   }
 
   void _onChanged(String value, int index) {
-    // 1. If text entered, move next
+    // If text entered, move next
     if (value.isNotEmpty) {
       if (index < 5) {
         _focusNodes[index + 1].requestFocus();
@@ -306,11 +320,9 @@ class _OtpInputFieldState extends State<OtpInputField> {
         widget.onCompleted(otp);
       }
     }
-    // 2. Backspace logic is usually handled by RawKeyboardListener or 
-    // simply detection empty on change doesn't always work perfectly for backspace 
-    // on empty fields in stock Flutter TextField without a package. 
-    // However, keeping it simple for this snippet:
+    // If text deleted and not first field, move back and clear previous
     if (value.isEmpty && index > 0) {
+      _controllers[index - 1].text = '';
       _focusNodes[index - 1].requestFocus();
     }
   }
@@ -321,18 +333,17 @@ class _OtpInputFieldState extends State<OtpInputField> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(6, (index) {
         return SizedBox(
-          width: 48, 
+          width: 48,
           height: 60,
           child: RawKeyboardListener(
             focusNode: FocusNode(), // Dummy node for listener
             onKey: (event) {
               if (event.runtimeType == RawKeyDownEvent &&
-                  event.logicalKey == LogicalKeyboardKey.backspace &&
-                  _controllers[index].text.isEmpty &&
-                  index > 0) {
-                // Handle backspace when field is empty to move back
-                _focusNodes[index - 1].requestFocus();
-                // Optionally clear the previous field here too if desired behavior
+                  event.logicalKey == LogicalKeyboardKey.backspace) {
+                if (_controllers[index].text.isEmpty && index > 0) {
+                  _controllers[index - 1].text = '';
+                  _focusNodes[index - 1].requestFocus();
+                }
               }
             },
             child: TextField(
@@ -349,14 +360,14 @@ class _OtpInputFieldState extends State<OtpInputField> {
               decoration: InputDecoration(
                 counterText: "",
                 filled: true,
-                fillColor: widget.isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                fillColor: widget.isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF1F5F9),
                 contentPadding: EdgeInsets.zero,
-                // Default Border
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
-                // Focused Border
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: widget.primaryColor, width: 2),
@@ -429,12 +440,20 @@ class _ModernSessionDialog extends StatelessWidget {
               color: dangerColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.warning_amber_rounded, color: dangerColor, size: 32),
+            child: Icon(
+              Icons.warning_amber_rounded,
+              color: dangerColor,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 20),
           Text(
             "Session Conflict",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: titleColor),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: titleColor,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
@@ -450,9 +469,17 @@ class _ModernSessionDialog extends StatelessWidget {
                   onPressed: () => Get.back(),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: Text("Cancel", style: TextStyle(fontWeight: FontWeight.w600, color: bodyColor)),
+                  child: Text(
+                    "Cancel",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: bodyColor,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -466,9 +493,17 @@ class _ModernSessionDialog extends StatelessWidget {
                     backgroundColor: dangerColor,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text("Logout Others", style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                  child: const Text(
+                    "Logout Others",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
             ],

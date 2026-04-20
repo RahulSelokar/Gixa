@@ -11,6 +11,7 @@ class College {
   final String? hostelFor;
   final Courses courses;
   final String? coverImage;
+  final int? totalSeats;
 
   College({
     required this.collegeCode,
@@ -23,6 +24,7 @@ class College {
     required this.hostelFor,
     required this.courses,
     required this.coverImage,
+    this.totalSeats,
   });
 
   factory College.fromJson(Map<String, dynamic> json) {
@@ -32,7 +34,7 @@ class College {
       name: json['college_name'],
       state: StateModel.fromJson(json['state']),
       instituteType: InstituteType.fromJson(json['institute_type']),
-      yearEstablished: json['year_established'], 
+      yearEstablished: json['year_established'],
       hostelAvailable: json['hostel_available'],
       hostelFor: json['hostel_for'],
       coverImage:
@@ -41,6 +43,7 @@ class College {
           ? json['cover_image']
           : null,
       courses: Courses.fromJson(json['courses']),
+      totalSeats: json['total_seats'],
     );
   }
   String? get displayImage {

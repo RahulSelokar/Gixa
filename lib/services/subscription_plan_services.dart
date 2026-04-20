@@ -10,6 +10,7 @@ class SubscriptionApi {
   /// 🔹 GET SUBSCRIPTION PLANS
   static Future<List<SubscriptionPlan>> getPlans() async {
     final response = await ApiClient.get(ApiEndpoints.subscriptionPlans);
+    print("[API] getPlans response: $response");
     final parsed = SubscriptionPlanResponse.fromJson(response);
     return parsed.data;
   }
@@ -24,6 +25,7 @@ class SubscriptionApi {
       if (couponCode != null && couponCode.isNotEmpty)
         "coupon_code": couponCode,
     });
+    print("[API] purchaseSubscription response: $response");
     return SubscriptionPurchaseResponse.fromJson(response);
   }
 
@@ -43,6 +45,7 @@ class SubscriptionApi {
           "coupon_code": couponCode ?? "",
           "extra_days": extraDays,
         });
+    print("[API] createOrder response: $response");
     return CreateOrderResponse.fromJson(response);
   }
 
@@ -58,6 +61,7 @@ class SubscriptionApi {
           "razorpay_payment_id": razorpayPaymentId,
           "razorpay_signature": razorpaySignature,
         });
+    print("[API] verifyPayment response: $response");
     return VerifyPaymentResponse.fromJson(response);
   }
 
@@ -69,8 +73,7 @@ class SubscriptionApi {
       ApiEndpoints.subscriptionHistory(userId),
     );
 
-    print("══════════════════════════════════════");
-    print("📥 SUBSCRIPTION RAW RESPONSE: $response");
+    print("[API] getSubscriptionHistory response: $response");
 
     if (response is! Map<String, dynamic>) {
       throw Exception("Invalid response format");

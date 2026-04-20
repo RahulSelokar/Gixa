@@ -1,6 +1,7 @@
 import 'package:Gixa/Modules/register/model/register_request.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/routes/app_start_controller.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -64,7 +65,7 @@ class RegisterPage extends StatelessWidget {
             ),
             title: Text(
               "Create Account",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 color: isDark ? Colors.white : Colors.black,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -92,7 +93,7 @@ class RegisterPage extends StatelessWidget {
                     /// HEADER
                     Text(
                       "Let's get you started",
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.white : Colors.black87,
@@ -101,7 +102,7 @@ class RegisterPage extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       "Please fill in your details to continue.",
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.inter(
                         fontSize: 14,
                         color: isDark ? Colors.grey[400] : Colors.grey[600],
                       ),
@@ -217,7 +218,11 @@ class RegisterPage extends StatelessWidget {
                       value: controller.selectedState.value,
                       items: controller.states,
                       labelBuilder: (e) => e.name,
-                      onChanged: (v) => controller.selectedState.value = v,
+                      onChanged: (v) {
+                        if (v != null) {
+                          controller.updateCategoriesByState(v);
+                        }
+                      },
                       icon: Icons.map_outlined,
                     ),
                     const SizedBox(height: 16),
@@ -331,7 +336,7 @@ class RegisterPage extends StatelessWidget {
                                 )
                               : Text(
                                   "Complete Registration",
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.inter(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -392,7 +397,7 @@ class RegisterPage extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 12),
     child: Text(
       title.toUpperCase(),
-      style: GoogleFonts.poppins(
+      style: GoogleFonts.inter(
         fontSize: 12,
         fontWeight: FontWeight.bold,
         letterSpacing: 1,
@@ -465,23 +470,68 @@ Widget _dropdown<T>(
   required String Function(T) labelBuilder,
   required ValueChanged<T?> onChanged,
   required IconData icon,
+  bool requiredField = true,
 }) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
-  return DropdownButtonFormField<T>(
-    initialValue: value,
-    items: items
-        .map((e) => DropdownMenuItem(value: e, child: Text(labelBuilder(e))))
-        .toList(),
+  final width = MediaQuery.of(context).size.width;
+  final safeValue = items.contains(value) ? value : null;
+
+  return DropdownButtonFormField2<T>(
+    value: safeValue,
+    isExpanded: true,
+    autovalidateMode: AutovalidateMode.onUserInteraction,
+    validator: (v) {
+      if (!requiredField) return null;
+      if (v == null) return "$label is required";
+      return null;
+    },
+    items: items.map((e) {
+      return DropdownMenuItem<T>(
+        value: e,
+        child: SizedBox(
+          width: width * 0.7,
+          child: Text(
+            labelBuilder(e),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+      );
+    }).toList(),
     onChanged: onChanged,
     decoration: InputDecoration(
-      labelText: label,
+      labelText: requiredField ? "$label *" : label,
       prefixIcon: Icon(icon),
       filled: true,
       fillColor: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF3F4F6),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 1.5),
+      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
       ),
     ),
+    buttonStyleData: const ButtonStyleData(
+      padding: EdgeInsets.only(right: 8),
+      height: 56,
+    ),
+    iconStyleData: const IconStyleData(
+      icon: Icon(Icons.keyboard_arrow_down_rounded),
+      iconSize: 22,
+    ),
+    dropdownStyleData: DropdownStyleData(
+      maxHeight: 300,
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+    ),
+    menuItemStyleData: const MenuItemStyleData(height: 48),
   );
 }

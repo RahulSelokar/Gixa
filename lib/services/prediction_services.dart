@@ -1,100 +1,80 @@
+// import 'package:Gixa/Modules/predication/model/predication_model.dart';
+// import 'package:Gixa/network/api_client.dart';
+// import 'package:Gixa/network/api_endpoints.dart';
+
+// class PredictionService {
+//   static Future<PredictionData> fetchPrediction(
+//     Map<String, dynamic> requestBody,
+//   ) async {
+//     final rawResponse = await ApiClient.post(
+//       ApiEndpoints.predictCollege,
+//       requestBody,
+//     );
+
+//     print("📥 RAW RESPONSE: $rawResponse");
+
+//     if (rawResponse is! Map<String, dynamic>) {
+//       // throw Exception("Invalid API response format");
+//       return PredictionData.fromApiResponse(rawResponse);
+//     }
+
+//     /// ✅ SUCCESS (Govt Colleges)
+//     if (rawResponse["success"] == true) {
+//       final List list = rawResponse["data"] ?? [];
+
+//       final colleges = list.map((e) => CollegeModel.fromApiJson(e)).toList();
+
+//       return PredictionData(
+//         noChanceInHomeState: false,
+//         totalCount: rawResponse["total_colleges"] ?? colleges.length,
+//         predictionId: null,
+//         inputSummary: InputSummary.empty(),
+//         collegeList: colleges,
+//       );
+//     }
+
+//     /// ⚠️ PRIVATE SUGGESTION CASE
+//     if (rawResponse["suggestion_type"] == "private_college") {
+//       final List list = rawResponse["data"] ?? [];
+
+//       final colleges = list
+//           .map((e) => CollegeModel.fromSuggestionJson(e))
+//           .toList();
+
+//       return PredictionData(
+//         noChanceInHomeState: true,
+//         totalCount: colleges.length,
+//         predictionId: null,
+//         inputSummary: InputSummary.empty(),
+//         collegeList: colleges,
+//       );
+//     }
+
+//     throw Exception(rawResponse["message"] ?? "Prediction failed");
+//   }
+// }
+
+
 import 'package:Gixa/Modules/predication/model/predication_model.dart';
 import 'package:Gixa/network/api_client.dart';
 import 'package:Gixa/network/api_endpoints.dart';
 
 class PredictionService {
-
-  /// 🔹 GET COLLEGE PREDICTION
-  static Future<PredictionData> fetchPrediction({
-    required int allIndiaRank,
-    required String category,
-    required String course,
-    required int year,
-    required String state,
-    required String quota,
-    required String counsellingRound,
-  }) async {
-
+  static Future<PredictionData> fetchPrediction(
+    Map<String, dynamic> requestBody,
+  ) async {
     final rawResponse = await ApiClient.post(
       ApiEndpoints.predictCollege,
-      {
-        "all_india_rank": allIndiaRank,
-        "category": category,
-        "course": course,
-        "year": year,
-        "state": state,
-        "quota": quota,
-        "counselling_round": counsellingRound,
-      },
+      requestBody,
     );
 
-    print("🔎 RAW API RESPONSE: $rawResponse");
+    print("📥 RAW RESPONSE: $rawResponse");
 
-    /// --------------------------------------------------------
-    /// HANDLE DIFFERENT RESPONSE STRUCTURES SAFELY
-    /// --------------------------------------------------------
-
-    Map<String, dynamic> response;
-
-    if (rawResponse is Map<String, dynamic>) {
-      response = rawResponse;
-    } else {
+    /// ✅ SAFETY CHECK
+    if (rawResponse is! Map<String, dynamic>) {
       throw Exception("Invalid API response format");
     }
 
-    /// Case 1: Normal structure
-    /// {
-    ///   "success": true,
-    ///   "data": { ... }
-    /// }
-    if (response.containsKey('success')) {
-
-      if (response['success'] == true) {
-
-        final data = response['data'];
-
-        if (data is Map<String, dynamic>) {
-          final parsed = PredictionData.fromJson(data);
-
-          print("✅ SAFE COUNT: ${parsed.safeColleges.length}");
-          print("✅ MODERATE COUNT: ${parsed.moderateColleges.length}");
-          print("✅ AMBITIOUS COUNT: ${parsed.ambitiousColleges.length}");
-          print("✅ NO CUTOFF COUNT: ${parsed.noCutoffColleges.length}");
-
-          return parsed;
-        } else {
-          throw Exception("Invalid data format inside response");
-        }
-
-      } else {
-        throw Exception(response['message'] ?? "Prediction API failed");
-      }
-    }
-
-    /// Case 2: Wrapped inside another "data"
-    /// {
-    ///   "data": {
-    ///       "success": true,
-    ///       "data": { ... }
-    ///   }
-    /// }
-    if (response.containsKey('data') &&
-        response['data'] is Map<String, dynamic> &&
-        response['data']['success'] == true) {
-
-      final innerData = response['data']['data'];
-
-      if (innerData is Map<String, dynamic>) {
-        final parsed = PredictionData.fromJson(innerData);
-
-        print("✅ SAFE COUNT: ${parsed.safeColleges.length}");
-
-        return parsed;
-      } else {
-        throw Exception("Invalid nested data format");
-      }
-    }
-
-    throw Exception("Prediction API failed - Unknown structure");
+    return PredictionData.fromApiResponse(rawResponse);
   }
 }

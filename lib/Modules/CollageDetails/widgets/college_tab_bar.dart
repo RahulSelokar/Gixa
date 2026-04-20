@@ -10,7 +10,7 @@ class CollegeTabs extends GetView<CollegeDetailController> {
   static const List<String> tabs = [
     "Overview",
     "Courses",
-    "seats",
+    "Seats Matrix",
     "Fees",
     "Cutoffs",
     "Reviews",
@@ -19,12 +19,16 @@ class CollegeTabs extends GetView<CollegeDetailController> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // Theme Colors
     final Color kPrimaryBlue = const Color(0xFF2979FF); // More vibrant blue
     final Color inactiveText = isDark ? Colors.grey[500]! : Colors.grey[600]!;
-    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.grey.shade200;
-    final Color backgroundColor = isDark ? const Color(0xFF121212) : Colors.white;
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : Colors.grey.shade200;
+    final Color backgroundColor = isDark
+        ? const Color(0xFF121212)
+        : Colors.white;
 
     return Container(
       color: backgroundColor,
@@ -44,7 +48,8 @@ class CollegeTabs extends GetView<CollegeDetailController> {
                 separatorBuilder: (_, __) => const SizedBox(width: 32),
                 itemBuilder: (context, index) {
                   final isSelected = selectedIndex == index;
-                  final isPremium = tabs[index] == "Fees" || tabs[index] == "Cutoffs";
+                  final isPremium =
+                      tabs[index] == "Fees" || tabs[index] == "Cutoffs";
 
                   return GestureDetector(
                     onTap: () => controller.changeTab(index),
@@ -58,7 +63,7 @@ class CollegeTabs extends GetView<CollegeDetailController> {
                             // Tab Text with Animation
                             AnimatedDefaultTextStyle(
                               duration: const Duration(milliseconds: 200),
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 fontSize: 15,
                                 fontWeight: isSelected
                                     ? FontWeight.w600
@@ -67,22 +72,22 @@ class CollegeTabs extends GetView<CollegeDetailController> {
                               ),
                               child: Text(tabs[index]),
                             ),
-                            
+
                             // Optional: Lock Icon for Premium Tabs
                             if (isPremium) ...[
                               const SizedBox(width: 4),
                               Icon(
                                 Icons.lock_outline_rounded,
                                 size: 12,
-                                color: isSelected 
-                                    ? kPrimaryBlue.withOpacity(0.8) 
+                                color: isSelected
+                                    ? kPrimaryBlue.withOpacity(0.8)
                                     : inactiveText.withOpacity(0.6),
-                              )
-                            ]
+                              ),
+                            ],
                           ],
                         ),
                         const Spacer(),
-                        
+
                         // Animated Underline Indicator
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
@@ -104,11 +109,7 @@ class CollegeTabs extends GetView<CollegeDetailController> {
             }),
           ),
           // Bottom Divider
-          Container(
-            height: 1,
-            width: double.infinity,
-            color: borderColor,
-          ),
+          Container(height: 1, width: double.infinity, color: borderColor),
         ],
       ),
     );

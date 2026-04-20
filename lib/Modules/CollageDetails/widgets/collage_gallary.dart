@@ -4,10 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 class CollegeGalleryDialog extends StatefulWidget {
   final List<String> images;
 
-  const CollegeGalleryDialog({
-    super.key,
-    required this.images,
-  });
+  const CollegeGalleryDialog({super.key, required this.images});
 
   @override
   State<CollegeGalleryDialog> createState() => _CollegeGalleryDialogState();
@@ -30,9 +27,7 @@ class _CollegeGalleryDialogState extends State<CollegeGalleryDialog> {
     if (widget.images.isEmpty) {
       return Dialog(
         backgroundColor: bgColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: SizedBox(
           height: 300,
           child: Center(
@@ -107,7 +102,7 @@ class _CollegeGalleryDialogState extends State<CollegeGalleryDialog> {
                               const SizedBox(height: 8),
                               Text(
                                 "Failed to load image",
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.inter(
                                   color: Colors.grey,
                                   fontSize: 12,
                                 ),
@@ -137,7 +132,7 @@ class _CollegeGalleryDialogState extends State<CollegeGalleryDialog> {
                           BoxShadow(
                             color: Colors.black.withOpacity(0.1),
                             blurRadius: 4,
-                          )
+                          ),
                       ],
                     ),
                     child: Icon(
@@ -153,15 +148,17 @@ class _CollegeGalleryDialogState extends State<CollegeGalleryDialog> {
               Positioned(
                 bottom: 16,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     "${_currentIndex + 1} / ${widget.images.length}",
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.inter(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

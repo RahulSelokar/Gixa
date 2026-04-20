@@ -11,43 +11,62 @@ class CollegeListController extends GetxController {
   final colleges = <College>[].obs;
   final errorMessage = ''.obs;
 
+  /// FILTER VALUES
+  String? search;
+  String? state;
+  String? instituteType;
+  String? year;
+  String? quota;
+  String? round;
+  int? minSeats;
+  int? maxSeats;
+
   @override
   void onInit() {
     super.onInit();
     fetchColleges();
   }
 
-  // ─────────────────────────────────────────────
-  // 📚 FETCH COLLEGES
-  // ─────────────────────────────────────────────
+  /// ─────────────────────────────────────────────
+  /// 📚 FETCH COLLEGES (WITH FILTERS)
+  /// ─────────────────────────────────────────────
   Future<void> fetchColleges() async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final result = await _service.fetchColleges();
+      final result = await CollegeApiService.searchColleges(
+        search: search,
+        state: state,
+        instituteType: instituteType,
+        year: year,
+        quota: quota,
+        round: round,
+        minSeats: minSeats,
+        maxSeats: maxSeats,
+      );
 
-      /// ✅ CONTROLLER-LEVEL SUMMARY LOG
       print("══════════════════════════════════════");
-      print("📚 COLLEGE LIST LOADED SUCCESSFULLY");
+      print("📚 COLLEGE LIST LOADED");
       print("📚 TOTAL COLLEGES: ${result.length}");
-
-      for (final college in result) {
-        print("🏫 ${college.id} | ${college.name} | ${college.state.name}");
-      }
-
+      print("🔍 FILTERS:");
+      print("search: $search");
+      print("state: $state");
+      print("type: $instituteType");
+      print("year: $year");
+      print("quota: $quota");
+      print("round: $round");
+      print("minSeats: $minSeats");
+      print("maxSeats: $maxSeats");
       print("══════════════════════════════════════");
 
-      /// ✅ UPDATE UI STATE
       colleges.assignAll(result);
     } catch (e) {
       if (e is AppException) {
         errorMessage.value = e.message;
-        print("❌ COLLEGE LIST ERROR: ${e.debugMessage ?? e.message}");
         Get.snackbar('Error', e.message);
       } else {
         errorMessage.value = 'Something went wrong';
-        print("❌ UNKNOWN ERROR: $e");
         Get.snackbar('Error', errorMessage.value);
       }
     } finally {
@@ -55,9 +74,50 @@ class CollegeListController extends GetxController {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // 🔄 PULL TO REFRESH
-  // ─────────────────────────────────────────────
+  /// ─────────────────────────────────────────────
+  /// 🔍 APPLY FILTERS
+  /// ─────────────────────────────────────────────
+  void applyFilters({
+    String? searchValue,
+    String? stateValue,
+    String? instituteTypeValue,
+    String? yearValue,
+    String? quotaValue,
+    String? roundValue,
+    int? minSeatsValue,
+    int? maxSeatsValue,
+  }) {
+    search = searchValue;
+    state = stateValue;
+    instituteType = instituteTypeValue;
+    year = yearValue;
+    quota = quotaValue;
+    round = roundValue;
+    minSeats = minSeatsValue;
+    maxSeats = maxSeatsValue;
+
+    fetchColleges();
+  }
+
+  /// ─────────────────────────────────────────────
+  /// ❌ CLEAR FILTERS
+  /// ─────────────────────────────────────────────
+  void clearFilters() {
+    search = null;
+    state = null;
+    instituteType = null;
+    year = null;
+    quota = null;
+    round = null;
+    minSeats = null;
+    maxSeats = null;
+
+    fetchColleges();
+  }
+
+  /// ─────────────────────────────────────────────
+  /// 🔄 PULL TO REFRESH
+  /// ─────────────────────────────────────────────
   Future<void> refreshList() async {
     await fetchColleges();
   }

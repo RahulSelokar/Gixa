@@ -6,11 +6,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 class CollegeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final CollegeDetailController controller;
-  
-  const CollegeAppBar({
-    super.key,
-    required this.controller,
-  });
+
+  const CollegeAppBar({super.key, required this.controller});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -22,32 +19,39 @@ class CollegeAppBar extends StatelessWidget implements PreferredSizeWidget {
     // --- Theme Palette ---
     final Color bgColor = isDark ? const Color(0xFF121212) : Colors.white;
     final Color textColor = isDark ? Colors.white : const Color(0xFF111111);
-    final Color iconColor = isDark ? Colors.grey[300]! : const Color(0xFF333333);
-    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.grey.shade200;
-    
+    final Color iconColor = isDark
+        ? Colors.grey[300]!
+        : const Color(0xFF333333);
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : Colors.grey.shade200;
+
     // Brand Color
     final Color kPrimaryBlue = const Color(0xFF1565C0);
 
     return AppBar(
       backgroundColor: bgColor,
       elevation: 0,
-      scrolledUnderElevation: 0, // Prevents color change on scroll in Material 3
-      
+      scrolledUnderElevation:
+          0, // Prevents color change on scroll in Material 3
       // Handle Status Bar Icons (White icons on Dark mode, Black on Light)
-      systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-      
+      systemOverlayStyle: isDark
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
+
       // Bottom Border for separation
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1.0),
-        child: Container(
-          color: borderColor,
-          height: 1.0,
-        ),
+        child: Container(color: borderColor, height: 1.0),
       ),
 
       // Leading: Back Button
       leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_new_rounded, color: iconColor, size: 20),
+        icon: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: iconColor,
+          size: 20,
+        ),
         onPressed: () => Get.back(),
         tooltip: "Back",
       ),
@@ -66,7 +70,7 @@ class CollegeAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
             child: Text(
               "GIXA AI VERIFIED",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 color: kPrimaryBlue,
                 fontSize: 8,
                 fontWeight: FontWeight.w800,
@@ -75,13 +79,13 @@ class CollegeAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           const SizedBox(height: 2),
-          
+
           // College Name (Reactive)
           Obx(() {
             final name = controller.college.value?.name ?? "College Details";
             return Text(
               name,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 color: textColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,

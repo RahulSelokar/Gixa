@@ -9,6 +9,7 @@ class SeatMatrixService {
   static Future<List<SeatMatrixModel>> getSeatMatrix() async {
     final response = await ApiClient.get(
       ApiEndpoints.seatMatrix,
+      showGlobalNetworkError: false,
     );
 
     print("📥 SEAT MATRIX RESPONSE: $response");
@@ -21,8 +22,6 @@ class SeatMatrixService {
 
     final List results = response['results'] ?? [];
 
-    return results
-        .map((json) => SeatMatrixModel.fromJson(json))
-        .toList();
+    return results.map((json) => SeatMatrixModel.fromJson(json)).toList();
   }
 }

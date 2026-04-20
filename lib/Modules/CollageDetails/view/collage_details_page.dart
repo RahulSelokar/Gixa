@@ -13,11 +13,9 @@ import 'package:get/get.dart';
 class CollegeDetailPage extends StatelessWidget {
   CollegeDetailPage({super.key});
 
-  final CollegeDetailController controller =
-      Get.put(CollegeDetailController());
+  final CollegeDetailController controller = Get.put(CollegeDetailController());
 
-      final SeatMatrixController seatController =
-    Get.find<SeatMatrixController>();
+  final SeatMatrixController seatController = Get.find<SeatMatrixController>();
 
   // 🎨 Brand Color
   static const Color kPrimaryBlue = Color(0xFF1565C0);
@@ -33,16 +31,14 @@ class CollegeDetailPage extends StatelessWidget {
       body: Obx(() {
         // ⏳ Loading state
         if (controller.isLoading.value) {
-          return Center(
-            child: CircularProgressIndicator(color: kPrimaryBlue),
-          );
+          return Center(child: CircularProgressIndicator(color: kPrimaryBlue));
         }
 
         final college = controller.college.value;
 
         // ❌ No data
         if (college == null) {
-          return const Center(child: Text('No data found'));
+          return Center(child: Text('no_data_found'.tr));
         }
 
         return Stack(
@@ -70,10 +66,7 @@ class CollegeDetailPage extends StatelessWidget {
 
                         /// 📑 Tabs + Content
                         Column(
-                          children: const [
-                            CollegeTabs(),
-                            SizedBox(height: 12),
-                          ],
+                          children: const [CollegeTabs(), SizedBox(height: 12)],
                         ),
 
                         CollegeTabContent(college: college),

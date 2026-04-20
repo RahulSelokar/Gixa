@@ -52,12 +52,19 @@ class GreetingCard extends StatelessWidget {
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.5), width: 2),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.5),
+                          width: 2,
+                        ),
                       ),
                       child: const CircleAvatar(
                         radius: 26,
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.person, color: Color(0xFF4F46E5), size: 30),
+                        child: Icon(
+                          Icons.person,
+                          color: Color(0xFF4F46E5),
+                          size: 30,
+                        ),
                         // Note: If you have an image URL, use NetworkImage here
                         // backgroundImage: NetworkImage(controller.profileUrl.value),
                       ),
@@ -72,7 +79,7 @@ class GreetingCard extends StatelessWidget {
                         children: [
                           Text(
                             "Welcome back,",
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.inter(
                               color: Colors.white.withOpacity(0.8),
                               fontSize: 12,
                             ),
@@ -80,7 +87,7 @@ class GreetingCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             controller.name.value,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.inter(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -94,25 +101,33 @@ class GreetingCard extends StatelessWidget {
 
                     // 📊 STATS BADGE (Glassmorphism)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withOpacity(0.2)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           // Exam Tag
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               controller.exam.value.toUpperCase(),
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 color: Colors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
@@ -120,7 +135,7 @@ class GreetingCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 6),
-                          
+
                           // Score & AIR
                           _buildStatRow("Score", controller.score.value),
                           const SizedBox(height: 2),
@@ -144,14 +159,14 @@ class GreetingCard extends StatelessWidget {
       children: [
         Text(
           "$label: ",
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.inter(
             color: Colors.white.withOpacity(0.7),
             fontSize: 11,
           ),
         ),
         Text(
           value,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.inter(
             color: Colors.white,
             fontSize: 12,
             fontWeight: FontWeight.bold,

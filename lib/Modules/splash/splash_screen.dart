@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'package:Gixa/Modules/version/controller/version_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:video_player/video_player.dart';
 
-// Controller
 import 'package:Gixa/routes/app_start_controller.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -14,213 +12,98 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _spacingAnimation;
-  late Animation<double> _scaleAnimation;
+class _SplashScreenState extends State<SplashScreen> {
+  late VideoPlayerController _videoController;
 
   @override
   void initState() {
     super.initState();
 
-    /// 1️⃣ Animation Controller
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    );
-
-    /// 2️⃣ Animations
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
-
-    _spacingAnimation = Tween<double>(begin: 0.0, end: 8.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutQuart),
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
-    );
-
-    /// 3️⃣ Start Animation
-    _animationController.forward();
-
-    /// 4️⃣ Navigate after splash
+    _videoController =
+    VideoPlayerController.asset("assets/videos/Genie.mp4")
+      ..initialize().then((_) {
+        _videoController.setVolume(0.0); // 🔇 MUTE
+        _videoController.setLooping(false); // optional
+        setState(() {});
+        _videoController.play();
+      });
     _navigateToNext();
-    // _checkVersionAndNavigate();
+  }
+
+  Future<void> _navigateToNext() async {
+    await Future.delayed(const Duration(seconds: 7));
+    Get.find<AppStartController>().decideNextRoute();
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _videoController.dispose();
     super.dispose();
-  }
-
-  Future<void> _checkVersionAndNavigate() async {
-    final versionController = Get.put(VersionController());
-
-    
-    await Future.delayed(const Duration(seconds: 2));
-
-    
-    await versionController.checkAppVersion();
-
-    if (versionController.versionData?.updateType == "force" &&
-        versionController.versionData?.updateRequired == true) {
-      return;
-    }
-
-    Get.find<AppStartController>().decideNextRoute();
-  }
-
-  Future<void> _navigateToNext() async {
-    // Total splash time (animation + buffer)
-    await Future.delayed(const Duration(seconds: 3));
-
-    Get.find<AppStartController>().decideNextRoute();
   }
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryColor = Color(0xFF4F46E5);
-    const Color accentColor = Color(0xFF818CF8);
-
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          /// 🎨 Background Glow
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: primaryColor.withOpacity(0.05),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.1),
-                    blurRadius: 50,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -50,
-            left: -50,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: accentColor.withOpacity(0.05),
-                boxShadow: [
-                  BoxShadow(
-                    color: accentColor.withOpacity(0.1),
-                    blurRadius: 50,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          /// 🎬 Main Logo & Text
-          Center(
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: _fadeAnimation.value,
-                  child: Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          height: 80,
-                          width: 80,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [primaryColor, accentColor],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: primaryColor.withOpacity(0.3),
-                                blurRadius: 20,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.school_rounded,
-                            size: 40,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        ShaderMask(
-                          shaderCallback: (bounds) {
-                            return const LinearGradient(
-                              colors: [Color(0xFF1F2937), Color(0xFF4F46E5)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ).createShader(bounds);
-                          },
-                          child: Text(
-                            'GIXA',
-                            style: GoogleFonts.montserrat(
-                              fontSize: 42,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: _spacingAnimation.value,
-                            ),
-                          ),
-                        ),
-                      ],
+      body: _videoController.value.isInitialized
+          ? Stack(
+              children: [
+                /// 🎬 Video Background
+                SizedBox.expand(
+                  child: FittedBox(
+                    fit: BoxFit.fill,
+                    child: SizedBox(
+                      width: _videoController.value.size.width,
+                      height: _videoController.value.size.height,
+                      child: VideoPlayer(_videoController),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
+                ),
 
-          /// ⏳ Footer Loader
-          Positioned(
-            bottom: 50,
-            left: 0,
-            right: 0,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Column(
-                children: [
-                  const SizedBox(
-                    width: 30,
-                    height: 30,
-                    child: CircularProgressIndicator(strokeWidth: 2.5),
+                /// 🖤 Dark Overlay
+                Container(
+                  color: Colors.black.withOpacity(0.3),
+                ),
+
+                /// 🏷️ Logo / App Name
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text(
+                        "GIXA",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 42,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        "AI College Predictor",
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Empowering Education",
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      color: Colors.grey,
-                      letterSpacing: 2,
+                ),
+
+                /// ⏳ Bottom Loader
+                const Positioned(
+                  bottom: 50,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+                ),
+              ],
+            )
+          : const Center(child: CircularProgressIndicator()),
     );
   }
 }

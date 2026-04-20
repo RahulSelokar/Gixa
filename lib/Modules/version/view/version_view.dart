@@ -20,16 +20,14 @@ class UpdateDialog extends StatelessWidget {
     return WillPopScope(
       onWillPop: () async => versionModel.updateType != "force",
       child: AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Text("Update Available"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('update_available'.tr),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "New Version: ${versionModel.latestVersion}",
+              '${'new_version'.tr}: ${versionModel.latestVersion}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
@@ -38,14 +36,8 @@ class UpdateDialog extends StatelessWidget {
         ),
         actions: [
           if (versionModel.updateType != "force")
-            TextButton(
-              onPressed: () => Get.back(),
-              child: const Text("Later"),
-            ),
-          ElevatedButton(
-            onPressed: _launchStore,
-            child: const Text("Update Now"),
-          ),
+            TextButton(onPressed: () => Get.back(), child: Text('later'.tr)),
+          ElevatedButton(onPressed: _launchStore, child: Text('update_now'.tr)),
         ],
       ),
     );

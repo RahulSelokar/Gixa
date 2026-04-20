@@ -40,8 +40,8 @@ class EditProfileView extends StatelessWidget {
           ),
           centerTitle: true,
           title: Text(
-            'Edit Profile',
-            style: GoogleFonts.poppins(
+            'edit_profile'.tr,
+            style: GoogleFonts.inter(
               color: headerColor,
               fontWeight: FontWeight.w600,
               fontSize: 18,
@@ -112,7 +112,7 @@ class EditProfileView extends StatelessWidget {
                       const SizedBox(height: 30),
 
                       /// ───── PERSONAL DETAILS ─────
-                      _sectionHeader("Personal Details", isDark),
+                      _sectionHeader('personal_details'.tr, isDark),
                       const SizedBox(height: 16),
 
                       Row(
@@ -121,8 +121,8 @@ class EditProfileView extends StatelessWidget {
                             child: _input(
                               context,
                               controller: controller.firstNameCtrl,
-                              label: 'First Name',
-                              validatorMsg: 'Required',
+                              label: 'first_name'.tr,
+                              validatorMsg: 'required'.tr,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -130,8 +130,8 @@ class EditProfileView extends StatelessWidget {
                             child: _input(
                               context,
                               controller: controller.lastNameCtrl,
-                              label: 'Last Name',
-                              validatorMsg: 'Required',
+                              label: 'last_name'.tr,
+                              validatorMsg: 'required'.tr,
                             ),
                           ),
                         ],
@@ -142,9 +142,9 @@ class EditProfileView extends StatelessWidget {
                       _input(
                         context,
                         controller: controller.addressCtrl,
-                        label: 'Address',
+                        label: 'address'.tr,
                         maxLines: 3,
-                        validatorMsg: 'Required',
+                        validatorMsg: 'required'.tr,
                       ),
 
                       const SizedBox(height: 16),
@@ -156,8 +156,8 @@ class EditProfileView extends StatelessWidget {
                           child: _input(
                             context,
                             controller: controller.dobCtrl,
-                            label: 'Date of Birth',
-                            validatorMsg: 'Required',
+                            label: 'date_of_birth'.tr,
+                            validatorMsg: 'required'.tr,
                           ),
                         ),
                       ),
@@ -165,7 +165,7 @@ class EditProfileView extends StatelessWidget {
                       const SizedBox(height: 30),
 
                       /// ───── ACADEMIC DETAILS ─────
-                      _sectionHeader("Academic Records", isDark),
+                      _sectionHeader('academic_records'.tr, isDark),
                       const SizedBox(height: 16),
 
                       Row(
@@ -174,10 +174,10 @@ class EditProfileView extends StatelessWidget {
                             child: _input(
                               context,
                               controller: controller.tenthCtrl,
-                              label: '10th Percentage',
+                              label: 'tenth_percentage'.tr,
                               keyboardType: TextInputType.number,
                               suffix: "%",
-                              validatorMsg: 'Required',
+                              validatorMsg: 'required'.tr,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -185,10 +185,10 @@ class EditProfileView extends StatelessWidget {
                             child: _input(
                               context,
                               controller: controller.twelthCtrl,
-                              label: '12th Percentage',
+                              label: 'twelfth_percentage'.tr,
                               keyboardType: TextInputType.number,
                               suffix: "%",
-                              validatorMsg: 'Required',
+                              validatorMsg: 'required'.tr,
                             ),
                           ),
                         ],
@@ -199,25 +199,24 @@ class EditProfileView extends StatelessWidget {
                       _input(
                         context,
                         controller: controller.twelthPcbCtrl,
-                        label: '12th PCB Percentage',
+                        label: 'twelfth_pcb_percentage'.tr,
                         keyboardType: TextInputType.number,
-                        suffix: "%",
+                        // suffix: "%",
                       ),
 
                       const SizedBox(height: 16),
 
-                      _input(
-                        context,
-                        controller: controller.neetCtrl,
-                        label: 'NEET Score',
-                        keyboardType: TextInputType.number,
-                        validatorMsg: 'Required',
-                      ),
-
+                      // _input(
+                      //   context,
+                      //   controller: controller.neetCtrl,
+                      //   label: 'NEET Score',
+                      //   keyboardType: TextInputType.number,
+                      //   validatorMsg: 'Required',
+                      // ),
                       const SizedBox(height: 30),
 
                       /// ───── OTHER DETAILS ─────
-                      _sectionHeader("Other Details", isDark),
+                      _sectionHeader('other_details'.tr, isDark),
                       const SizedBox(height: 16),
 
                       Row(
@@ -226,7 +225,7 @@ class EditProfileView extends StatelessWidget {
                             child: _input(
                               context,
                               controller: controller.casteCtrl,
-                              label: 'Caste',
+                              label: 'caste'.tr,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -234,7 +233,7 @@ class EditProfileView extends StatelessWidget {
                             child: _input(
                               context,
                               controller: controller.nationalityCtrl,
-                              label: 'Nationality',
+                              label: 'nationality'.tr,
                             ),
                           ),
                         ],
@@ -251,7 +250,6 @@ class EditProfileView extends StatelessWidget {
                       //     Get.to(() => StudentDocumentsUnifiedPage());
                       //   },
                       // ),
-
                       const SizedBox(height: 100),
                     ],
                   ),
@@ -281,9 +279,12 @@ class EditProfileView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text(
-                'Save Changes',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              child: Text(
+                'save_changes'.tr,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -375,9 +376,15 @@ class EditProfileView extends StatelessWidget {
 
   /// ───────── DOB PICKER ─────────
   Future<void> _pickDob(BuildContext context) async {
+    DateTime initialDate = DateTime(2000);
+    if (controller.dobCtrl.text.isNotEmpty) {
+      final parsed = DateTime.tryParse(controller.dobCtrl.text);
+      if (parsed != null) initialDate = parsed;
+    }
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2000),
+      initialDate: initialDate,
       firstDate: DateTime(1970),
       lastDate: DateTime.now(),
     );
@@ -391,7 +398,7 @@ class EditProfileView extends StatelessWidget {
   Widget _sectionHeader(String title, bool isDark) {
     return Text(
       title,
-      style: GoogleFonts.poppins(
+      style: GoogleFonts.inter(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: isDark ? Colors.grey[300] : Colors.grey[800],

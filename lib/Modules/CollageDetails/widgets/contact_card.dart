@@ -1,22 +1,34 @@
 import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContactCard extends StatelessWidget {
   final CollegeDetail college;
   // Using a slightly more vibrant blue for accents
-  final Color kPrimaryBlue = const Color(0xFF1565C0); 
+  final Color kPrimaryBlue = const Color(0xFF1565C0);
 
-  const ContactCard({
-    super.key,
-    required this.college,
-  });
+  const ContactCard({super.key, required this.college});
+  Future<void> launchPhone(String phone) async {
+    final Uri uri = Uri(scheme: 'tel', path: phone);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> launchEmail(String email) async {
+    final Uri uri = Uri(scheme: 'mailto', path: email);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     // 1. Efficient Early Return
-    if (college.contactName.isEmpty && 
-        college.contactEmail.isEmpty && 
+    if (college.contactName.isEmpty &&
+        college.contactEmail.isEmpty &&
         college.contactMobile.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -26,8 +38,12 @@ class ContactCard extends StatelessWidget {
     // --- Theme Palette ---
     final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color titleColor = isDark ? Colors.white : const Color(0xFF111111);
-    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.grey.shade200;
-    final Color iconBgBase = isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade50;
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : Colors.grey.shade200;
+    final Color iconBgBase = isDark
+        ? Colors.white.withOpacity(0.05)
+        : Colors.grey.shade50;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,12 +57,16 @@ class ContactCard extends StatelessWidget {
                 color: kPrimaryBlue.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.contact_phone_rounded, color: kPrimaryBlue, size: 18),
+              child: Icon(
+                Icons.contact_phone_rounded,
+                color: kPrimaryBlue,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 12),
             Text(
               "Contact Information",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: titleColor,
@@ -63,13 +83,15 @@ class ContactCard extends StatelessWidget {
             color: cardBg,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: borderColor),
-            boxShadow: isDark ? [] : [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+            boxShadow: isDark
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -81,7 +103,9 @@ class ContactCard extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 22,
-                      backgroundColor: isDark ? Colors.grey[800] : Colors.grey[100],
+                      backgroundColor: isDark
+                          ? Colors.grey[800]
+                          : Colors.grey[100],
                       child: Icon(
                         Icons.person_rounded,
                         color: isDark ? Colors.grey[400] : Colors.grey[500],
@@ -95,7 +119,7 @@ class ContactCard extends StatelessWidget {
                         children: [
                           Text(
                             college.contactName,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                               color: titleColor,
@@ -104,10 +128,12 @@ class ContactCard extends StatelessWidget {
                           if (college.contactDesignation.isNotEmpty)
                             Text(
                               college.contactDesignation,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
-                                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                                color: isDark
+                                    ? Colors.grey[400]
+                                    : Colors.grey[600],
                               ),
                             ),
                         ],
@@ -116,7 +142,8 @@ class ContactCard extends StatelessWidget {
                   ],
                 ),
                 // Divider if contact methods exist
-                if (college.contactEmail.isNotEmpty || college.contactMobile.isNotEmpty)
+                if (college.contactEmail.isNotEmpty ||
+                    college.contactMobile.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     child: Divider(
@@ -140,10 +167,11 @@ class ContactCard extends StatelessWidget {
                         isDark: isDark,
                         iconBg: iconBgBase,
                       ),
-                    
-                    if (college.contactEmail.isNotEmpty && college.contactMobile.isNotEmpty)
+
+                    if (college.contactEmail.isNotEmpty &&
+                        college.contactMobile.isNotEmpty)
                       const SizedBox(height: 12),
-                
+
                     if (college.contactMobile.isNotEmpty)
                       _ContactRow(
                         icon: Icons.phone_rounded,
@@ -154,7 +182,7 @@ class ContactCard extends StatelessWidget {
                       ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -178,35 +206,47 @@ class _ContactRow extends StatelessWidget {
     required this.iconBg,
   });
 
+  Future<void> _launchAction() async {
+    if (icon == Icons.phone_rounded) {
+      final Uri uri = Uri(scheme: 'tel', path: value);
+      await launchUrl(uri);
+    } else if (icon == Icons.email_rounded) {
+      final Uri uri = Uri(scheme: 'mailto', path: value);
+      await launchUrl(uri);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: isDark ? accentColor.withOpacity(0.15) : accentColor.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(10),
+    return InkWell(
+      onTap: _launchAction,
+      borderRadius: BorderRadius.circular(12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? accentColor.withOpacity(0.15)
+                  : accentColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: accentColor),
           ),
-          child: Icon(
-            icon,
-            size: 18,
-            color: accentColor,
-          ),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: SelectableText( // Made selectable so users can copy
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              // If it's email/phone, color it slightly to indicate it's important
-              color: isDark ? Colors.grey[200] : Colors.grey[800], 
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                decoration: TextDecoration.underline, // indicates clickable
+                color: accentColor,
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:get/get.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:Gixa/services/document_api_services.dart';
@@ -59,38 +60,20 @@ class DocumentController extends GetxController {
     try {
       if (isUpdate) {
         final viewController = Get.find<StudentDocumentsController>();
-        print("DOCUMENT COUNT: ${viewController.documents.length}");
-        print("LOOKING FOR TYPE: $docType");
-        print("BACKEND TYPES:");
 
-        for (var d in viewController.documents) {
-          print("RAW TYPE: ${d.documentType}");
-        }
+        final existingDoc = viewController.documents.firstWhere((doc) {
+          final backendType = doc.documentType.trim().toLowerCase().replaceAll(
+            " ",
+            "_",
+          );
 
-        final existingDoc = viewController.documents.firstWhere(
-          (doc) {
-            final backendType = doc.documentType
-                .trim()
-                .toLowerCase()
-                .replaceAll(" ", "_");
+          final requiredType = docType.trim().toLowerCase().replaceAll(
+            " ",
+            "_",
+          );
 
-            final requiredType = docType.trim().toLowerCase().replaceAll(
-              " ",
-              "_",
-            );
-
-            return backendType == requiredType;
-          },
-          orElse: () {
-            print("DEBUG TYPES:");
-            print("Looking for: $docType");
-            print("Available types:");
-            for (var d in viewController.documents) {
-              print(d.documentType);
-            }
-            throw Exception("Document not found for update");
-          },
-        );
+          return backendType == requiredType;
+        });
 
         await _service.updateDocument(
           file: file,
@@ -106,8 +89,12 @@ class DocumentController extends GetxController {
         );
       }
 
-      /// Refresh list
-      Get.find<StudentDocumentsController>().refreshDocuments();
+      /// Refresh documents list
+      await Get.find<StudentDocumentsController>().refreshDocuments();
+
+      /// 🔥 Refresh profile completion
+      final profileController = Get.find<ProfileController>();
+      await profileController.fetchProfile();
 
       Get.snackbar(
         "Success",

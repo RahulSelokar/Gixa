@@ -300,7 +300,9 @@ class ApiClient {
     String endpoint, {
     Map<String, dynamic>? queryParameters,
     Map<String, String>? headers,
+    bool showGlobalNetworkError = true,
   }) async {
+    print("FULL URL: ${_dio.options.baseUrl}$endpoint");
     try {
       final response = await _dio.get(
         endpoint,
@@ -310,7 +312,7 @@ class ApiClient {
 
       return response.data;
     } on DioException catch (e) {
-      _handleDioError(e);
+      _handleDioError(e, showGlobalNetworkError: showGlobalNetworkError);
     }
   }
 
@@ -379,7 +381,10 @@ class ApiClient {
   // ─────────────────────────────────────────────
   // ❌ ERROR HANDLER
   // ─────────────────────────────────────────────
-  static Never _handleDioError(DioException e) {
+  static Never _handleDioError(
+    DioException e, {
+    bool showGlobalNetworkError = true,
+  }) {
     final status = e.response?.statusCode;
     final data = e.response?.data;
 
@@ -427,7 +432,9 @@ class ApiClient {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.connectionError) {
-      Get.find<GlobalErrorController>().showNetworkError();
+      // if (showGlobalNetworkError && Get.isRegistered<GlobalErrorController>()) {
+      //   Get.find<GlobalErrorController>().showNetworkError();
+      // }
 
       throw AppException(
         message: "Network error. Please check your internet connection.",

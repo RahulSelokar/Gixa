@@ -2,38 +2,68 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:Gixa/Modules/Collage/model/collage_model.dart';
+import 'package:Gixa/commonmodels/state_model.dart' hide StateModel;
+import 'package:Gixa/commonmodels/quata_model.dart';
 import 'package:Gixa/services/college_api_service.dart';
+import 'package:Gixa/services/register_master_api.dart';
 
 class CollegeSearchController extends GetxController {
- 
   late final TextEditingController searchController;
+
   final isLoading = false.obs;
   final colleges = <College>[].obs;
+
   final searchText = ''.obs;
+
   final selectedInstituteType = RxnString();
-  final selectedState = ''.obs;
-  final selectedYear = ''.obs;
-  final selectedQuota = ''.obs;
-  final selectedRound = ''.obs;
+  final selectedState = RxnString();
+  final selectedYear = RxnString();
+  final selectedQuota = RxnString();
+  final selectedRound = RxnString();
+
   final minSeats = RxnInt();
   final maxSeats = RxnInt();
+
+  final states = <StateModel>[].obs;
+  final quotas = <QuotaModel>[].obs;
+
+  final minSeatsCtrl = TextEditingController();
+  final maxSeatsCtrl = TextEditingController();
+
   Timer? _debounce;
+
+  int get activeFilterCount {
+    int count = 0;
+    if (selectedState.value != null) count++;
+    if (selectedInstituteType.value != null) count++;
+    if (selectedYear.value != null) count++;
+    if (selectedQuota.value != null) count++;
+    if (selectedRound.value != null) count++;
+    if (minSeats.value != null) count++;
+    if (maxSeats.value != null) count++;
+    return count;
+  }
+
   @override
   void onInit() {
     super.onInit();
 
     searchController = TextEditingController();
-
-    /// Listen to search input
     searchController.addListener(_onSearchTextChanged);
 
-    /// Initial load
     fetchColleges();
+    _loadMasters();
   }
 
-  // ==========================================================
+  Future<void> _loadMasters() async {
+    try {
+      final data = await RegisterMasterApi().fetchMasters();
+      states.assignAll(data['states'] as List<StateModel>);
+      quotas.assignAll(data['quotas'] as List<QuotaModel>);
+    } catch (_) {}
+  }
+
   // SEARCH LISTENER
-  // ==========================================================
   void _onSearchTextChanged() {
     searchText.value = searchController.text;
 
@@ -46,16 +76,14 @@ class CollegeSearchController extends GetxController {
     });
   }
 
-  // ==========================================================
-  // CLEAN STRING HELPER
-  // ==========================================================
+  // CLEAN HELPER
   String? _clean(String? value) {
     if (value == null) return null;
     final trimmed = value.trim();
     return trimmed.isEmpty ? null : trimmed;
   }
 
-  
+  // FETCH COLLEGES
   Future<void> fetchColleges() async {
     try {
       isLoading.value = true;
@@ -78,41 +106,35 @@ class CollegeSearchController extends GetxController {
 
       Get.snackbar(
         "Error",
-        "Unable to fetch colleges. Please try again.",
+        "Unable to fetch colleges",
         snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 3),
       );
     } finally {
       isLoading.value = false;
     }
   }
 
-  
+  // CLEAR FILTERS
   void clearFilters() {
     searchController.clear();
 
     selectedInstituteType.value = null;
-    selectedState.value = '';
-    selectedYear.value = '';
-    selectedQuota.value = '';
-    selectedRound.value = '';
+    selectedState.value = null;
+    selectedYear.value = null;
+    selectedQuota.value = null;
+    selectedRound.value = null;
+
     minSeats.value = null;
     maxSeats.value = null;
+    minSeatsCtrl.clear();
+    maxSeatsCtrl.clear();
 
     fetchColleges();
-
-    if (Get.isBottomSheetOpen ?? false) {
-      Get.back();
-    }
   }
 
-  // ==========================================================
-  // DISPOSE
-  // ==========================================================
   @override
   void onClose() {
     _debounce?.cancel();
-    searchController.removeListener(_onSearchTextChanged);
     searchController.dispose();
     super.onClose();
   }

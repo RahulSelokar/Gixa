@@ -23,8 +23,8 @@ class HomeSearchBar extends StatelessWidget {
       child: TextField(
         readOnly: true, // ✅ Prevent keyboard
         decoration: InputDecoration(
-          hintText: "Search Colleges, Exams...",
-          hintStyle: GoogleFonts.poppins(color: hintColor),
+          hintText: "Search Colleges",
+          hintStyle: GoogleFonts.inter(color: hintColor),
           prefixIcon: Icon(Icons.search, color: hintColor),
           border: InputBorder.none,
         ),

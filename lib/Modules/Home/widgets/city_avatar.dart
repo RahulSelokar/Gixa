@@ -5,11 +5,7 @@ class CityAvatar extends StatelessWidget {
   final String name;
   final String imageUrl;
 
-  const CityAvatar({
-    super.key,
-    required this.name,
-    required this.imageUrl,
-  });
+  const CityAvatar({super.key, required this.name, required this.imageUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -17,15 +13,9 @@ class CityAvatar extends StatelessWidget {
       margin: const EdgeInsets.only(right: 20),
       child: Column(
         children: [
-          CircleAvatar(
-            radius: 32,
-            backgroundImage: NetworkImage(imageUrl),
-          ),
+          CircleAvatar(radius: 32, backgroundImage: NetworkImage(imageUrl)),
           const SizedBox(height: 8),
-          Text(
-            name,
-            style: GoogleFonts.poppins(fontSize: 12),
-          ),
+          Text(name, style: GoogleFonts.inter(fontSize: 12)),
         ],
       ),
     );

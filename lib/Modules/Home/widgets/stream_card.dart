@@ -29,10 +29,7 @@ class StreamCard extends StatelessWidget {
             child: Icon(icon, color: color),
           ),
           const SizedBox(height: 12),
-          Text(
-            title,
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-          ),
+          Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
         ],
       ),
     );

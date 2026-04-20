@@ -172,14 +172,14 @@ class AccountManageScreen extends StatelessWidget {
                       Get.toNamed(AppRoutes.updateDocs);
                     },
                   ),
-                  buildTile(
-                    context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png",
-                    "Change AIR",
-                    () {
-                      Get.toNamed("/Change-rank");
-                    },
-                  ),
+                  // buildTile(
+                  //   context,
+                  //   "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png",
+                  //   "Change AIR",
+                  //   () {
+                  //     Get.toNamed("/Change-rank");
+                  //   },
+                  // ),
                   buildTile(
                     context,
                     "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bell/3D/bell_3d.png",

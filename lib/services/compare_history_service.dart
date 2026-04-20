@@ -4,12 +4,8 @@ import 'package:Gixa/network/api_endpoints.dart';
 
 class CompareHistoryService {
   static Future<CompareHistoryResponse> fetchHistory() async {
-    final response = await ApiClient.get(
-      ApiEndpoints.compareHistory,
-    );
+    final response = await ApiClient.get(ApiEndpoints.compareHistory);
 
-    return CompareHistoryResponse.fromJson(
-      response as Map<String, dynamic>,
-    );
+    return CompareHistoryResponse.fromJson(response as Map<String, dynamic>);
   }
 }

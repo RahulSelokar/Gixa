@@ -5,27 +5,27 @@ class SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onSeeAll;
 
-  const SectionHeader({
-    super.key,
-    required this.title,
-    this.onSeeAll,
-  });
+  const SectionHeader({super.key, required this.title, this.onSeeAll});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title,
-            style: GoogleFonts.poppins(
-                fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
         if (onSeeAll != null)
           GestureDetector(
             onTap: onSeeAll,
-            child: Text("See All",
-                style: GoogleFonts.poppins(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w600)),
+            child: Text(
+              "See All",
+              style: GoogleFonts.inter(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
       ],
     );

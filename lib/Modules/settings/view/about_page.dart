@@ -1,4 +1,6 @@
+import 'package:Gixa/Modules/support/controller/support_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -10,6 +12,7 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> {
+  final SupportController supportController = Get.put(SupportController());
   String version = '';
   String buildNumber = '';
 
@@ -31,10 +34,7 @@ class _AboutPageState extends State<AboutPage> {
   Future<void> _openUrl(String url) async {
     final Uri uri = Uri.parse(url);
 
-    if (!await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    )) {
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
   }
@@ -42,10 +42,8 @@ class _AboutPageState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor =
-        isDark ? const Color(0xFF121212) : const Color(0xFFF6F7FB);
-    final cardColor =
-        isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF6F7FB);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -79,11 +77,7 @@ class _AboutPageState extends State<AboutPage> {
               CircleAvatar(
                 radius: 45,
                 backgroundColor: Colors.blue.withOpacity(0.1),
-                child: const Icon(
-                  Icons.school,
-                  size: 45,
-                  color: Colors.blue,
-                ),
+                child: const Icon(Icons.school, size: 45, color: Colors.blue),
               ),
 
               const SizedBox(height: 16),
@@ -91,10 +85,7 @@ class _AboutPageState extends State<AboutPage> {
               /// App Name
               const Text(
                 "Gixa",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 8),
@@ -102,10 +93,7 @@ class _AboutPageState extends State<AboutPage> {
               /// Version
               Text(
                 "Version $version ($buildNumber)",
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
 
               const SizedBox(height: 24),
@@ -143,16 +131,62 @@ class _AboutPageState extends State<AboutPage> {
               const SizedBox(height: 10),
 
               const Divider(),
+              const SizedBox(height: 20),
 
-              const SizedBox(height: 10),
+              /// Support Section Title
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Support",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Obx(() {
+                if (supportController.isLoading.value) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+
+                final contact = supportController.contact.value;
+
+                if (contact == null) {
+                  return const Text("Support information not available");
+                }
+
+                return Column(
+                  children: [
+                    /// Phone
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.phone, color: Colors.blue),
+                      title: const Text("Phone Number"),
+                      subtitle: Text(contact.phoneNumber),
+                      onTap: () => _openUrl("tel:${contact.phoneNumber}"),
+                    ),
+
+                    const Divider(),
+
+                    /// Email
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.email, color: Colors.blue),
+                      title: const Text("Email"),
+                      subtitle: Text(contact.email),
+                      onTap: () => _openUrl("mailto:${contact.email}"),
+                    ),
+                  ],
+                );
+              }),
 
               /// Footer
               const Text(
                 "© 2026 Gixa. All rights reserved.",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),

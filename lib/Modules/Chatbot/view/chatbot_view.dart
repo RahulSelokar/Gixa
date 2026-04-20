@@ -18,9 +18,7 @@ class ChatView extends StatelessWidget {
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 80), () {
       if (scrollController.hasClients) {
-        scrollController.jumpTo(
-          scrollController.position.maxScrollExtent,
-        );
+        scrollController.jumpTo(scrollController.position.maxScrollExtent);
       }
     });
   }
@@ -30,15 +28,16 @@ class ChatView extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F7FB),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF5F7FB),
       appBar: AppBar(
-        title: const Text("Gixa Support"),
+        title: Text('gixa_support'.tr),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: controller.clearChat,
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.delete_outline),
+          //   onPressed: controller.clearChat,
+          // ),
         ],
       ),
       body: Column(
@@ -67,10 +66,7 @@ class ChatView extends StatelessWidget {
                     );
                   }
 
-                  return _ChatBubble(
-                    message: message,
-                    isDark: isDark,
-                  );
+                  return _ChatBubble(message: message, isDark: isDark);
                 },
               );
             }),
@@ -102,10 +98,7 @@ class _ChatBubble extends StatelessWidget {
   final ChatMessage message;
   final bool isDark;
 
-  const _ChatBubble({
-    required this.message,
-    required this.isDark,
-  });
+  const _ChatBubble({required this.message, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -114,14 +107,14 @@ class _ChatBubble extends StatelessWidget {
     final bubbleColor = isUser
         ? Colors.indigo
         : isDark
-            ? const Color(0xFF1E293B)
-            : Colors.white;
+        ? const Color(0xFF1E293B)
+        : Colors.white;
 
-    final textColor =
-        isUser ? Colors.white : (isDark ? Colors.white : Colors.black87);
+    final textColor = isUser
+        ? Colors.white
+        : (isDark ? Colors.white : Colors.black87);
 
-    final alignment =
-        isUser ? Alignment.centerRight : Alignment.centerLeft;
+    final alignment = isUser ? Alignment.centerRight : Alignment.centerLeft;
 
     return Align(
       alignment: alignment,
@@ -134,19 +127,14 @@ class _ChatBubble extends StatelessWidget {
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(14),
             topRight: const Radius.circular(14),
-            bottomLeft:
-                isUser ? const Radius.circular(14) : Radius.zero,
-            bottomRight:
-                isUser ? Radius.zero : const Radius.circular(14),
+            bottomLeft: isUser ? const Radius.circular(14) : Radius.zero,
+            bottomRight: isUser ? Radius.zero : const Radius.circular(14),
           ),
         ),
         child: message.type == "image"
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  message.mediaUrl ?? "",
-                  fit: BoxFit.cover,
-                ),
+                child: _buildImageWidget(message),
               )
             : Text(
                 message.content ?? "",
@@ -154,6 +142,34 @@ class _ChatBubble extends StatelessWidget {
               ),
       ),
     );
+  }
+
+  Widget _buildImageWidget(ChatMessage message) {
+    final url = message.mediaUrl ?? "";
+
+    // Local file (just uploaded by user)
+    if (url.isNotEmpty && !url.startsWith("http")) {
+      return Image.file(
+        File(url),
+        width: 200,
+        height: 200,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48),
+      );
+    }
+
+    // Network image
+    if (url.isNotEmpty) {
+      return Image.network(
+        url,
+        width: 200,
+        height: 200,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => const Icon(Icons.broken_image, size: 48),
+      );
+    }
+
+    return const Icon(Icons.image, size: 48, color: Colors.grey);
   }
 }
 
@@ -187,11 +203,9 @@ class _QuickReplies extends StatelessWidget {
             backgroundColor: isDisabled
                 ? Colors.grey.shade400
                 : isDark
-                    ? const Color(0xFF334155)
-                    : Colors.grey.shade200,
-            labelStyle: TextStyle(
-              color: isDark ? Colors.white : Colors.black,
-            ),
+                ? const Color(0xFF334155)
+                : Colors.grey.shade200,
+            labelStyle: TextStyle(color: isDark ? Colors.white : Colors.black),
             onPressed: isDisabled ? null : () => onTap(option),
           );
         }).toList(),
@@ -223,10 +237,7 @@ class _InputBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF020617) : Colors.white,
           boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-            )
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
           ],
         ),
         child: Row(
@@ -256,8 +267,7 @@ class _InputBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                 ),
               ),
             ),

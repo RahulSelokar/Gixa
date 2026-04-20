@@ -5,10 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 class CoursesSection extends StatelessWidget {
   final CollegeDetail college;
 
-  const CoursesSection({
-    super.key,
-    required this.college,
-  });
+  const CoursesSection({super.key, required this.college});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +22,9 @@ class CoursesSection extends StatelessWidget {
     // Main Title Color
     final Color titleColor = isDark ? Colors.white : const Color(0xFF111111);
     // Border for the main card
-    final Color borderColor = isDark ? const Color(0xFF333333) : Colors.grey.shade200;
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : Colors.grey.shade200;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,7 +43,7 @@ class CoursesSection extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               "Academics",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: titleColor,
@@ -85,7 +84,8 @@ class CoursesSection extends StatelessWidget {
               ),
 
               // Divider (Only if both exist)
-              if (college.courses.ug.isNotEmpty && college.courses.pg.isNotEmpty)
+              if (college.courses.ug.isNotEmpty &&
+                  college.courses.pg.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Divider(
@@ -146,7 +146,7 @@ class _CourseCategory extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               title,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: isDark ? Colors.grey[400] : Colors.grey[600],
@@ -157,7 +157,7 @@ class _CourseCategory extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        
+
         // Chips Layout
         Wrap(
           spacing: 8,
@@ -170,19 +170,19 @@ class _CourseCategory extends StatelessWidget {
 
   Widget _buildModernChip(String text) {
     // Determine Chip Colors based on Theme & Base Color
-    
+
     // Light Mode: Very light pastel background, strong text
     // Dark Mode: Transparent background with colored border, or low opacity fill
-    
-    final Color chipBg = isDark 
-        ? baseColor.withOpacity(0.15) 
+
+    final Color chipBg = isDark
+        ? baseColor.withOpacity(0.15)
         : baseColor.withOpacity(0.08);
-        
-    final Color chipBorder = isDark 
-        ? baseColor.withOpacity(0.3) 
+
+    final Color chipBorder = isDark
+        ? baseColor.withOpacity(0.3)
         : Colors.transparent;
-        
-    final Color chipText = isDark 
+
+    final Color chipText = isDark
         ? Colors.grey[200]! // Light grey text in dark mode for readability
         : baseColor.withOpacity(1.0); // Strong colored text in light mode
 
@@ -190,12 +190,14 @@ class _CourseCategory extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: chipBg,
-        borderRadius: BorderRadius.circular(8), // Slightly squared for modern look
+        borderRadius: BorderRadius.circular(
+          8,
+        ), // Slightly squared for modern look
         border: isDark ? Border.all(color: chipBorder) : null,
       ),
       child: Text(
         text,
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.inter(
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: chipText,

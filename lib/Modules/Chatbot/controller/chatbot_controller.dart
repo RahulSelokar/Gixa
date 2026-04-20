@@ -135,8 +135,10 @@ class ChatController extends GetxController {
   Future<void> sendTextMessage(String text) async {
     if (sessionId == null || text.trim().isEmpty) return;
 
+    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+
     final tempMessage = ChatMessage(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: tempId,
       sender: "user",
       type: "text",
       content: text,
@@ -146,11 +148,24 @@ class ChatController extends GetxController {
     messages.add(tempMessage);
 
     try {
-      await ChatApi.sendMessage(
+      final messageId = await ChatApi.sendMessage(
         sessionId: sessionId!,
         type: "text",
         content: text,
       );
+
+      if (messageId != null) {
+        final idx = messages.indexWhere((m) => m.id == tempId);
+        if (idx != -1) {
+          messages[idx] = ChatMessage(
+            id: messageId,
+            sender: "user",
+            type: "text",
+            content: text,
+            createdAt: tempMessage.createdAt,
+          );
+        }
+      }
     } catch (e) {
       Get.snackbar("Error", "Failed to send message");
     }
@@ -163,22 +178,39 @@ class ChatController extends GetxController {
   Future<void> sendMediaMessage(File file, String mediaType) async {
     if (sessionId == null) return;
 
+    final tempId = DateTime.now().millisecondsSinceEpoch.toString();
+
     final tempMessage = ChatMessage(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: tempId,
       sender: "user",
       type: mediaType,
-      content: "Uploading...",
+      content: null,
+      mediaUrl: file.path,
       createdAt: DateTime.now().toIso8601String(),
     );
 
     messages.add(tempMessage);
 
     try {
-      await ChatApi.sendMessage(
+      final messageId = await ChatApi.sendMessage(
         sessionId: sessionId!,
-        type: mediaType, // image | video
+        type: mediaType,
         file: file,
       );
+
+      if (messageId != null) {
+        final idx = messages.indexWhere((m) => m.id == tempId);
+        if (idx != -1) {
+          messages[idx] = ChatMessage(
+            id: messageId,
+            sender: "user",
+            type: mediaType,
+            content: null,
+            mediaUrl: file.path,
+            createdAt: tempMessage.createdAt,
+          );
+        }
+      }
     } catch (e) {
       Get.snackbar("Error", "Failed to send media");
     }
@@ -207,7 +239,13 @@ class ChatController extends GetxController {
         );
 
         if (newMessages.isNotEmpty) {
-          messages.addAll(newMessages);
+          final existingIds = messages.map((m) => m.id).toSet();
+          final filtered = newMessages
+              .where((m) => !existingIds.contains(m.id))
+              .toList();
+          if (filtered.isNotEmpty) {
+            messages.addAll(filtered);
+          }
         }
       } catch (_) {}
     });

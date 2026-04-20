@@ -13,7 +13,9 @@ class CompareHistoryView extends StatelessWidget {
     final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
     final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
     final primaryText = isDark ? Colors.white : const Color(0xFF1E293B);
-    final secondaryText = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final secondaryText = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
     final accentBlue = const Color(0xFF2563EB);
     return Scaffold(
       backgroundColor: bgColor,
@@ -52,7 +54,9 @@ class CompareHistoryView extends StatelessWidget {
                 color: cardColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+                  color: isDark
+                      ? Colors.white.withOpacity(0.05)
+                      : Colors.grey.shade200,
                 ),
                 boxShadow: [
                   if (!isDark)
@@ -67,9 +71,9 @@ class CompareHistoryView extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: () {
-                    Get.toNamed(AppRoutes.compareCollage, arguments: item); 
-                  },
+                  // onTap: () {
+                  //   Get.toNamed(AppRoutes.compareCollage, arguments: item);
+                  // },
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -80,7 +84,11 @@ class CompareHistoryView extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                Icon(Icons.calendar_today_rounded, size: 14, color: secondaryText),
+                                Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 14,
+                                  color: secondaryText,
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
                                   item.createdDate,
@@ -92,18 +100,25 @@ class CompareHistoryView extends StatelessWidget {
                                 ),
                               ],
                             ),
-                            _CountBadge(count: item.totalColleges, color: accentBlue),
+                            _CountBadge(
+                              count: item.totalColleges,
+                              color: accentBlue,
+                            ),
                           ],
                         ),
 
                         const SizedBox(height: 16),
-                        
-                        ...item.colleges.take(3).map((college) => _CollegeRowItem(
-                              college: college,
-                              isDark: isDark,
-                              primaryText: primaryText,
-                              secondaryText: secondaryText,
-                            )),
+
+                        ...item.colleges
+                            .take(3)
+                            .map(
+                              (college) => _CollegeRowItem(
+                                college: college,
+                                isDark: isDark,
+                                primaryText: primaryText,
+                                secondaryText: secondaryText,
+                              ),
+                            ),
                         if (item.colleges.length > 3)
                           Padding(
                             padding: const EdgeInsets.only(top: 8, left: 50),
@@ -118,8 +133,11 @@ class CompareHistoryView extends StatelessWidget {
                           ),
 
                         const SizedBox(height: 16),
-                        
-                        Divider(height: 1, color: isDark ? Colors.white10 : Colors.grey.shade100),
+
+                        Divider(
+                          height: 1,
+                          color: isDark ? Colors.white10 : Colors.grey.shade100,
+                        ),
                         const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.end,
@@ -133,9 +151,13 @@ class CompareHistoryView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 6),
-                            Icon(Icons.arrow_forward_rounded, size: 16, color: accentBlue),
+                            Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 16,
+                              color: accentBlue,
+                            ),
                           ],
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -181,7 +203,9 @@ class _CollegeRowItem extends StatelessWidget {
             height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: isDark ? Colors.white.withOpacity(0.1) : const Color(0xFFEFF6FF),
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : const Color(0xFFEFF6FF),
               shape: BoxShape.circle,
             ),
             child: Text(
@@ -194,7 +218,7 @@ class _CollegeRowItem extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          
+
           // Name & City
           Expanded(
             child: Column(
@@ -212,10 +236,7 @@ class _CollegeRowItem extends StatelessWidget {
                 ),
                 Text(
                   college.city,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: secondaryText,
-                  ),
+                  style: TextStyle(fontSize: 12, color: secondaryText),
                 ),
               ],
             ),
@@ -277,7 +298,7 @@ class _EmptyState extends StatelessWidget {
                       color: Colors.grey.shade200,
                       blurRadius: 20,
                       offset: const Offset(0, 10),
-                    )
+                    ),
                 ],
               ),
               child: Icon(
@@ -321,7 +342,7 @@ class _EmptyState extends StatelessWidget {
                 ),
                 child: const Text("Start Comparing"),
               ),
-            )
+            ),
           ],
         ),
       ),

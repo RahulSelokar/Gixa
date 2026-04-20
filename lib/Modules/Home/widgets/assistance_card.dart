@@ -12,14 +12,14 @@ class AssistanceCard extends StatelessWidget {
     final controller = Get.find<HomeController>();
 
     return Obx(() {
-      final isPremium = controller.isPremium.value;
+      final hasAccess = controller.canAccessCounsellingSteps();
 
-      // 🎨 Dynamic Colors based on status
-      final gradientColors = isPremium
-          ? [const Color(0xFF4F46E5), const Color(0xFF818CF8)] // Indigo (Professional)
-          : [const Color(0xFFF59E0B), const Color(0xFFD97706)]; // Gold/Amber (Upgrade)
+      // 🎨 Dynamic Colors based on feature access
+      final gradientColors = hasAccess
+          ? [const Color(0xFF4F46E5), const Color(0xFF818CF8)] // Indigo
+          : [const Color(0xFFF59E0B), const Color(0xFFD97706)]; // Gold
 
-      final shadowColor = isPremium
+      final shadowColor = hasAccess
           ? const Color(0xFF4F46E5).withOpacity(0.4)
           : const Color(0xFFF59E0B).withOpacity(0.4);
 
@@ -40,7 +40,7 @@ class AssistanceCard extends StatelessWidget {
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
             onTap: () {
-              if (isPremium) {
+              if (hasAccess) {
                 Get.toNamed(AppRoutes.assistance);
               } else {
                 Get.toNamed(AppRoutes.subscription);
@@ -68,7 +68,6 @@ class AssistanceCard extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  // 🎨 Background Decorative Circles (Subtle)
                   Positioned(
                     right: -20,
                     top: -20,
@@ -77,11 +76,9 @@ class AssistanceCard extends StatelessWidget {
                       backgroundColor: Colors.white.withOpacity(0.1),
                     ),
                   ),
-                  
-                  // 📄 Main Content
+
                   Row(
                     children: [
-                      // 🔷 Glassmorphic Icon Container
                       Container(
                         height: 50,
                         width: 50,
@@ -94,24 +91,23 @@ class AssistanceCard extends StatelessWidget {
                           ),
                         ),
                         child: Icon(
-                          isPremium
+                          hasAccess
                               ? Icons.support_agent_rounded
                               : Icons.lock_outline_rounded,
                           color: Colors.white,
                           size: 26,
                         ),
                       ),
-                      
+
                       const SizedBox(width: 16),
-                      
-                      // 📝 Texts
+
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               "Admission Assistance",
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 color: Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -119,10 +115,10 @@ class AssistanceCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              isPremium
+                              hasAccess
                                   ? "Get expert counselling now"
                                   : "Tap to unlock premium support",
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.inter(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
@@ -131,8 +127,7 @@ class AssistanceCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      
-                      // ➡️ Arrow Icon
+
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(

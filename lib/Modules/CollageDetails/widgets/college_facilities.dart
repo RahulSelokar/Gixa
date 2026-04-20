@@ -5,15 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 class FacilitiesSection extends StatelessWidget {
   final CollegeDetail college;
 
-  const FacilitiesSection({
-    super.key,
-    required this.college,
-  });
+  const FacilitiesSection({super.key, required this.college});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     // --- Theme Palette ---
     final Color titleColor = isDark ? Colors.white : const Color(0xFF111111);
     final Color primaryColor = const Color(0xFF1565C0); // Brand Blue
@@ -30,12 +27,16 @@ class FacilitiesSection extends StatelessWidget {
                 color: Colors.orange.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.deck_rounded, color: Colors.orange, size: 18),
+              child: const Icon(
+                Icons.deck_rounded,
+                color: Colors.orange,
+                size: 18,
+              ),
             ),
             const SizedBox(width: 12),
             Text(
               "Facilities",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: titleColor,
@@ -44,7 +45,7 @@ class FacilitiesSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        
+
         // Facilities Row
         // Using Row with Expanded to ensure equal spacing
         Row(
@@ -105,16 +106,16 @@ class FacilitiesSection extends StatelessWidget {
     required Color primaryColor,
   }) {
     // Colors based on availability
-    final Color iconColor = isAvailable 
-        ? (isDark ? Colors.blue[200]! : primaryColor) 
+    final Color iconColor = isAvailable
+        ? (isDark ? Colors.blue[200]! : primaryColor)
         : (isDark ? Colors.grey[600]! : Colors.grey[400]!);
-        
-    final Color bgBase = isAvailable 
-        ? primaryColor 
+
+    final Color bgBase = isAvailable
+        ? primaryColor
         : (isDark ? Colors.grey[700]! : Colors.grey[300]!);
 
-    final Color bgColor = isDark 
-        ? bgBase.withOpacity(0.15) 
+    final Color bgColor = isDark
+        ? bgBase.withOpacity(0.15)
         : bgBase.withOpacity(0.08);
 
     final Color textColor = isAvailable
@@ -133,17 +134,13 @@ class FacilitiesSection extends StatelessWidget {
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(16), // Squircle shape
-                border: isAvailable && isDark 
-                    ? Border.all(color: primaryColor.withOpacity(0.3)) 
+                border: isAvailable && isDark
+                    ? Border.all(color: primaryColor.withOpacity(0.3))
                     : null,
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 26,
-              ),
+              child: Icon(icon, color: iconColor, size: 26),
             ),
-            
+
             // Checkmark Badge (Only if available)
             if (isAvailable)
               Positioned(
@@ -172,12 +169,12 @@ class FacilitiesSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        
+
         // Label
         Text(
           label,
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.inter(
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: textColor,

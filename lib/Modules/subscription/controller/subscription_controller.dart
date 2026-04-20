@@ -1,90 +1,7 @@
-// import 'package:get/get.dart';
-// import 'package:Gixa/services/subscription_plan_services.dart';
-// import 'package:Gixa/Modules/subscription/model/subscription_plan.dart';
-// import 'package:Gixa/Modules/subscription/model/subscription_purchase_model.dart';
-
-// class SubscriptionController extends GetxController {
-//   /// 📦 Subscription plans list
-//   final RxList<SubscriptionPlan> plans = <SubscriptionPlan>[].obs;
-
-//   /// ⏳ Plans loading
-//   final RxBool isLoading = false.obs;
-
-//   /// ⏳ Purchase / coupon loading
-//   final RxBool isPurchasing = false.obs;
-
-//   /// ❌ Plan fetch error ONLY
-//   final RxString error = ''.obs;
-
-//   /// ❌ Coupon / purchase error (INLINE UI)
-//   final RxString couponError = ''.obs;
-
-//   /// ✅ Purchase result
-//   final Rxn<SubscriptionPurchaseData> purchaseData =
-//       Rxn<SubscriptionPurchaseData>();
-
-//   @override
-//   void onInit() {
-//     super.onInit();
-//     fetchPlans();
-//   }
-
-//   /// 🔹 Fetch subscription plans
-//   Future<void> fetchPlans() async {
-//     try {
-//       isLoading.value = true;
-//       error.value = '';
-
-//       final result = await SubscriptionApi.getPlans();
-//       plans.assignAll(result);
-//     } catch (e, stack) {
-//       print('❌ Subscription error: $e');
-//       print(stack);
-//       error.value = e.toString();
-//     } finally {
-//       isLoading.value = false;
-//     }
-//   }
-
-//   /// 🔹 Apply coupon / purchase plan
-//   Future<void> purchasePlan({
-//     required int planId,
-//     String? couponCode,
-//   }) async {
-//     try {
-//       isPurchasing.value = true;
-
-//       // reset coupon-specific state
-//       couponError.value = '';
-//       purchaseData.value = null;
-
-//       final response = await SubscriptionApi.purchaseSubscription(
-//         planId: planId,
-//         couponCode: couponCode,
-//       );
-
-//       if (response.status) {
-//         purchaseData.value = response.data;
-//       } else {
-//         // 👇 coupon not applicable / invalid / expired
-//         couponError.value = response.message;
-//       }
-//     } catch (e) {
-//       couponError.value = e.toString();
-//     } finally {
-//       isPurchasing.value = false;
-//     }
-//   }
-
-//   /// 🔹 Clear coupon (optional helper)
-//   void clearCoupon() {
-//     couponError.value = '';
-//     purchaseData.value = null;
-//   }
-// }
-
+import 'dart:async';
 import 'package:Gixa/Modules/subscription/controller/subsciption_history_controller.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../model/subscription_plan.dart';
 import '../model/subscription_purchase_model.dart';
@@ -93,9 +10,31 @@ import '../../../services/subscription_plan_services.dart';
 import 'package:Gixa/Modules/payment/controller/payment_controller.dart';
 
 class SubscriptionController extends GetxController {
+  /// Call this on logout or when token is cleared
+  void clearUserSubscriptionData() {
+    final userId = _readUserIdFromStorage();
+    if (userId != null) {
+      _box.remove(_userFeaturesKey(userId));
+    }
+    _box.remove(_userIdKey);
+    activePlan.value = null;
+    plans.clear();
+    previewMap.clear();
+    couponErrorMap.clear();
+    print('🔴 Cleared user subscription data from storage and memory');
+  }
+
   final plans = <SubscriptionPlan>[].obs;
   late final SubscriptionHistoryController _historyController;
+  final GetStorage _box = GetStorage();
 
+  // Helper: Get user-specific key
+  String _userFeaturesKey(int userId) => 'user_features_[${userId}]';
+  String get _userIdKey => 'user_id';
+  bool _isRestoringActivePlan = false;
+
+  /// 🧾 Active user plan
+  final Rxn<SubscriptionPlan> activePlan = Rxn<SubscriptionPlan>();
   final isLoading = false.obs;
 
   final previewMap = <int, SubscriptionPurchaseData>{}.obs;
@@ -109,7 +48,11 @@ class SubscriptionController extends GetxController {
 
   /// 🔑 Payment controller (Razorpay key)
   late final PaymentController _paymentController;
+  // late final PaymentController _paymentController;
 
+  bool get isSubscribed => activePlan.value != null;
+
+  String get activePlanName => activePlan.value?.planName ?? "Free Plan";
   // ─────────────────────────────────────────────
   // LIFE CYCLE
   // ─────────────────────────────────────────────
@@ -117,15 +60,19 @@ class SubscriptionController extends GetxController {
   void onInit() {
     super.onInit();
 
-    // ✅ Get existing PaymentController
-    // _paymentController = Get.find<PaymentController>();
-    _paymentController = Get.put(PaymentController());
+    _paymentController = Get.isRegistered<PaymentController>()
+        ? Get.find<PaymentController>()
+        : Get.put(PaymentController());
+
+    _historyController = Get.isRegistered<SubscriptionHistoryController>()
+        ? Get.find<SubscriptionHistoryController>()
+        : Get.put(SubscriptionHistoryController());
 
     _razorpay = Razorpay();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _onPaymentSuccess);
     _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _onPaymentError);
-
     fetchPlans();
+    unawaited(_restoreActivePlanFromStorage());
   }
 
   @override
@@ -134,23 +81,43 @@ class SubscriptionController extends GetxController {
     super.onClose();
   }
 
-  // ─────────────────────────────────────────────
-  // API CALLS
-  // ─────────────────────────────────────────────
-
-  /// 📦 Fetch subscription plans
   Future<void> fetchPlans() async {
     try {
       isLoading.value = true;
-      plans.assignAll(await SubscriptionApi.getPlans());
+      plans.clear();
+      final fetchedPlans = await SubscriptionApi.getPlans();
+      print(
+        '[SubscriptionController] Plans fetched: count = \\${fetchedPlans.length}',
+      );
+      if (fetchedPlans.isEmpty) {
+        print('[SubscriptionController] No plans returned from API!');
+      }
+      plans.assignAll(fetchedPlans);
     } catch (e) {
+      print('[SubscriptionController] Error fetching plans: $e');
       Get.snackbar('Error', 'Failed to load subscription plans');
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// 🎟 Apply coupon (price preview only)
+  bool setActivePlanByCode(String planCode) {
+    final normalizedInput = _normalizeText(planCode);
+
+    for (final plan in plans) {
+      final code = _normalizeText(plan.planCode);
+      final name = _normalizeText(plan.planName);
+
+      if (code == normalizedInput || name == normalizedInput) {
+        activePlan.value = plan;
+        return true;
+      }
+    }
+
+    print("Plan not found for code/name: $planCode");
+    return false;
+  }
+
   Future<void> applyCoupon({
     required int planId,
     required String couponCode,
@@ -179,11 +146,6 @@ class SubscriptionController extends GetxController {
     couponErrorMap.remove(planId);
   }
 
-  // ─────────────────────────────────────────────
-  // PAYMENT FLOW
-  // ─────────────────────────────────────────────
-
-  /// 💳 Create order & open Razorpay
   Future<void> createOrderAndPay(int planId) async {
     try {
       if (_historyController.isPlanActive(planId)) {
@@ -193,6 +155,7 @@ class SubscriptionController extends GetxController {
         );
         return;
       }
+
       final plan = plans.firstWhere((p) => p.id == planId);
       final preview = previewMap[planId];
 
@@ -211,34 +174,105 @@ class SubscriptionController extends GetxController {
 
       _currentOrder = orderRes.data;
 
-      _openRazorpay(finalAmount);
+      await _openRazorpay(finalAmount);
     } catch (e) {
-      Get.snackbar(
-        'Subscription Active',
-        'You already have an active subscription for this plan.',
-      );
+      Get.snackbar('Error', 'Unable to create order. Please try again.');
     }
   }
 
-  /// 🚀 Open Razorpay (FIXED)
-  void _openRazorpay(int finalAmount) {
-    final key = _paymentController.razorpayKey;
+  Future<void> _openRazorpay(int finalAmount) async {
+    var key = _paymentController.razorpayKey;
+
+    // If key is empty, try to load credentials
+    if (key.isEmpty) {
+      await _paymentController.loadCredentials();
+      key = _paymentController.razorpayKey;
+    }
 
     if (key.isEmpty) {
       Get.snackbar(
-        'Already Subscribed',
-        'You already have an active subscription for this plan.',
+        'Payment Error',
+        'Payment service not available. Please try later.',
       );
       return;
     }
 
     _razorpay.open({
-      'key': key, // ✅ REQUIRED — FIXES YOUR ERROR
+      'key': key,
       'order_id': _currentOrder!.razorpayOrderId,
-      'amount': finalAmount * 100, // paise
+      'amount': finalAmount * 100,
       'name': 'Gixa',
       'description': 'Subscription Purchase',
     });
+  }
+
+  bool hasFeature(String featureName) {
+    if (activePlan.value == null) {
+      unawaited(_restoreActivePlanFromStorage());
+
+      if (_isRestoringActivePlan) {
+        print("⏳ Restoring Active Plan...");
+      } else {
+        print("❌ No Active Plan");
+      }
+
+      return false;
+    }
+
+    print("🔍 Checking Feature: $featureName");
+
+    for (var f in activePlan.value!.features) {
+      print("User Feature: ${f.featureTitle}");
+    }
+
+    final normalizedRequired = _normalizeFeatureText(featureName);
+
+    final has = activePlan.value!.features.any((feature) {
+      final normalizedAvailable = _normalizeFeatureText(feature.featureTitle);
+      return normalizedAvailable == normalizedRequired ||
+          normalizedAvailable.contains(normalizedRequired) ||
+          normalizedRequired.contains(normalizedAvailable);
+    });
+
+    print(has ? "✅ Feature Allowed" : "❌ Feature Locked");
+
+    return has;
+  }
+
+  Future<void> loadActivePlanFromHistory(int userId) async {
+    try {
+      final history = await SubscriptionApi.getSubscriptionHistory(
+        userId: userId,
+      );
+
+      final active = history.firstWhere((h) => h.isActive == true);
+
+      activePlan.value = SubscriptionPlan(
+        id: active.plan.id,
+        planName: active.plan.planName,
+        planCode: active.plan.planCode,
+        planType: active.plan.planType,
+        amount: active.plan.amount,
+        durationDays: active.plan.durationDays,
+        description: active.plan.description,
+        isRecommended: active.plan.isRecommended,
+        features: active.plan.features
+            .map(
+              (f) => Feature(
+                id: f.id,
+                featureTitle: f.featureTitle,
+                featureDescription: f.featureDescription,
+              ),
+            )
+            .toList(),
+      );
+
+      for (var f in activePlan.value?.features ?? []) {
+        print("Feature: ${f.featureTitle}");
+      }
+    } catch (e) {
+      print("Failed to load active plan from history");
+    }
   }
 
   /// ✅ Payment success → verify with backend
@@ -251,6 +285,14 @@ class SubscriptionController extends GetxController {
       );
 
       if (verifyRes.status) {
+        await _refreshActivePlanAfterPayment(verifyRes.data.plan);
+
+        print("Active Plan: ${activePlan.value?.planName}");
+        print("Features:");
+        for (var f in activePlan.value?.features ?? []) {
+          print(f.featureTitle);
+        }
+
         Get.snackbar(
           'Success',
           'Subscription Activated (${verifyRes.data.plan}) 🎉',
@@ -279,6 +321,101 @@ class SubscriptionController extends GetxController {
   int _parseAmount(String value) {
     final cleaned = value.replaceAll(RegExp(r'[^0-9.]'), '');
     return double.parse(cleaned).round();
+  }
+
+  String _normalizeText(String value) {
+    return value.trim().toLowerCase();
+  }
+
+  String _normalizeFeatureText(String value) {
+    return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
+  }
+
+  Future<void> _refreshActivePlanAfterPayment(String verifiedPlanCode) async {
+    await fetchPlans();
+
+    final userId = _readUserIdFromStorage();
+    if (userId != null) {
+      await loadActivePlanFromHistory(userId);
+      if (activePlan.value != null) {
+        // Save unlocked features to user-specific storage
+        final unlockedFeatures = activePlan.value!.features
+            .map((f) => f.featureTitle)
+            .toList();
+        _box.write(_userFeaturesKey(userId), unlockedFeatures);
+        print('💾 Saved user_features for user $userId: $unlockedFeatures');
+        // Extra debug: read back immediately
+        final verifyFeatures = _box.read(_userFeaturesKey(userId));
+        print('🟢 Immediately read user_features after write: $verifyFeatures');
+        return;
+      }
+    }
+
+    // Prefer history as source of truth after payment verification.
+    await _historyController.fetchSubscriptionHistory();
+
+    final activeHistory = _historyController.historyList
+        .where((history) => history.isActive)
+        .toList();
+
+    if (activeHistory.isNotEmpty) {
+      final latestActive = activeHistory.first;
+      final didSet = setActivePlanByCode(latestActive.plan.planCode);
+      if (didSet) {
+        final userId = _readUserIdFromStorage();
+        if (userId != null) {
+          final unlockedFeatures = activePlan.value!.features
+              .map((f) => f.featureTitle)
+              .toList();
+          _box.write(_userFeaturesKey(userId), unlockedFeatures);
+          print('💾 Saved user_features for user $userId: $unlockedFeatures');
+          final verifyFeatures = _box.read(_userFeaturesKey(userId));
+          print(
+            '🟢 Immediately read user_features after write: $verifyFeatures',
+          );
+        }
+        return;
+      }
+    }
+
+    // Fallback to verify-payment response when history is delayed.
+    setActivePlanByCode(verifiedPlanCode);
+    if (activePlan.value != null) {
+      final userId = _readUserIdFromStorage();
+      if (userId != null) {
+        final unlockedFeatures = activePlan.value!.features
+            .map((f) => f.featureTitle)
+            .toList();
+        _box.write(_userFeaturesKey(userId), unlockedFeatures);
+        print('💾 Saved user_features for user $userId: $unlockedFeatures');
+        final verifyFeatures = _box.read(_userFeaturesKey(userId));
+        print('🟢 Immediately read user_features after write: $verifyFeatures');
+      }
+    }
+  }
+
+  Future<void> _restoreActivePlanFromStorage() async {
+    if (_isRestoringActivePlan || activePlan.value != null) return;
+
+    final userId = _readUserIdFromStorage();
+    if (userId == null) return;
+
+    _isRestoringActivePlan = true;
+    try {
+      if (plans.isEmpty) {
+        await fetchPlans();
+      }
+      await loadActivePlanFromHistory(userId);
+    } finally {
+      _isRestoringActivePlan = false;
+    }
+  }
+
+  int? _readUserIdFromStorage() {
+    final raw = _box.read(_userIdKey);
+    if (raw is int) return raw;
+    if (raw is String) return int.tryParse(raw);
+    return null;
   }
 
   /// 🔹 Get coupon error for UI

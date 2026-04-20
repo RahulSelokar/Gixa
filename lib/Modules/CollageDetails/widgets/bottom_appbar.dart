@@ -8,10 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 class BottomActionBar extends StatelessWidget {
   final CollegeDetail college;
 
-  const BottomActionBar({
-    super.key,
-    required this.college,
-  });
+  const BottomActionBar({super.key, required this.college});
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +17,14 @@ class BottomActionBar extends StatelessWidget {
     /// ✅ Safe controller injection (single instance)
     final FavouriteCollegeController favController =
         Get.isRegistered<FavouriteCollegeController>()
-            ? Get.find<FavouriteCollegeController>()
-            : Get.put(FavouriteCollegeController(), permanent: true);
+        ? Get.find<FavouriteCollegeController>()
+        : Get.put(FavouriteCollegeController(), permanent: true);
 
     // ── Theme Palette ──
     final Color surfaceColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color borderColor =
-        isDark ? const Color(0xFF333333) : Colors.transparent;
+    final Color borderColor = isDark
+        ? const Color(0xFF333333)
+        : Colors.transparent;
     const Color kPrimaryBlue = Color(0xFF1565C0);
 
     return Container(
@@ -72,10 +70,8 @@ class BottomActionBar extends StatelessWidget {
                 color: isFav
                     ? Colors.redAccent
                     : (isDark ? Colors.grey[300]! : Colors.grey[600]!),
-                bgColor:
-                    isDark ? const Color(0xFF2C2C2C) : Colors.grey[100]!,
-                borderColor:
-                    isDark ? Colors.grey[800]! : Colors.grey[300]!,
+                bgColor: isDark ? const Color(0xFF2C2C2C) : Colors.grey[100]!,
+                borderColor: isDark ? Colors.grey[800]! : Colors.grey[300]!,
                 onTap: () => favController.toggleFavourite(college.id),
               );
             }),
@@ -90,11 +86,9 @@ class BottomActionBar extends StatelessWidget {
                   final bool isFav = favController.isFavourite(college.id);
 
                   return ElevatedButton(
-                    onPressed: () =>
-                        favController.toggleFavourite(college.id),
+                    onPressed: () => favController.toggleFavourite(college.id),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          isFav ? Colors.redAccent : kPrimaryBlue,
+                      backgroundColor: isFav ? Colors.redAccent : kPrimaryBlue,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: const StadiumBorder(),
@@ -111,7 +105,7 @@ class BottomActionBar extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           isFav ? "Saved" : "Save College",
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.inter(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.4,
@@ -158,10 +152,7 @@ class BottomActionBar extends StatelessWidget {
     try {
       final uri = Uri.parse(url);
       if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: LaunchMode.externalApplication,
-        );
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
     } catch (e) {
       debugPrint('❌ Website launch failed: $e');

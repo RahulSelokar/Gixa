@@ -1,8 +1,8 @@
 import 'package:Gixa/Modules/subscription/view/subscription_plan_page.dart';
+import 'package:Gixa/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 
 class CounsellingBanner extends StatelessWidget {
   const CounsellingBanner({super.key});
@@ -12,9 +12,11 @@ class CounsellingBanner extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         // ✅ Safe navigation
-        Get.to(() => SubscriptionPage());
+        // Get.to(() => SubscriptionPage());
+        Get.toNamed(AppRoutes.subscription);
       },
       child: Container(
+        width: double.infinity,
         margin: const EdgeInsets.symmetric(horizontal: 20),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -28,7 +30,7 @@ class CounsellingBanner extends StatelessWidget {
           children: [
             Text(
               "Confused about colleges?",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.inter(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -37,10 +39,7 @@ class CounsellingBanner extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               "Get 1-on-1 guidance from experts",
-              style: GoogleFonts.poppins(
-                color: Colors.white70,
-                fontSize: 12,
-              ),
+              style: GoogleFonts.inter(color: Colors.white70, fontSize: 12),
             ),
           ],
         ),

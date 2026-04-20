@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 class CollegeCompareBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(CollegeCompareController());
+    Get.lazyPut<CollegeCompareController>(
+      () => CollegeCompareController(),
+      fenix: false,
+    );
   }
 }

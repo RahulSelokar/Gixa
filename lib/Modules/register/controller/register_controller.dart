@@ -1,3 +1,4 @@
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/register/model/register_request.dart';
 import 'package:Gixa/commonmodels/category_model.dart';
 import 'package:Gixa/commonmodels/course_model.dart';
@@ -8,8 +9,10 @@ import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/routes/app_start_controller.dart';
 import 'package:Gixa/services/register_master_api.dart';
 import 'package:Gixa/services/register_services.dart';
+import 'package:Gixa/services/state_category_service.dart';
 import 'package:Gixa/services/token_services.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/Modules/predication/model/state_category_model.dart';
 
 /// 🔽 COURSE LEVEL ENUM
 enum CourseLevel { ug, pg }
@@ -29,6 +32,7 @@ class RegisterController extends GetxController {
   /// 🔽 MASTER DATA
   final states = <StateModel>[].obs;
   final categories = <CategoryModel>[].obs;
+  final stateCategoryMap = <String, StateCategoryModel>{}.obs;
 
   /// 🔽 COURSES (LEVEL → TYPE)
   final ugCourses = <String, List<CourseModel>>{}.obs;
@@ -57,7 +61,6 @@ class RegisterController extends GetxController {
       final data = await _masterApi.fetchMasters();
 
       states.assignAll(data['states']);
-      categories.assignAll(data['categories']);
 
       ugCourses.assignAll(
         Map<String, List<CourseModel>>.from(data['courses']['UG']),
@@ -66,11 +69,54 @@ class RegisterController extends GetxController {
       pgCourses.assignAll(
         Map<String, List<CourseModel>>.from(data['courses']['PG']),
       );
+
+      await loadStatewiseCategories();
     } catch (e) {
       Get.snackbar('Error', 'Failed to load dropdown data');
     } finally {
       isMasterLoading.value = false;
     }
+  }
+
+  Future<void> loadStatewiseCategories() async {
+    try {
+      final stateNames = states.map((e) => e.name).toList();
+      if (stateNames.isEmpty) return;
+
+      final data = await StateCategoryApiService.getStateCategories(
+        states: stateNames,
+      );
+
+      stateCategoryMap.clear();
+      for (final item in data) {
+        stateCategoryMap[item.state] = item;
+      }
+
+      if (selectedState.value != null) {
+        updateCategoriesByState(selectedState.value!);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to load statewise categories');
+    }
+  }
+
+  void updateCategoriesByState(StateModel state) {
+    selectedState.value = state;
+
+    final data = stateCategoryMap[state.name];
+    if (data == null) {
+      categories.clear();
+      selectedCategory.value = null;
+      return;
+    }
+
+    categories.assignAll(
+      data.availableCategories.map((name) {
+        return CategoryModel(id: 0, name: name, totalSeats: 0);
+      }).toList(),
+    );
+
+    selectedCategory.value = categories.isNotEmpty ? categories.first : null;
   }
 
   // ───────────────────────── COURSE HELPERS ─────────────────────────
@@ -141,14 +187,19 @@ class RegisterController extends GetxController {
         refreshToken: data.refreshToken,
       );
 
-      /// 🚀 NAVIGATE FIRST
+      /// 🧠 Mark registration complete & fetch profile before navigating
+      final appStart = Get.find<AppStartController>();
+      await appStart.registrationCompleted();
+
+      /// 🚀 NAVIGATE
       Get.offAllNamed(AppRoutes.mainNav);
 
-      /// 🧠 Do background work AFTER navigation
+      /// 👤 Fetch profile so the home header shows the user's name
       Future.microtask(() async {
-        final appStart = Get.find<AppStartController>();
-        await appStart.registrationCompleted();
-        await TokenService.printTokens(); // optional
+        try {
+          final profileController = Get.find<ProfileController>();
+          await profileController.fetchProfile();
+        } catch (_) {}
       });
     } catch (e) {
       if (e is AppException) {

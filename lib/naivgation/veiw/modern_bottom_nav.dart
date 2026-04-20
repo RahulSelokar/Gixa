@@ -16,17 +16,14 @@ class ModernBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 🌗 Theme Detection
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // 🎨 Dynamic Colors
     final Color navBgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color inactiveIconColor = isDark
         ? Colors.grey[400]!
         : Colors.grey[400]!;
     final Color borderColor = isDark ? Colors.grey[800]! : Colors.transparent;
 
-    // Shadows only for Light Mode (Shadows look messy in Dark Mode)
     final List<BoxShadow> shadows = isDark
         ? []
         : [
@@ -51,7 +48,7 @@ class ModernBottomNav extends StatelessWidget {
         border: Border.all(
           color: borderColor,
           width: 1,
-        ), // Thin border for Dark Mode definition
+        ), 
         boxShadow: shadows,
       ),
       child: Row(
@@ -79,6 +76,7 @@ class ModernBottomNav extends StatelessWidget {
             "Profile",
             inactiveIconColor,
           ),
+          
         ],
       ),
     );

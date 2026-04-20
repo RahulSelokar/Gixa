@@ -1,34 +1,57 @@
 import 'package:Gixa/Modules/comparison/model/college_compare_model.dart';
+import 'package:Gixa/Modules/comparison/model/compare_history_model.dart';
 import 'package:Gixa/Modules/comparison/model/save_compare_model.dart';
 import 'package:Gixa/services/compare_collage_services.dart';
 import 'package:Gixa/services/save_compare_service.dart';
 import 'package:get/get.dart';
 
 class CollegeCompareController extends GetxController {
-  /// 🔄 Loading states
   final isLoading = false.obs;
   final isSaving = false.obs;
 
-  /// 🎯 Selected colleges (codes)
   final selectedColleges = <String>[].obs;
 
-  /// 📊 Compare result
   final compareResult = Rxn<CollegeCompareResponse>();
 
-  /// 💾 Last saved result
   SaveCompareResponse? lastSavedResult;
 
   // ─────────────────────────────────────────────
   // 🔁 AUTO COMPARE WHEN PAGE OPENS
   // ─────────────────────────────────────────────
   @override
-  void onReady() {
-    super.onReady();
+  void onInit() {
+    super.onInit();
+  }
 
-    print('🟡 CompareController onReady');
-    print('🟡 Selected Colleges onReady 👉 $selectedColleges');
+  /// Called by the compare page each time it opens
+  void initFromArgs(dynamic args) {
+    // Reset previous state
+    selectedColleges.clear();
+    compareResult.value = null;
+    lastSavedResult = null;
 
-    if (selectedColleges.length == 2) {
+    if (args == null) return;
+
+    // From college list page: {'collegeCodes': ['101', '102']}
+    if (args is Map && args['collegeCodes'] is List) {
+      final codes = List<String>.from(args['collegeCodes']);
+      if (codes.isNotEmpty) {
+        selectedColleges.assignAll(codes);
+        print('🟡 Loaded colleges from args 👉 $codes');
+      }
+    }
+
+    // From history page: CompareHistoryItem
+    if (args is CompareHistoryItem) {
+      final codes = args.colleges.map((c) => c.collegeCode).toList();
+      if (codes.isNotEmpty) {
+        selectedColleges.assignAll(codes);
+        print('🟡 Loaded colleges from history 👉 $codes');
+      }
+    }
+
+    // Auto-compare if enough colleges
+    if (selectedColleges.length >= 2) {
       compareColleges();
     }
   }
@@ -91,6 +114,22 @@ class CollegeCompareController extends GetxController {
         selectedColleges,
       );
 
+      print("===== COMPARE API RESPONSE =====");
+      print("Status: ${result.status}");
+      print("Total Colleges: ${result.totalColleges}");
+
+      for (var college in result.comparison) {
+        print("------------");
+        print("College Name: ${college.collegeName}");
+        print("College Code: ${college.collegeCode}");
+        print("Total Seats: ${college.seats}");
+        print("Cutoffs Count: ${college.cutoffs.length}");
+
+        for (var cutoff in college.cutoffs) {
+          print("Cutoff Seats: ${cutoff.totalSeats}");
+        }
+      }
+
       compareResult.value = result;
     } catch (e, stack) {
       print('❌ Compare API FAILED');
@@ -144,6 +183,15 @@ class CollegeCompareController extends GetxController {
     } finally {
       isSaving.value = false;
     }
+  }
+
+  void loadHistoryComparison(dynamic historyItem) {
+    compareResult.value = CollegeCompareResponse(
+      status: "success",
+      studentProfile: null,
+      totalColleges: historyItem.colleges.length,
+      comparison: historyItem.colleges,
+    );
   }
 
   // ─────────────────────────────────────────────

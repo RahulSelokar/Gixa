@@ -6,10 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 class CollegeHeroImage extends StatelessWidget {
   final CollegeDetail college;
 
-  const CollegeHeroImage({
-    super.key,
-    required this.college,
-  });
+  const CollegeHeroImage({super.key, required this.college});
 
   static const Color kPrimaryBlue = Color(0xFF1565C0);
 
@@ -18,18 +15,21 @@ class CollegeHeroImage extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // ✅ Correct image source (FULL URL from backend)
-    final String? heroImageUrl =
-        college.gallery.isNotEmpty ? college.gallery.first.imageUrl : null;
+    final String? heroImageUrl = college.gallery.isNotEmpty
+        ? college.gallery.first.imageUrl
+        : null;
 
-    final Color placeholderColor =
-        isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade200;
+    final Color placeholderColor = isDark
+        ? const Color(0xFF2C2C2C)
+        : Colors.grey.shade200;
 
-    final Color badgeBg =
-        isDark ? const Color(0xFF1E1E1E).withOpacity(0.9) : Colors.white;
-    final Color badgeText =
-        isDark ? Colors.white : const Color(0xFF111111);
-    final Color badgeBorder =
-        isDark ? const Color(0xFF333333) : Colors.transparent;
+    final Color badgeBg = isDark
+        ? const Color(0xFF1E1E1E).withOpacity(0.9)
+        : Colors.white;
+    final Color badgeText = isDark ? Colors.white : const Color(0xFF111111);
+    final Color badgeBorder = isDark
+        ? const Color(0xFF333333)
+        : Colors.transparent;
 
     return GestureDetector(
       onTap: college.gallery.isNotEmpty ? () => _openGallery(context) : null,
@@ -90,12 +90,15 @@ class CollegeHeroImage extends StatelessWidget {
                     onTap: () => _openGallery(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(30),
-                        border:
-                            Border.all(color: Colors.white.withOpacity(0.2)),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                        ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -108,7 +111,7 @@ class CollegeHeroImage extends StatelessWidget {
                           const SizedBox(width: 6),
                           Text(
                             "${college.gallery.length} Photos",
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
@@ -122,45 +125,45 @@ class CollegeHeroImage extends StatelessWidget {
                 ),
 
               /// ⚡ Match badge
-              Positioned(
-                bottom: 14,
-                left: 14,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: badgeBg,
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: badgeBorder),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.bolt_rounded,
-                        color: kPrimaryBlue,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "95% Match",
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: badgeText,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // Positioned(
+              //   bottom: 14,
+              //   left: 14,
+              //   child: Container(
+              //     padding:
+              //         const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              //     decoration: BoxDecoration(
+              //       color: badgeBg,
+              //       borderRadius: BorderRadius.circular(30),
+              //       border: Border.all(color: badgeBorder),
+              //       boxShadow: [
+              //         BoxShadow(
+              //           color: Colors.black.withOpacity(0.15),
+              //           blurRadius: 6,
+              //           offset: const Offset(0, 2),
+              //         ),
+              //       ],
+              //     ),
+              //     child: Row(
+              //       mainAxisSize: MainAxisSize.min,
+              //       children: [
+              //         const Icon(
+              //           Icons.bolt_rounded,
+              //           color: kPrimaryBlue,
+              //           size: 18,
+              //         ),
+              //         const SizedBox(width: 6),
+              //         Text(
+              //           "95% Match",
+              //           style: GoogleFonts.inter(
+              //             fontSize: 13,
+              //             fontWeight: FontWeight.w700,
+              //             color: badgeText,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),
@@ -173,11 +176,7 @@ class CollegeHeroImage extends StatelessWidget {
     return Container(
       color: bgColor,
       alignment: Alignment.center,
-      child: const Icon(
-        Icons.school_outlined,
-        size: 64,
-        color: Colors.grey,
-      ),
+      child: const Icon(Icons.school_outlined, size: 64, color: Colors.grey),
     );
   }
 
