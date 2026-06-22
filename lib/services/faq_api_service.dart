@@ -6,12 +6,19 @@ class FaqApiService {
   FaqApiService._();
 
   /// 🔹 GET FAQ LIST
-  static Future<List<FaqItem>> getFaqs({String search = ""}) async {
+  static Future<List<FaqItem>> getFaqs({
+    String search = "",
+    bool forceRefresh = false,
+  }) async {
     final response = await ApiClient.get(
       ApiEndpoints.faq,
       queryParameters: {
         "search": search,
       },
+      requestPolicy: RequestPolicy(
+        ttl: Duration(minutes: 5),
+        forceRefresh: forceRefresh,
+      ),
     );
 
     /// FIXED STRUCTURE

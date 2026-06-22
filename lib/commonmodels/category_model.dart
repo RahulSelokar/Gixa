@@ -11,7 +11,7 @@ class CategoryModel {
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
-      id: json['id'] ?? 0,
+      id: json['id'] ?? 0, 
       name: (json['category_name'] ?? '').trim(), // remove extra spaces
       totalSeats: json['total_seats'] ?? 0,
     );

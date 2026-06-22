@@ -1,29 +1,27 @@
-import 'package:Gixa/Modules/comparison/model/college_compare_model.dart';
+﻿import 'package:Gixa/Modules/comparison/model/college_compare_model.dart';
 import 'package:Gixa/Modules/comparison/model/compare_history_model.dart';
 import 'package:Gixa/Modules/comparison/model/save_compare_model.dart';
 import 'package:Gixa/services/compare_collage_services.dart';
 import 'package:Gixa/services/save_compare_service.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class CollegeCompareController extends GetxController {
   final isLoading = false.obs;
   final isSaving = false.obs;
 
   final selectedColleges = <String>[].obs;
+  final isSaved = false.obs;
 
   final compareResult = Rxn<CollegeCompareResponse>();
 
   SaveCompareResponse? lastSavedResult;
 
-  // ─────────────────────────────────────────────
-  // 🔁 AUTO COMPARE WHEN PAGE OPENS
-  // ─────────────────────────────────────────────
   @override
   void onInit() {
     super.onInit();
   }
 
-  /// Called by the compare page each time it opens
   void initFromArgs(dynamic args) {
     // Reset previous state
     selectedColleges.clear();
@@ -34,19 +32,26 @@ class CollegeCompareController extends GetxController {
 
     // From college list page: {'collegeCodes': ['101', '102']}
     if (args is Map && args['collegeCodes'] is List) {
-      final codes = List<String>.from(args['collegeCodes']);
+      final rawCodes = args['collegeCodes'] as List;
+      final codes = rawCodes
+          .map<String>((code) => code.toString())
+          .where((code) => code.isNotEmpty)
+          .toList();
       if (codes.isNotEmpty) {
         selectedColleges.assignAll(codes);
-        print('🟡 Loaded colleges from args 👉 $codes');
+        print('ðŸŸ¡ Loaded colleges from args ðŸ‘‰ $codes');
       }
     }
 
     // From history page: CompareHistoryItem
     if (args is CompareHistoryItem) {
-      final codes = args.colleges.map((c) => c.collegeCode).toList();
+      final codes = args.colleges
+          .map((c) => c.collegeCode.toString())
+          .where((code) => code.isNotEmpty)
+          .toList();
       if (codes.isNotEmpty) {
         selectedColleges.assignAll(codes);
-        print('🟡 Loaded colleges from history 👉 $codes');
+        print('ðŸŸ¡ Loaded colleges from history ðŸ‘‰ $codes');
       }
     }
 
@@ -56,11 +61,11 @@ class CollegeCompareController extends GetxController {
     }
   }
 
-  // ─────────────────────────────────────────────
-  // 🏫 TOGGLE COLLEGE SELECTION
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ðŸ« TOGGLE COLLEGE SELECTION
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void toggleCollege(String code) {
-    print('🟢 Toggle College 👉 $code');
+    print('ðŸŸ¢ Toggle College ðŸ‘‰ $code');
 
     if (selectedColleges.contains(code)) {
       selectedColleges.remove(code);
@@ -68,48 +73,32 @@ class CollegeCompareController extends GetxController {
       if (selectedColleges.length < 2) {
         selectedColleges.add(code);
       } else {
-        Get.snackbar(
+        AppSnackbar.show(
           "Limit Reached",
           "Only 2 colleges can be compared at a time",
         );
       }
     }
 
-    print('🟢 Selected Colleges NOW 👉 $selectedColleges');
+    print('ðŸŸ¢ Selected Colleges NOW ðŸ‘‰ $selectedColleges');
   }
 
-  // ─────────────────────────────────────────────
-  // 🔍 COMPARE COLLEGES API
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ðŸ” COMPARE COLLEGES API
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> compareColleges() async {
-    print('🔵 compareColleges() CALLED');
-    print('🔵 Selected Colleges 👉 $selectedColleges');
+    print('ðŸ”µ compareColleges() CALLED');
+    print('ðŸ”µ Selected Colleges ðŸ‘‰ $selectedColleges');
 
     if (selectedColleges.length != 2) {
-      Get.snackbar("Error", "Select exactly 2 colleges");
-      return;
-    }
-
-    /// 🚨 TEMP SAFETY CHECK
-    final invalidCodes = selectedColleges.where(
-      (c) => !RegExp(r'^\d+$').hasMatch(c),
-    );
-
-    if (invalidCodes.isNotEmpty) {
-      print('🚨 INVALID COLLEGE CODES 👉 $invalidCodes');
-
-      Get.snackbar(
-        "Comparison not supported",
-        "Some colleges cannot be compared yet",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      AppSnackbar.show("Error", "Select exactly 2 colleges");
       return;
     }
 
     try {
       isLoading.value = true;
 
-      print('🚀 Calling Compare API...');
+      print('ðŸš€ Calling Compare API...');
       final result = await CollegeCompareService.compareColleges(
         selectedColleges,
       );
@@ -132,25 +121,25 @@ class CollegeCompareController extends GetxController {
 
       compareResult.value = result;
     } catch (e, stack) {
-      print('❌ Compare API FAILED');
-      print('❌ Error 👉 $e');
-      print('❌ Stack 👉 $stack');
+      print('âŒ Compare API FAILED');
+      print('âŒ Error ðŸ‘‰ $e');
+      print('âŒ Stack ðŸ‘‰ $stack');
 
-      Get.snackbar("Error", "Failed to compare colleges");
+      AppSnackbar.show("Error", "Failed to compare colleges");
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ─────────────────────────────────────────────
-  // 💾 SAVE COMPARED COLLEGES
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ðŸ’¾ SAVE COMPARED COLLEGES
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> saveComparedColleges() async {
-    print('💾 Save Comparison CALLED');
-    print('💾 Selected Colleges 👉 $selectedColleges');
+    print('ðŸ’¾ Save Comparison CALLED');
+    print('ðŸ’¾ Selected Colleges ðŸ‘‰ $selectedColleges');
 
     if (selectedColleges.isEmpty) {
-      Get.snackbar("Error", "No colleges to save");
+      AppSnackbar.show("Error", "No colleges to save");
       return;
     }
 
@@ -163,25 +152,26 @@ class CollegeCompareController extends GetxController {
 
       lastSavedResult = response;
 
-      print('✅ Save API SUCCESS 👉 ${response.message}');
+      print('âœ… Save API SUCCESS ðŸ‘‰ ${response.message}');
 
-      Get.snackbar(
+      AppSnackbar.show(
         "Saved Successfully",
         response.message,
         snackPosition: SnackPosition.BOTTOM,
       );
     } catch (e, stack) {
-      print('❌ Save API FAILED');
-      print('❌ Error 👉 $e');
-      print('❌ Stack 👉 $stack');
+      print('âŒ Save API FAILED');
+      print('âŒ Error ðŸ‘‰ $e');
+      print('âŒ Stack ðŸ‘‰ $stack');
 
-      Get.snackbar(
+      AppSnackbar.show(
         "Error",
         "Failed to save comparison",
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
       isSaving.value = false;
+      isSaved.value = true; 
     }
   }
 
@@ -194,12 +184,13 @@ class CollegeCompareController extends GetxController {
     );
   }
 
-  // ─────────────────────────────────────────────
-  // ♻️ CLEAR STATE
-  // ─────────────────────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â™»ï¸ CLEAR STATE
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   void clearComparison() {
-    print('♻️ Clearing comparison state');
+    print('â™»ï¸ Clearing comparison state');
     selectedColleges.clear();
     compareResult.value = null;
   }
 }
+

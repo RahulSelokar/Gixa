@@ -3,6 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/compare_history_controller.dart';
 
+// ─── Shared color palette (matches CompareCollegesView) ──────────────────────
+class _C {
+  static const orange = Color(0xFFFF6B2C);
+  static const orangeSurface = Color(0xFFFFF4EE);
+  static const dark = Color(0xFF12100E);
+  static const darkCard = Color(0xFF1C1A18);
+  static const textPrimary = Color(0xFF1A1614);
+  static const textSecondary = Color(0xFF7A736E);
+  static const lightBg = Color(0xFFFAF8F6);
+  static const lightCard = Color(0xFFFFFFFF);
+  static const green = Color(0xFF22C55E);
+  static const amber = Color(0xFFF59E0B);
+  static const red = Color(0xFFEF4444);
+}
+
 class CompareHistoryView extends StatelessWidget {
   const CompareHistoryView({super.key});
 
@@ -10,32 +25,18 @@ class CompareHistoryView extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.put(CompareHistoryController());
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9);
-    final cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-    final primaryText = isDark ? Colors.white : const Color(0xFF1E293B);
-    final secondaryText = isDark
-        ? const Color(0xFF94A3B8)
-        : const Color(0xFF64748B);
-    final accentBlue = const Color(0xFF2563EB);
+
     return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: Text(
-          "Comparison History",
-          style: TextStyle(
-            color: primaryText,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: primaryText),
-      ),
+      backgroundColor: isDark ? _C.dark : _C.lightBg,
+      appBar: _buildAppBar(isDark),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return Center(child: CircularProgressIndicator(color: accentBlue));
+          return const Center(
+            child: CircularProgressIndicator(
+              color: _C.orange,
+              strokeWidth: 2.5,
+            ),
+          );
         }
 
         if (controller.historyList.isEmpty) {
@@ -43,201 +44,248 @@ class CompareHistoryView extends StatelessWidget {
         }
 
         return ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
           itemCount: controller.historyList.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          separatorBuilder: (_, __) => const SizedBox(height: 14),
           itemBuilder: (context, index) {
             final item = controller.historyList[index];
-
-            return Container(
-              decoration: BoxDecoration(
-                color: cardColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.05)
-                      : Colors.grey.shade200,
-                ),
-                boxShadow: [
-                  if (!isDark)
-                    BoxShadow(
-                      color: const Color(0xFF64748B).withOpacity(0.06),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
-                  // onTap: () {
-                  //   Get.toNamed(AppRoutes.compareCollage, arguments: item);
-                  // },
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.calendar_today_rounded,
-                                  size: 14,
-                                  color: secondaryText,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  item.createdDate,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: secondaryText,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            _CountBadge(
-                              count: item.totalColleges,
-                              color: accentBlue,
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        ...item.colleges
-                            .take(3)
-                            .map(
-                              (college) => _CollegeRowItem(
-                                college: college,
-                                isDark: isDark,
-                                primaryText: primaryText,
-                                secondaryText: secondaryText,
-                              ),
-                            ),
-                        if (item.colleges.length > 3)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8, left: 50),
-                            child: Text(
-                              "+ ${item.colleges.length - 3} more colleges",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: accentBlue,
-                              ),
-                            ),
-                          ),
-
-                        const SizedBox(height: 16),
-
-                        Divider(
-                          height: 1,
-                          color: isDark ? Colors.white10 : Colors.grey.shade100,
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              "View Analysis",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: accentBlue,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 16,
-                              color: accentBlue,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            return _HistoryCard(
+              item: item,
+              isDark: isDark,
+              onTap: () =>
+                  Get.toNamed(AppRoutes.compareCollage, arguments: item),
             );
           },
         );
       }),
     );
   }
+
+  PreferredSizeWidget _buildAppBar(bool isDark) {
+    final textColor = isDark ? Colors.white : _C.textPrimary;
+    return AppBar(
+      backgroundColor: isDark ? _C.dark : _C.lightBg,
+      elevation: 0,
+      centerTitle: true,
+      automaticallyImplyLeading: false,
+      leading: GestureDetector(
+        onTap: () => Get.back(),
+        child: Container(
+          margin: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.white.withOpacity(0.08) : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isDark
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+          ),
+          child: Icon(Icons.arrow_back_ios_new_rounded,
+              size: 16, color: textColor),
+        ),
+      ),
+      title: Text(
+        "History",
+        style: TextStyle(
+          color: textColor,
+          fontWeight: FontWeight.w800,
+          fontSize: 17,
+          letterSpacing: -0.3,
+        ),
+      ),
+    );
+  }
 }
 
-/// ───────────────── COLLEGE ROW ITEM ─────────────────
-class _CollegeRowItem extends StatelessWidget {
-  final dynamic college; // Replace dynamic with CollegeModel type
+// ─── History Card ─────────────────────────────────────────
+class _HistoryCard extends StatelessWidget {
+  final dynamic item;
   final bool isDark;
-  final Color primaryText;
-  final Color secondaryText;
+  final VoidCallback onTap;
 
-  const _CollegeRowItem({
-    required this.college,
+  const _HistoryCard({
+    required this.item,
     required this.isDark,
-    required this.primaryText,
-    required this.secondaryText,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Generate initials (e.g. "IIT Delhi" -> "ID")
-    String initials = "";
-    if (college.collegeName.isNotEmpty) {
-      initials = college.collegeName.split(" ").take(2).map((e) => e[0]).join();
-    }
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? _C.darkCard : _C.lightCard,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: isDark
+              ? []
+              : [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Top accent strip + date row ──
+            Container(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
+              decoration: BoxDecoration(
+                color: _C.orange.withOpacity(isDark ? 0.12 : 0.06),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.history_rounded,
+                          size: 15, color: _C.orange),
+                      const SizedBox(width: 7),
+                      Text(
+                        item.createdDate ?? "—",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white60 : _C.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  _CountBadge(count: item.totalColleges),
+                ],
+              ),
+            ),
+
+            // ── College rows ──
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+              child: Column(
+                children: [
+                  ...(item.colleges as List)
+                      .take(3)
+                      .map((college) => _CollegeRow(
+                            college: college,
+                            isDark: isDark,
+                          )),
+                  if ((item.colleges as List).length > 3)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, left: 48),
+                      child: Text(
+                        "+ ${(item.colleges as List).length - 3} more",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _C.orange,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            // ── Footer ──
+            // Padding(
+            //   padding: const EdgeInsets.fromLTRB(18, 12, 18, 16),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.end,
+            //     children: [
+            //       Text(
+            //         "View Analysis",
+            //         style: TextStyle(
+            //           fontSize: 13,
+            //           fontWeight: FontWeight.w700,
+            //           color: _C.orange.withOpacity(0.9),
+            //         ),
+            //       ),
+            //       const SizedBox(width: 5),
+            //       const Icon(Icons.arrow_forward_rounded,
+            //           size: 15, color: _C.orange),
+            //     ],
+            //   ),
+            // ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── College Row ──────────────────────────────────────────
+class _CollegeRow extends StatelessWidget {
+  final dynamic college;
+  final bool isDark;
+
+  const _CollegeRow({required this.college, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    final name = (college.collegeName as String?) ?? "";
+    final city = (college.city as String?) ?? "";
+
+    final initials = name.isNotEmpty
+        ? name
+            .split(" ")
+            .where((e) => e.isNotEmpty)
+            .take(2)
+            .map((e) => e[0])
+            .join()
+            .toUpperCase()
+        : "?";
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          // Avatar
           Container(
             width: 36,
             height: 36,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withOpacity(0.1)
-                  : const Color(0xFFEFF6FF),
+            decoration: const BoxDecoration(
+              color: _C.orangeSurface,
               shape: BoxShape.circle,
             ),
             child: Text(
-              initials.toUpperCase(),
-              style: TextStyle(
+              initials,
+              style: const TextStyle(
                 fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF2563EB),
+                fontWeight: FontWeight.w900,
+                color: _C.orange,
               ),
             ),
           ),
           const SizedBox(width: 12),
-
-          // Name & City
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  college.collegeName,
+                  name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: primaryText,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : _C.textPrimary,
                   ),
                 ),
-                Text(
-                  college.city,
-                  style: TextStyle(fontSize: 12, color: secondaryText),
-                ),
+                if (city.isNotEmpty)
+                  Text(
+                    city,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.white38 : _C.textSecondary,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -247,36 +295,34 @@ class _CollegeRowItem extends StatelessWidget {
   }
 }
 
+// ─── Count Badge ──────────────────────────────────────────
 class _CountBadge extends StatelessWidget {
   final int count;
-  final Color color;
-
-  const _CountBadge({required this.count, required this.color});
+  const _CountBadge({required this.count});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.2)),
+        color: _C.orange.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        "$count Comparison",
-        style: TextStyle(
+        "$count Colleges",
+        style: const TextStyle(
           fontSize: 11,
-          fontWeight: FontWeight.bold,
-          color: color,
+          fontWeight: FontWeight.w700,
+          color: _C.orange,
         ),
       ),
     );
   }
 }
 
+// ─── Empty State ──────────────────────────────────────────
 class _EmptyState extends StatelessWidget {
   final bool isDark;
-
   const _EmptyState({required this.isDark});
 
   @override
@@ -288,59 +334,63 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+              width: 90,
+              height: 90,
+              alignment: Alignment.center,
+              decoration: const BoxDecoration(
+                color: _C.orangeSurface,
                 shape: BoxShape.circle,
-                boxShadow: [
-                  if (!isDark)
-                    BoxShadow(
-                      color: Colors.grey.shade200,
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                ],
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.history_toggle_off_rounded,
-                size: 48,
-                color: isDark ? Colors.white54 : const Color(0xFFCBD5E1),
+                size: 42,
+                color: _C.orange,
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              "No History Found",
+              "No History Yet",
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : const Color(0xFF1E293B),
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : _C.textPrimary,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Text(
-              "You haven't compared any colleges yet. \nStart comparing to save results here.",
+              "You haven't compared any colleges yet.\nStart comparing to save results here.",
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? Colors.white54 : const Color(0xFF64748B),
-                height: 1.5,
+                color: isDark ? Colors.white54 : _C.textSecondary,
+                height: 1.55,
               ),
             ),
             const SizedBox(height: 32),
-            SizedBox(
-              width: 180,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: () => Get.toNamed(AppRoutes.compareCollage),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  elevation: 4,
-                  shadowColor: const Color(0xFF2563EB).withOpacity(0.4),
+            GestureDetector(
+              onTap: () => Get.toNamed(AppRoutes.compareCollage),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 28, vertical: 14),
+                decoration: BoxDecoration(
+                  color: _C.orange,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _C.orange.withOpacity(0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                child: const Text("Start Comparing"),
+                child: const Text(
+                  "Start Comparing",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ),
           ],

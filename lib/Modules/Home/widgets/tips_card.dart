@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:Gixa/common/app_colors.dart';
 
 class TipsCard extends StatefulWidget {
   const TipsCard({super.key});
@@ -15,12 +16,12 @@ class _TipsCardState extends State<TipsCard> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.blue.shade50,
+          color: kHomeAccentColor.withOpacity(0.12),
           borderRadius: BorderRadius.circular(16),
         ),
         child: const Row(
           children: [
-            Icon(Icons.lightbulb_outline, color: Colors.blue),
+            Icon(Icons.lightbulb_outline, color: kHomeAccentColor),
             SizedBox(width: 12),
             Expanded(
               child: Text(

@@ -8,28 +8,36 @@ class OnboardingController extends GetxController {
 
   final List<OnboardingModel> pages = [
     OnboardingModel(
-      title: "AI College Prediction",
+      title: "Predict the right college faster",
+      subtitle: "Smart AI Guidance",
       description:
-          "Get accurate college predictions based on your NEET/JEE rank, category and state.",
-      lottie: "assets/lottie/AiData.json",
+          "Use your exam rank, category and preferences to discover colleges that actually match your chances.",
+      image: "assets/icons/Gixxa1.png",
+      badge: "AI Powered",
     ),
     OnboardingModel(
-      title: "Explore & Compare Colleges",
+      title: "Explore colleges with confidence",
+      subtitle: "Search and Compare",
       description:
-          "Search, filter and compare colleges by fees, cutoffs, seats and ratings.",
-      lottie: "assets/lottie/Search_Doctor.json",
+          "Check cutoffs, courses, seats and institute details in one place before making a decision.",
+      image: "assets/icons/gixxa2.png",
+      badge: "Verified Insights",
     ),
     OnboardingModel(
-      title: "Personal Counselling Assistance",
+      title: "Track every step of admission",
+      subtitle: "Counselling Support",
       description:
-          "Get 1-to-1 expert guidance and track your admission process step by step.",
-      lottie: "assets/lottie/OnlineLearning.json",
+          "Stay prepared with counselling help, document guidance and a simpler journey from exam to admission.",
+      image: "assets/icons/gixxa4.png",
+      badge: "Expert Help",
     ),
     OnboardingModel(
-      title: "Unlock With Subscription",
+      title: "All your admission tools in one app",
+      subtitle: "Made for Students",
       description:
-          "Subscribe to unlock rank prediction, state selection and counselling support.",
-      lottie: "assets/lottie/premium.json",
+          "From prediction to final shortlist, Gixa helps you plan smarter and move ahead with clarity.",
+      image: "assets/icons/gixxa5.png",
+      badge: "Get Started",
     ),
   ];
 

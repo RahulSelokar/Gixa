@@ -1,22 +1,21 @@
 import 'dart:io';
 
-/// ===============================
-/// 🔹 UPDATE PROFILE REQUEST
-/// ===============================
 class UpdateProfileRequest {
   // ───── REQUIRED BASIC INFO ─────
   final String firstName;
   final String lastName;
   final String address;
+  final String? email;
 
   // ───── ACADEMIC DETAILS ─────
+  final int? air;
   final int? neetScore;
   final double? tenthPercentage;
   final double? twelthPercentage;
   final double? twelthPcb;
 
   // ───── PROFILE PREFERENCES ─────
-  final String? category;
+  final int? category;
   final int? state;
   final int? course;
   final String? specialty;
@@ -24,7 +23,9 @@ class UpdateProfileRequest {
   // ───── PERSONAL DETAILS ─────
   final String? caste;
   final String? nationality;
+  final String? gender;
   final DateTime? dateOfBirth;
+  final String? fcmToken;
 
   /// 📸 Profile picture (multipart only)
   final File? profilePicture;
@@ -33,7 +34,9 @@ class UpdateProfileRequest {
     required this.firstName,
     required this.lastName,
     required this.address,
+    this.email,
 
+    this.air,
     this.neetScore,
     this.tenthPercentage,
     this.twelthPercentage,
@@ -46,7 +49,9 @@ class UpdateProfileRequest {
 
     this.caste,
     this.nationality,
+    this.gender,
     this.dateOfBirth,
+    this.fcmToken,
 
     this.profilePicture,
   });
@@ -60,6 +65,10 @@ class UpdateProfileRequest {
       "first_name": firstName,
       "last_name": lastName,
       "address": address,
+      "email": email,
+
+      /// 🔥 ADD THIS LINE
+      "all_india_rank": air,
 
       "neet_score": neetScore,
       "tenth_percentage": tenthPercentage,
@@ -73,15 +82,15 @@ class UpdateProfileRequest {
 
       "caste": caste,
       "nationality": nationality,
+      "gender": gender,
 
-      /// Backend expects YYYY-MM-DD
-      "date_of_birth":
-          dateOfBirth != null
-              ? dateOfBirth!.toIso8601String().split('T').first
-              : null,
+      "date_of_birth": dateOfBirth != null
+          ? dateOfBirth!.toIso8601String().split('T').first
+          : null,
+
+      "fcm_token": fcmToken,
     };
 
-    // 🔥 Remove null values (PATCH-style update)
     data.removeWhere((key, value) => value == null);
 
     return data;

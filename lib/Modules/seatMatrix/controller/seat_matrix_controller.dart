@@ -3,81 +3,87 @@ import 'package:Gixa/services/seat_matrix_services.dart';
 import 'package:get/get.dart';
 
 class SeatMatrixController extends GetxController {
-
-  /// 🔄 Loading State
+  /// Loading State
   var isLoading = false.obs;
 
-  /// 📦 All Seat Data
+  /// All Seat Data
   var seatList = <SeatMatrixModel>[].obs;
 
-  /// 🗂 Quick Lookup Map (collegeId → seat list)
-  final Map<int, List<SeatMatrixModel>> _seatMap = {};
+  /// Quick Lookup Map (college name -> seat list)
+  final Map<String, List<SeatMatrixModel>> _seatMap = {};
 
-  @override
-  void onInit() {
-    fetchSeatMatrix();
-    super.onInit();
-  }
-
-  /// 🔥 Fetch API
-  Future<void> fetchSeatMatrix() async {
+  /// Fetch API
+  Future<void> fetchSeatMatrix({
+    String? collegeName,
+    bool forceRefresh = false,
+  }) async {
     try {
       isLoading.value = true;
 
-      final data = await SeatMatrixService.getSeatMatrix();
+      final data = await SeatMatrixService.getSeatMatrix(
+        collegeName: collegeName,
+        forceRefresh: forceRefresh,
+      );
+
       seatList.assignAll(data);
-
-      /// Group by collegeId
-      _seatMap.clear();
-      for (var seat in data) {
-        if (!_seatMap.containsKey(seat.collegeId)) {
-          _seatMap[seat.collegeId] = [];
-        }
-        _seatMap[seat.collegeId]!.add(seat);
-      }
-
+      _seatMap
+        ..clear()
+        ..addEntries(_groupSeatsByCollege(data).entries);
     } catch (e) {
-      print("❌ Seat Matrix Error: $e");
+      print("Seat Matrix Error: $e");
+      seatList.clear();
+      _seatMap.clear();
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// 🎯 Get Total Seats For College (All Years Combined)
-  int getTotalSeats(int collegeId) {
-    final collegeSeats = _seatMap[collegeId];
-    if (collegeSeats == null) return 0;
-
-    return collegeSeats.fold(
-      0,
-      (sum, seat) => sum + seat.totalSeats,
+  List<SeatMatrixModel> getSeatsForCollege(String collegeName) {
+    return List<SeatMatrixModel>.from(
+      _seatMap[_normalizeCollegeName(collegeName)] ?? const [],
     );
   }
 
-  /// 📊 Get Seats For Specific Year
-  int getSeatsByYear(int collegeId, int year) {
-    final collegeSeats = _seatMap[collegeId];
-    if (collegeSeats == null) return 0;
+  int getTotalSeats(String collegeName) {
+    final collegeSeats = getSeatsForCollege(collegeName);
+    if (collegeSeats.isEmpty) return 0;
 
-    final yearData = collegeSeats
-        .where((seat) => seat.year == year)
-        .toList();
-
-    return yearData.fold(
-      0,
-      (sum, seat) => sum + seat.totalSeats,
-    );
+    return collegeSeats.fold(0, (sum, seat) => sum + seat.totalSeats);
   }
 
-  /// 📌 Get Category-wise Seats (For Latest Year)
-  List<CategorySeat> getCategories(int collegeId) {
-    final collegeSeats = _seatMap[collegeId];
-    if (collegeSeats == null || collegeSeats.isEmpty) {
+  int getSeatsByYear(String collegeName, int year) {
+    final collegeSeats = getSeatsForCollege(collegeName);
+    if (collegeSeats.isEmpty) return 0;
+
+    final yearData = collegeSeats.where((seat) => seat.year == year).toList();
+    return yearData.fold(0, (sum, seat) => sum + seat.totalSeats);
+  }
+
+  List<CategorySeat> getCategories(String collegeName) {
+    final collegeSeats = getSeatsForCollege(collegeName);
+    if (collegeSeats.isEmpty) {
       return [];
     }
 
-    /// Example: return latest year data
     collegeSeats.sort((a, b) => b.year.compareTo(a.year));
     return collegeSeats.first.categories;
+  }
+
+  Map<String, List<SeatMatrixModel>> _groupSeatsByCollege(
+    List<SeatMatrixModel> data,
+  ) {
+    final grouped = <String, List<SeatMatrixModel>>{};
+
+    for (final seat in data) {
+      final collegeKey = _normalizeCollegeName(seat.collegeName);
+      grouped.putIfAbsent(collegeKey, () => []);
+      grouped[collegeKey]!.add(seat);
+    }
+
+    return grouped;
+  }
+
+  String _normalizeCollegeName(String collegeName) {
+    return collegeName.trim().toLowerCase();
   }
 }

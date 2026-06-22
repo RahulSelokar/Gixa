@@ -48,14 +48,14 @@ class AuthServices {
     }
   }
 
-  /// 🔥 LOGOUT FROM OTHER DEVICE
-  static Future<void> logoutOtherDevice({required String deviceId}) async {
-    try {
-      await ApiClient.post(ApiEndpoints.logoutOtherDevice, {
-        "device_id": deviceId,
-      });
-    } catch (e) {
-    }
+  static Future<void> logoutOtherDevice({
+    required String mobileNumber,
+    required String deviceId,
+  }) async {
+    await ApiClient.post(ApiEndpoints.logoutOtherDevice, {
+      'mobile_number': mobileNumber,
+      'device_id': deviceId,
+    });
   }
 
   static Future<ApiResponse<VerifyOtpResponse>> refreshToken(

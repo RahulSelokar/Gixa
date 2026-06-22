@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:Gixa/common/app_colors.dart';
 
 class AIMatchCard extends StatelessWidget {
   const AIMatchCard({super.key});
@@ -9,7 +10,7 @@ class AIMatchCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // --- Theme Palette ---
-    final Color kPrimaryBlue = const Color(0xFF2979FF); // Brighter blue for AI
+    final Color kPrimaryBlue = kHomeAccentColor; // Accent for AI
 
     // Background: Light = Soft Blue Tint | Dark = Deep Midnight Blue
     final Color cardBg = isDark
@@ -55,7 +56,7 @@ class AIMatchCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [kPrimaryBlue, const Color(0xFF00B0FF)],
+                    colors: [kPrimaryBlue, const Color(0xFFFFB74D)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -138,7 +139,7 @@ class AIMatchCard extends StatelessWidget {
                   text: "95% probability",
                   style: GoogleFonts.inter(
                     color: isDark
-                        ? const Color(0xFF64B5F6)
+                        ? const Color(0xFFFFCC80)
                         : kPrimaryBlue, // Lighter blue in dark mode
                     fontWeight: FontWeight.w800,
                   ),

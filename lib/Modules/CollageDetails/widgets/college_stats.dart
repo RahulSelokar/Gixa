@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:Gixa/common/app_colors.dart';
 
 class CollegeStats extends StatelessWidget {
   final String label;
@@ -20,7 +21,7 @@ class CollegeStats extends StatelessWidget {
     final Color labelColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
 
     // An accent color (Blue) to make the stat pop visually
-    final Color accentColor = const Color(0xFF2979FF);
+    final Color accentColor = kHomeAccentColor;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

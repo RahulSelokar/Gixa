@@ -1,5 +1,6 @@
 import 'package:Gixa/Modules/dailyUpdates/model/daily_update_model.dart';
 import 'package:flutter/material.dart';
+import 'package:Gixa/common/app_colors.dart';
 
 class UpdateCard extends StatelessWidget {
   final UpdateModel update;
@@ -27,7 +28,7 @@ class UpdateCard extends StatelessWidget {
         icon = Icons.star;
         break;
       default:
-        accent = Colors.blue;
+        accent = kHomeAccentColor;
         icon = Icons.newspaper;
     }
 

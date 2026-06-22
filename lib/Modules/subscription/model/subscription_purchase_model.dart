@@ -1,7 +1,7 @@
 class SubscriptionPurchaseResponse {
   final bool status;
   final String message;
-  final SubscriptionPurchaseData data;
+  final SubscriptionPurchaseData? data;
 
   SubscriptionPurchaseResponse({
     required this.status,
@@ -10,10 +10,14 @@ class SubscriptionPurchaseResponse {
   });
 
   factory SubscriptionPurchaseResponse.fromJson(Map<String, dynamic> json) {
+    final rawData = json['data'];
+
     return SubscriptionPurchaseResponse(
-      status: json['status'],
-      message: json['message'],
-      data: SubscriptionPurchaseData.fromJson(json['data']),
+      status: json['status'] == true,
+      message: json['message']?.toString() ?? '',
+      data: rawData is Map<String, dynamic>
+          ? SubscriptionPurchaseData.fromJson(rawData)
+          : null,
     );
   }
 }
@@ -43,15 +47,22 @@ class SubscriptionPurchaseData {
 
   factory SubscriptionPurchaseData.fromJson(Map<String, dynamic> json) {
     return SubscriptionPurchaseData(
-      planId: json['plan_id'],
-      planName: json['plan_name'],
-      baseAmount: json['base_amount'],
-      planDiscount: json['plan_discount'],
-      couponDiscount: json['coupon_discount'],
-      finalPayableAmount: json['final_payable_amount'],
-      durationDays: json['duration_days'],
-      extraDays: json['extra_days'],
-      couponApplied: json['coupon_applied'],
+      planId: _toInt(json['plan_id']),
+      planName: json['plan_name']?.toString() ?? '',
+      baseAmount: json['base_amount']?.toString() ?? '0',
+      planDiscount: json['plan_discount']?.toString() ?? '0',
+      couponDiscount: json['coupon_discount']?.toString() ?? '0',
+      finalPayableAmount: json['final_payable_amount']?.toString() ?? '0',
+      durationDays: _toInt(json['duration_days']),
+      extraDays: _toInt(json['extra_days']),
+      couponApplied: json['coupon_applied']?.toString(),
     );
   }
+}
+
+int _toInt(dynamic value) {
+  if (value is int) return value;
+  if (value is double) return value.round();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
 }

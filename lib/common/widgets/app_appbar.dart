@@ -34,11 +34,7 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (showLogo) ...[
-            Icon(
-              EvaIcons.bookOpenOutline,
-              size: 28,
-              color: UColors.primary,
-            ),
+            Icon(EvaIcons.bookOpenOutline, size: 28, color: UColors.primary),
             const SizedBox(width: 8),
           ],
           Text(
@@ -57,13 +53,9 @@ class AppAppBar extends StatelessWidget implements PreferredSizeWidget {
         Obx(() {
           IconData icon;
 
-          if (themeController.themeMode.value == ThemeMode.system) {
-            icon = Icons.settings_brightness;
-          } else if (themeController.themeMode.value == ThemeMode.dark) {
-            icon = EvaIcons.sunOutline;
-          } else {
-            icon = EvaIcons.moonOutline;
-          }
+          icon = themeController.isDark
+              ? EvaIcons.sunOutline
+              : EvaIcons.moonOutline;
 
           return IconButton(
             icon: Icon(icon),

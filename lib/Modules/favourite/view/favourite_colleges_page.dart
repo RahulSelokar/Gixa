@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:Gixa/Modules/favourite/controller/fevorite_collage_controller.dart';
 import 'package:Gixa/Modules/favourite/model/fevorite_model.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:Gixa/routes/app_routes.dart';
 
 class FavouriteCollegesPage extends StatelessWidget {
@@ -16,13 +17,21 @@ class FavouriteCollegesPage extends StatelessWidget {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = isDark
+        ? const Color(0xFF0B1220)
+        : const Color(0xFFF6F8FC);
+    final appBarColor = isDark
+        ? const Color(0xFF0F172A)
+        : const Color(0xFFF6F8FC);
+    final heroSurface = isDark ? const Color(0xFF111C34) : Colors.white;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: backgroundColor,
       appBar: AppBar(
         elevation: 0,
         centerTitle: false,
-        backgroundColor: Colors.white,
+        backgroundColor: appBarColor,
+        scrolledUnderElevation: 0,
         title: Text(
           "Favourite Colleges",
           style: theme.textTheme.headlineSmall?.copyWith(
@@ -46,11 +55,77 @@ class FavouriteCollegesPage extends StatelessWidget {
           child: ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
             physics: const AlwaysScrollableScrollPhysics(),
-            itemCount: controller.favouriteColleges.length,
+            itemCount: controller.favouriteColleges.length + 1,
             separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (context, index) {
+              if (index == 0) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: heroSurface,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withOpacity(0.06)
+                          : const Color(0xFFE6EBF2),
+                    ),
+                    boxShadow: [
+                      if (!isDark)
+                        BoxShadow(
+                          color: const Color(0xFF94A3B8).withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDark
+                                ? const [Color(0xFF2563EB), Color(0xFF38BDF8)]
+                                : const [Color(0xFF1D4ED8), Color(0xFF60A5FA)],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.favorite_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Saved for later",
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "${controller.favouriteColleges.length} colleges in your shortlist",
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
               final FavouriteCollege college =
-                  controller.favouriteColleges[index];
+                  controller.favouriteColleges[index - 1];
 
               return _CollegeCard(
                 college: college,
@@ -70,7 +145,7 @@ class _CollegeCard extends StatelessWidget {
   final FavouriteCollege college;
   final VoidCallback onToggleFavorite;
 
-  static const Color kPrimaryBlue = Color(0xFF1565C0);
+  static const Color kPrimaryBlue = kHomeAccentColor;
 
   const _CollegeCard({required this.college, required this.onToggleFavorite});
 
@@ -79,13 +154,23 @@ class _CollegeCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final Color surfaceColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color surfaceColor = isDark ? const Color(0xFF111827) : Colors.white;
     final Color textColor = isDark ? Colors.white : const Color(0xFF111111);
-    final Color subTextColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
-    final Color borderColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
+    final Color subTextColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+    final Color borderColor = isDark
+        ? Colors.white.withOpacity(0.06)
+        : const Color(0xFFE7ECF3);
     final Color iconBoxColor = isDark
-        ? const Color(0xFF2C2C2C)
+        ? const Color(0xFF172033)
         : const Color(0xFFF0F4F8);
+    final Color footerColor = isDark
+        ? const Color(0xFF172033)
+        : kPrimaryBlue.withOpacity(0.05);
+    final Color footerTextColor = isDark
+        ? const Color(0xFF93C5FD)
+        : kPrimaryBlue;
 
     return GestureDetector(
       onTap: () {
@@ -100,15 +185,20 @@ class _CollegeCard extends StatelessWidget {
           color: surfaceColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: borderColor),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 15,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
+          boxShadow: [
+            if (!isDark)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            if (isDark)
+              BoxShadow(
+                color: Colors.black.withOpacity(0.22),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+          ],
         ),
         child: Column(
           children: [
@@ -132,7 +222,7 @@ class _CollegeCard extends StatelessWidget {
                         child: Icon(
                           Icons.school_outlined,
                           size: 28,
-                          color: Colors.grey,
+                          color: isDark ? const Color(0xFF93C5FD) : Colors.grey,
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -176,9 +266,11 @@ class _CollegeCard extends StatelessWidget {
                         visualDensity: VisualDensity.compact,
                         splashRadius: 20,
                         onPressed: onToggleFavorite,
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.favorite_rounded,
-                          color: Colors.redAccent,
+                          color: isDark
+                              ? const Color(0xFFFB7185)
+                              : Colors.redAccent,
                         ),
                       ),
                     ],
@@ -218,9 +310,7 @@ class _CollegeCard extends StatelessWidget {
             Container(
               height: 44,
               decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withOpacity(0.05)
-                    : kPrimaryBlue.withOpacity(0.05),
+                color: footerColor,
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(20),
                 ),
@@ -233,14 +323,14 @@ class _CollegeCard extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white70 : kPrimaryBlue,
+                      color: footerTextColor,
                     ),
                   ),
                   const SizedBox(width: 6),
                   Icon(
                     Icons.arrow_forward_rounded,
                     size: 16,
-                    color: isDark ? Colors.white70 : kPrimaryBlue,
+                    color: footerTextColor,
                   ),
                 ],
               ),
@@ -294,6 +384,7 @@ class _EmptyStateView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Center(
       child: Padding(
@@ -305,12 +396,14 @@ class _EmptyStateView extends StatelessWidget {
               padding: const EdgeInsets.all(26),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: cs.primaryContainer.withOpacity(0.4),
+                color: isDark
+                    ? const Color(0xFF172033)
+                    : cs.primaryContainer.withOpacity(0.4),
               ),
               child: Icon(
                 Icons.favorite_border_rounded,
                 size: 64,
-                color: cs.primary,
+                color: isDark ? const Color(0xFF93C5FD) : cs.primary,
               ),
             ),
             const SizedBox(height: 24),
@@ -325,7 +418,7 @@ class _EmptyStateView extends StatelessWidget {
               "Colleges you mark as favourite\nwill appear here.",
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: cs.onSurfaceVariant,
+                color: isDark ? Colors.white70 : cs.onSurfaceVariant,
               ),
             ),
           ],

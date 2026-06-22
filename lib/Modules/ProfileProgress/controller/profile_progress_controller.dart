@@ -83,19 +83,19 @@ class ProfileProgressController extends GetxController {
     }
 
     /// Documents
-    if (p.documents == null || p.documents.isEmpty) {
-      cards.add(
-        ProfileSectionCard(
-          title: "Documents",
-          description: "Upload required documents",
-          icon: Icons.description_outlined,
-          // route: "/documents",
-          route: AppRoutes.updateDocs,
-          image: "assets/images/documents.png",
-          actionLabel: "Upload",
-        ),
-      );
-    }
+    // if (p.documents == null || p.documents.isEmpty) {
+    //   cards.add(
+    //     ProfileSectionCard(
+    //       title: "Documents",
+    //       description: "Upload required documents",
+    //       icon: Icons.description_outlined,
+    //       // route: "/documents",
+    //       route: AppRoutes.updateDocs,
+    //       image: "assets/images/documents.png",
+    //       actionLabel: "Upload",
+    //     ),
+    //   );
+    // }
 
     /// Preferences
     if ((p.course == null || p.course!.isEmpty) &&

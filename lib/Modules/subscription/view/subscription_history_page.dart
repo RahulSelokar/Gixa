@@ -7,12 +7,46 @@ import 'package:intl/intl.dart';
 class SubscriptionHistoryPage extends StatelessWidget {
   const SubscriptionHistoryPage({super.key});
 
+  double _parseAmount(String value) {
+    return double.tryParse(value.replaceAll(',', '').trim()) ?? 0;
+  }
+
+  String _formatAmount(num value) {
+    if (value is int || value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
+
+    return value.toStringAsFixed(2);
+  }
+
+  double _savedAmount(item) {
+    final baseAmount = _parseAmount(item.baseAmount);
+    final finalAmount = _parseAmount(item.finalAmount);
+
+    final calculated = baseAmount - finalAmount;
+    if (calculated > 0) {
+      return calculated;
+    }
+
+    return _parseAmount(item.totalDiscountAmount);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final controller = Get.put(SubscriptionHistoryController());
+    final controller = Get.isRegistered<SubscriptionHistoryController>()
+        ? Get.find<SubscriptionHistoryController>()
+        : Get.put(SubscriptionHistoryController());
     final subController = Get.find<SubscriptionController>();
+
+    if (!controller.isLoading.value &&
+        controller.historyList.isEmpty &&
+        controller.errorMessage.value.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.ensureLoaded();
+      });
+    }
 
     final bgColor = isDark ? const Color(0xFF121212) : const Color(0xFFF6F7FB);
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -38,7 +72,7 @@ class SubscriptionHistoryPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (controller.errorMessage.isNotEmpty) {
+        if (controller.errorMessage.value.isNotEmpty) {
           return Center(
             child: Text(
               controller.errorMessage.value,
@@ -99,17 +133,51 @@ class SubscriptionHistoryPage extends StatelessWidget {
                     const SizedBox(height: 14),
 
                     /// ── AMOUNT
-                    Text(
-                      "₹${item.finalAmount}",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: item.isActive
-                            ? Colors.green
-                            : Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        /// Final Amount
+                        Text(
+                          "₹${item.finalAmount}",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: item.isActive
+                                ? Colors.green
+                                : Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
 
+                        const SizedBox(height: 4),
+
+                        /// Base Amount + Discount
+                        /// Show discount details only if discount applied
+                        if (_savedAmount(item) > 0)
+                          Row(
+                            children: [
+                              Text(
+                                "₹${item.baseAmount}",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  decoration: TextDecoration.lineThrough,
+                                  color: subTextColor,
+                                ),
+                              ),
+
+                              const SizedBox(width: 8),
+
+                              Text(
+                                "Saved ₹${_formatAmount(_savedAmount(item))}",
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 8),
 
                     /// ── PAYMENT STATUS
@@ -244,6 +312,9 @@ class SubscriptionHistoryPage extends StatelessWidget {
     if (item.isActive) {
       color = Colors.green;
       label = "ACTIVE";
+    } else if (item.isExpired) {
+      color = Colors.grey;
+      label = "EXPIRED";
     } else if (item.status == "FAILED") {
       color = Colors.red;
       label = "FAILED";

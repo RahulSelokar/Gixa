@@ -1,6 +1,7 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import '../../../services/support_service.dart';
 import '../model/support_contact_model.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class SupportController extends GetxController {
   final RxBool isLoading = false.obs;
@@ -20,9 +21,10 @@ class SupportController extends GetxController {
       contact.value = result;
 
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      AppSnackbar.show("Error", e.toString());
     } finally {
       isLoading.value = false;
     }
   }
 }
+

@@ -9,6 +9,7 @@ class CollegeListShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final baseColor =
+    
         isDark ? Colors.grey.shade800 : Colors.grey.shade300;
     final highlightColor =
         isDark ? Colors.grey.shade700 : Colors.grey.shade100;

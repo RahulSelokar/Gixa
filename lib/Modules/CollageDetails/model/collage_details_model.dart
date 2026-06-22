@@ -37,6 +37,31 @@ class CollegeDetail extends College {
     required this.seatMatrix,
   });
 
+  factory CollegeDetail.fromCollege(College college) {
+    return CollegeDetail(
+      id: college.id,
+      collegeCode: college.collegeCode,
+      name: college.name,
+      state: college.state,
+      instituteType: college.instituteType,
+      yearEstablished: college.yearEstablished,
+      hostelAvailable: college.hostelAvailable,
+      hostelFor: college.hostelFor,
+      coverImage: college.coverImage,
+      courses: college.courses,
+      website: '',
+      videoUrl: '',
+      about: '',
+      address: '',
+      contactName: '',
+      contactDesignation: '',
+      contactEmail: '',
+      contactMobile: '',
+      gallery: [],
+      seatMatrix: [],
+    );
+  }
+
   factory CollegeDetail.fromJson(Map<String, dynamic> json) {
     return CollegeDetail(
       id: (json['id'] as num?)?.toInt() ?? 0,

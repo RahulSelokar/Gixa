@@ -8,19 +8,19 @@ class UAppBarTheme {
     backgroundColor: UColors.white,
     elevation: 0,
     centerTitle: true,
-    iconTheme: const IconThemeData(color: UColors.black),
+    iconTheme: const IconThemeData(color: UColors.primaryDark),
     titleTextStyle: const TextStyle(
-      color: UColors.black,
+      color: UColors.primaryDark,
       fontSize: 18,
       fontWeight: FontWeight.w600,
     ),
   );
 
   static AppBarTheme darkAppBarTheme = AppBarTheme(
-    backgroundColor: UColors.black,
+    backgroundColor: UColors.darkSurface,
     elevation: 0,
     centerTitle: true,
-    iconTheme: const IconThemeData(color: UColors.white),
+    iconTheme: const IconThemeData(color: UColors.primaryLight),
     titleTextStyle: const TextStyle(
       color: UColors.white,
       fontSize: 18,

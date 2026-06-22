@@ -10,6 +10,17 @@ import '../model/profile_section_model.dart';
 // ─────────────────────────────────────────────
 //  ENTRY WIDGET
 // ─────────────────────────────────────────────
+const gixaGradient = LinearGradient(
+  colors: [
+    Color(0xFFFF7A18), // orange
+    Color(0xFFFF3D77), // pink
+    Color(0xFF8E2DE2), // purple
+    Color(0xFF4A00E0), // blue
+  ],
+  begin: Alignment.topLeft,
+  end: Alignment.bottomRight,
+);
+
 class ProfileCompletionSlider extends StatefulWidget {
   const ProfileCompletionSlider({super.key});
 
@@ -58,6 +69,8 @@ class _ProfileCompletionSliderState extends State<ProfileCompletionSlider> {
     final controller = Get.put(ProfileProgressController());
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
 
     return Obx(() {
       if (controller.isProfileComplete) return const SizedBox.shrink();
@@ -72,7 +85,7 @@ class _ProfileCompletionSliderState extends State<ProfileCompletionSlider> {
             onPointerDown: (_) => _stopAutoScroll(),
             onPointerUp: (_) => _startAutoScroll(),
             child: SizedBox(
-              height: 110,
+              height: isTablet ? 126 : 110,
               child: PageView(
                 controller: _pageController,
                 onPageChanged: (i) => setState(() => _currentPage = i),
@@ -188,7 +201,7 @@ class _MainProgressCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: theme.primaryColor,
+                          color: gixaGradient.colors.first,
                         ),
                       ),
                     ],
@@ -256,7 +269,7 @@ class _CircularProgressAvatar extends StatelessWidget {
               size: const Size(72, 72),
               painter: _ArcPainter(
                 progress: value,
-                primaryColor: primaryColor,
+                // primaryColor: primaryColor,
                 trackColor: isDark
                     ? Colors.white10
                     : Colors.black.withOpacity(0.08),
@@ -284,7 +297,7 @@ class _CircularProgressAvatar extends StatelessWidget {
               builder: (_, val, __) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
-                  color: primaryColor,
+                  gradient: gixaGradient,
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
@@ -309,48 +322,56 @@ class _CircularProgressAvatar extends StatelessWidget {
 // ─────────────────────────────────────────────
 class _ArcPainter extends CustomPainter {
   final double progress;
-  final Color primaryColor;
   final Color trackColor;
 
-  _ArcPainter({
-    required this.progress,
-    required this.primaryColor,
-    required this.trackColor,
-  });
+  _ArcPainter({required this.progress, required this.trackColor});
+
+  /// 🔥 GIXA BRAND GRADIENT
+  final LinearGradient gixaGradient = const LinearGradient(
+    colors: [
+      Color(0xFFFF7A18), // orange
+      Color(0xFFFF3D77), // pink
+      Color(0xFF8E2DE2), // purple
+      Color(0xFF4A00E0), // blue
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width / 2) - 4;
+
     const strokeWidth = 4.0;
     const startAngle = math.pi * 0.75;
     const sweepTotal = math.pi * 1.5;
 
-    // Track
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      startAngle,
-      sweepTotal,
-      false,
-      Paint()
-        ..color = trackColor
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    /// 🔹 TRACK (background arc)
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawArc(rect, startAngle, sweepTotal, false, trackPaint);
+
+    /// 🔥 PROGRESS (GRADIENT ARC)
+    if (progress > 0) {
+      final gradientPaint = Paint()
+        ..shader = gixaGradient.createShader(rect)
         ..strokeWidth = strokeWidth
         ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round,
-    );
+        ..strokeCap = StrokeCap.round;
 
-    // Progress
-    if (progress > 0) {
       canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
+        rect,
         startAngle,
         sweepTotal * progress.clamp(0.0, 1.0),
         false,
-        Paint()
-          ..color = primaryColor
-          ..strokeWidth = strokeWidth
-          ..style = PaintingStyle.stroke
-          ..strokeCap = StrokeCap.round,
+        gradientPaint,
       );
     }
   }
@@ -413,7 +434,7 @@ class _SectionCard extends StatelessWidget {
                   width: 46,
                   height: 46,
                   decoration: BoxDecoration(
-                    color: theme.primaryColor.withOpacity(0.08),
+                    gradient: gixaGradient,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.all(6),
@@ -480,8 +501,8 @@ class _SectionCard extends StatelessWidget {
                 OutlinedButton(
                   onPressed: () => Get.toNamed(data.route),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.primaryColor,
-                    side: BorderSide(color: theme.primaryColor, width: 1),
+                    foregroundColor: const Color(0xFFFF7A18),
+                    side: const BorderSide(color: Color(0xFFFF7A18)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),

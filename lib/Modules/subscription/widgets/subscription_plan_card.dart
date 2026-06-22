@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/subscription/model/subscription_plan.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class SubscriptionPlanCard extends StatelessWidget {
@@ -21,21 +22,16 @@ class SubscriptionPlanCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
         gradient: isBest
-            ? const LinearGradient(
-                colors: [Color(0xFF1E40FF), Color(0xFF4F7CFF)],
+            ? LinearGradient(
+                colors: [kHomeAccentColor, const Color(0xFFD97706)],
               )
             : const LinearGradient(
                 colors: [Color(0xFF0E1626), Color(0xFF0B1220)],
               ),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.5),
-            blurRadius: 30,
-          )
+          BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 30),
         ],
-        border: Border.all(
-          color: isBest ? Colors.blueAccent : Colors.white12,
-        ),
+        border: Border.all(color: isBest ? kHomeAccentColor : Colors.white12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,9 +52,11 @@ class SubscriptionPlanCard extends StatelessWidget {
               if (isBest)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 6),
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.blueAccent,
+                    color: kHomeAccentColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
@@ -89,8 +87,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                 ),
                 const TextSpan(
                   text: " /month",
-                  style:
-                      TextStyle(color: Colors.white70, fontSize: 14),
+                  style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
             ),
@@ -105,19 +102,25 @@ class SubscriptionPlanCard extends StatelessWidget {
               child: Row(
                 children: [
                   Icon(
-                    Icons.check_circle,
-                    color: isBest
-                        ? Colors.white
-                        : Colors.greenAccent,
+                    f.isEnabled ? Icons.check_circle : Icons.lock_outline,
+                    color: f.isEnabled
+                        ? (isBest ? Colors.white : Colors.greenAccent)
+                        : Colors.redAccent,
                     size: 20,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       f.featureTitle,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: f.isEnabled ? Colors.white : Colors.white54,
                         fontSize: 15,
+                        fontWeight: f.isEnabled
+                            ? FontWeight.normal
+                            : FontWeight.w300,
+                        decoration: f.isEnabled
+                            ? null
+                            : TextDecoration.lineThrough,
                       ),
                     ),
                   ),
@@ -134,12 +137,9 @@ class SubscriptionPlanCard extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onSubscribe,
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isBest ? Colors.white : Colors.transparent,
-                foregroundColor:
-                    isBest ? Colors.blueAccent : Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(vertical: 16),
+                backgroundColor: isBest ? Colors.white : Colors.transparent,
+                foregroundColor: isBest ? kHomeAccentColor : Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
                   side: isBest
@@ -149,8 +149,7 @@ class SubscriptionPlanCard extends StatelessWidget {
               ),
               child: const Text(
                 "Subscribe Now",
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
           ),

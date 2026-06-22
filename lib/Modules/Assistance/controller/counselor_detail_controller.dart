@@ -1,6 +1,7 @@
-import 'package:Gixa/Modules/Assistance/model/couselor_details_model.dart';
+﻿import 'package:Gixa/Modules/Assistance/model/couselor_details_model.dart';
 import 'package:Gixa/services/counselor_services.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class CounselorDetailController extends GetxController {
   final Rx<CounselorDetail?> counselor = Rx<CounselorDetail?>(null);
@@ -22,11 +23,12 @@ class CounselorDetailController extends GetxController {
 
       counselor.value = data;
 
-      print("👨‍🏫 COUNSELOR DETAIL LOADED: ${data.name}");
+      print("ðŸ‘¨â€ðŸ« COUNSELOR DETAIL LOADED: ${data.name}");
     } catch (e) {
-      Get.snackbar("Error", "Failed to load counselor details");
+      AppSnackbar.show("Error", "Failed to load counselor details");
     } finally {
       isLoading.value = false;
     }
   }
 }
+

@@ -6,12 +6,27 @@ class StateCategoryApiService {
   StateCategoryApiService._();
 
   static Future<List<StateCategoryModel>> getStateCategories({
-    required List<String> states,
+    List<String>? states,
+    bool showGlobalNetworkError = true,
+    bool forceRefresh = false,
   }) async {
     try {
+      final requestedStates = (states ?? const <String>[])
+          .map((state) => state.trim())
+          .where((state) => state.isNotEmpty)
+          .toList();
+      final endpoint = requestedStates.isEmpty
+          ? ApiEndpoints.statewiseAvailability
+          : "${ApiEndpoints.statewiseAvailability}"
+                "?states=${requestedStates.join(",")}";
+
       final response = await ApiClient.get(
-        "${ApiEndpoints.statewiseAvailability}"
-        "?states=${states.join(",")}",
+        endpoint,
+        showGlobalNetworkError: showGlobalNetworkError,
+        requestPolicy: RequestPolicy(
+          ttl: Duration(minutes: 5),
+          forceRefresh: forceRefresh,
+        ),
       );
 
       print("📥 Statewise Categories Response: $response");

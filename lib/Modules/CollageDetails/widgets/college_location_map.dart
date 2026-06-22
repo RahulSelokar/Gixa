@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:Gixa/common/app_colors.dart';
 
 class LocationMap extends StatelessWidget {
   const LocationMap({super.key});
@@ -29,12 +30,12 @@ class LocationMap extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: kHomeAccentColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.map_outlined,
-                color: Colors.blue,
+                color: kHomeAccentColor,
                 size: 18,
               ),
             ),

@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class FeedbackPage extends StatelessWidget {
   FeedbackPage({super.key});
@@ -42,7 +43,7 @@ class FeedbackPage extends StatelessWidget {
               height: 50,
               child: ElevatedButton(
                 onPressed: () {
-                  Get.snackbar(
+                  AppSnackbar.show(
                     "Thank You",
                     "Your feedback has been submitted",
                     snackPosition: SnackPosition.BOTTOM,
@@ -65,3 +66,4 @@ class FeedbackPage extends StatelessWidget {
     );
   }
 }
+

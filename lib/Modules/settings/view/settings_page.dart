@@ -1,16 +1,65 @@
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/Profile/views/logout_dailog.dart';
 import 'package:Gixa/naivgation/controller/nav_bar_controller.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:Gixa/routes/app_routes.dart';
+import 'package:Gixa/services/app_verification_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
+import 'package:iconsax/iconsax.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:Gixa/utils/themes/theme_controller.dart';
 
-class AccountManageScreen extends StatelessWidget {
+// 🔥 GIXA COLORS (LOCAL)
+class _GixaColors {
+  static const Color orange = Color(0xFFFF8A00);
+  static const Color pink = Color(0xFFFF3D6B);
+  static const Color purple = Color(0xFF7B3FE4);
+
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [orange, pink, purple],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const LinearGradient softGradient = LinearGradient(
+    colors: [Color(0x26FF8A00), Color(0x26FF3D6B), Color(0x267B3FE4)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+}
+
+class AccountManageScreen extends StatefulWidget {
   AccountManageScreen({super.key});
+
+  @override
+  State<AccountManageScreen> createState() => _AccountManageScreenState();
+}
+
+class _AccountManageScreenState extends State<AccountManageScreen> {
+  String appVersion = '';
 
   final ProfileController controller = Get.find<ProfileController>();
   final MainNavController navController = Get.find<MainNavController>();
+  final ThemeController themeController = Get.find<ThemeController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    final version = packageInfo.version;
+
+    if (!mounted) return;
+
+    setState(() {
+      appVersion = version;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +76,7 @@ class AccountManageScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         centerTitle: true,
         title: Text(
-          "Account",
+          "account".tr,
           style: TextStyle(
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -48,7 +97,7 @@ class AccountManageScreen extends StatelessWidget {
           },
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 100),
+            // padding: const EdgeInsets.only(bottom: 20),
             child: Column(
               children: [
                 /// 🔹 PROFILE HEADER
@@ -62,49 +111,69 @@ class AccountManageScreen extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(24),
+
+                    /// 🔥 PREMIUM SHADOW (brand glow)
                     boxShadow: [
                       BoxShadow(
                         color: isDark
                             ? Colors.black26
-                            : const Color(0xFF1565C0).withOpacity(0.15),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                            : const Color(0xFFFF3D6B).withOpacity(0.25),
+                        blurRadius: 25,
+                        offset: const Offset(0, 12),
                       ),
                     ],
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: isDark
-                          ? [const Color(0xFF1E293B), const Color(0xFF0F172A)]
-                          : [const Color(0xFF2563EB), const Color(0xFF1E3A8A)],
-                    ),
+
+                    /// 🔥 GIXA GRADIENT
+                    gradient: isDark
+                        ? const LinearGradient(
+                            colors: [Color(0xFF1E1E2E), Color(0xFF12121A)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : const LinearGradient(
+                            colors: [
+                              Color(0xFFFF8A00), // orange
+                              Color(0xFFFF3D6B), // pink
+                              Color(0xFF7B3FE4), // purple
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                   ),
+
                   child: Row(
                     children: [
+                      /// 🔥 PROFILE IMAGE WITH GLOW
                       Container(
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.5),
-                            width: 2,
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFFFF8A00),
+                              Color(0xFFFF3D6B),
+                              Color(0xFF7B3FE4),
+                            ],
                           ),
                         ),
                         child: CircleAvatar(
                           radius: 38,
-                          backgroundColor: Colors.white.withOpacity(0.2),
+                          backgroundColor: Colors.white.withOpacity(0.15),
                           backgroundImage: controller.profileImage.isNotEmpty
                               ? NetworkImage(controller.profileImage)
                               : null,
                           child: controller.profileImage.isEmpty
-                              ? Text(
-                                  controller.fullName.isNotEmpty
-                                      ? controller.fullName[0].toUpperCase()
-                                      : "U",
-                                  style: const TextStyle(
-                                    fontSize: 28,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                              ? ClipOval(
+                                  child: Image.asset(
+                                    controller.genderValue.value == 'F'
+                                        ? 'assets/images/female_avtar.png'
+                                        : controller.genderValue.value == 'M'
+                                        ? 'assets/images/male_avtar.png'
+                                        : 'assets/images/default_avatar.png',
+
+                                    fit: BoxFit.cover,
+                                    width: 76,
+                                    height: 76,
                                   ),
                                 )
                               : null,
@@ -113,28 +182,33 @@ class AccountManageScreen extends StatelessWidget {
 
                       const SizedBox(width: 20),
 
+                      /// 🔥 USER INFO
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            /// NAME
                             Text(
                               controller.fullName.isEmpty
-                                  ? "Student"
+                                  ? 'student'.tr
                                   : controller.fullName,
                               style: const TextStyle(
                                 fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w700,
                                 color: Colors.white,
                               ),
                             ),
+
                             const SizedBox(height: 4),
+
+                            /// MOBILE
                             Text(
                               controller.mobile.isEmpty
-                                  ? "Update your profile"
+                                  ? 'update_profile'.tr
                                   : controller.mobile,
                               style: TextStyle(
                                 fontSize: 13,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withOpacity(0.85),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -142,11 +216,7 @@ class AccountManageScreen extends StatelessWidget {
                         ),
                       ),
 
-                      // Icon(
-                      //   Icons.edit_square,
-                      //   color: Colors.white.withOpacity(0.8),
-                      //   size: 24,
-                      // ),
+                      /// ✨ OPTIONAL EDIT ICON (matches gradient)
                     ],
                   ),
                 ),
@@ -154,116 +224,85 @@ class AccountManageScreen extends StatelessWidget {
                 const SizedBox(height: 30),
 
                 /// 🔹 SECTION 1
-                _sectionTitle("General"),
+                _sectionTitle("general".tr),
                 buildSection(context, isDark, [
                   buildTile(
                     context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Identification%20card/3D/identification_card_3d.png",
-                    "Personal Info",
+                    Iconsax.user,
+                    "personal_info".tr,
                     () {
                       Get.toNamed("/profile");
                     },
                   ),
                   buildTile(
                     context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/File%20folder/3D/file_folder_3d.png",
-                    "Documents",
+                    Iconsax.document,
+                    "documents".tr,
                     () {
                       Get.toNamed(AppRoutes.updateDocs);
-                    },
-                  ),
-                  // buildTile(
-                  //   context,
-                  //   "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bar%20chart/3D/bar_chart_3d.png",
-                  //   "Change AIR",
-                  //   () {
-                  //     Get.toNamed("/Change-rank");
-                  //   },
-                  // ),
-                  buildTile(
-                    context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bell/3D/bell_3d.png",
-                    "Notification Settings",
-                    () {
-                      Get.toNamed("/notification-settings");
                     },
                   ),
                 ]),
 
                 /// 🔹 SECTION 2
-                _sectionTitle("Services"),
+                _sectionTitle("services".tr),
                 buildSection(context, isDark, [
-                  buildTile(
-                    context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Star/3D/star_3d.png",
-                    "Plans",
-                    () {
-                      Get.toNamed(AppRoutes.subscription);
-                    },
-                  ),
-                  buildTile(
-                    context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Package/3D/package_3d.png",
-                    "My Packages",
-                    () {
-                      Get.toNamed(AppRoutes.myPackage);
-                    },
-                  ),
+                  Obx(() {
+                    final isDarkTheme = themeController.isDark;
+                    return buildThemeTile(
+                      context,
+                      isDark,
+                      isDarkTheme,
+                      () => themeController.toggleTheme(),
+                    );
+                  }),
+                  if (!AppVerificationController.to.hideSubscriptionUi) ...[
+                    buildTile(
+                      context,
+                      Iconsax.star,
+                      "plans".tr,
+                      () {
+                        Get.toNamed(AppRoutes.subscription);
+                      },
+                    ),
+
+                    buildTile(
+                      context,
+                      Iconsax.box,
+                      "my_packages".tr,
+                      () {
+                        Get.toNamed(AppRoutes.myPackage);
+                      },
+                    ),
+                  ],
 
                   buildTile(
                     context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Globe%20with%20meridians/3D/globe_with_meridians_3d.png",
-                    "Language",
+                    Iconsax.global,
+                    "language".tr,
                     () {
                       Get.toNamed(AppRoutes.settings);
-                    },
-                  ),
-                  buildTile(
-                    context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Money%20with%20wings/3D/money_with_wings_3d.png",
-                    "Refer & Earn",
-                    () {
-                      Get.toNamed("/refer-earn");
                     },
                   ),
                 ]),
 
                 /// 🔹 SECTION 3
-                _sectionTitle("Support"),
+                _sectionTitle("support".tr),
                 buildSection(context, isDark, [
                   buildTile(
                     context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Information/3D/information_3d.png",
-                    "About",
+                    Iconsax.info_circle,
+                    "about".tr,
                     () {
                       Get.toNamed("/about");
                     },
                   ),
                   buildTile(
                     context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Headphone/3D/headphone_3d.png",
-                    "Support",
+                    Iconsax.headphone,
+                    "support".tr,
                     () {
                       Get.toNamed("/support");
-                    },
-                  ),
-                  buildTile(
-                    context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Speech%20balloon/3D/speech_balloon_3d.png",
-                    "Share Feedback",
-                    () {
-                      Get.toNamed("/feedback");
-                    },
-                  ),
-                ]),
-                _sectionTitle("Data & Storage"),
-                buildSection(context, isDark, [
-                  buildTile(
-                    context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Floppy%20disk/3D/floppy_disk_3d.png",
-                    "Data & Storage",
-                    () {
-                      Get.toNamed("/data-storage");
                     },
                   ),
                 ]),
@@ -273,8 +312,8 @@ class AccountManageScreen extends StatelessWidget {
                 buildSection(context, isDark, [
                   buildTile(
                     context,
-                    "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Door/3D/door_3d.png",
-                    "Logout",
+                    Iconsax.logout,
+                    "logout".tr,
                     () {
                       showLogoutConfirmationDialog();
                     },
@@ -285,7 +324,9 @@ class AccountManageScreen extends StatelessWidget {
                 const SizedBox(height: 20),
 
                 Text(
-                  "App Version 1.0.0",
+                  appVersion.isEmpty
+                      ? 'app_version'.tr
+                      : '${'app_version'.tr} $appVersion',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
@@ -366,9 +407,73 @@ class AccountManageScreen extends StatelessWidget {
   }
 
   /// 🔹 TILE
+  Widget buildThemeTile(
+    BuildContext context,
+    bool isDark,
+    bool isDarkTheme,
+    VoidCallback onToggle,
+  ) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: onToggle,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: kHomeAccentColor.withOpacity(isDark ? 0.18 : 0.10),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isDarkTheme
+                    ? Icons.dark_mode_rounded
+                    : Icons.light_mode_rounded,
+                color: kHomeAccentColor,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'theme'.tr,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: theme.textTheme.bodyLarge!.color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    isDarkTheme ? 'dark_mode'.tr : 'light_mode'.tr,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: theme.textTheme.bodySmall?.color,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Switch(
+              value: isDarkTheme,
+              activeColor: kHomeAccentColor,
+              onChanged: (_) => onToggle(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget buildTile(
     BuildContext context,
-    String imageUrl,
+    IconData icon,
     String title,
     VoidCallback onTap, {
     bool isLogout = false,
@@ -390,20 +495,15 @@ class AccountManageScreen extends StatelessWidget {
                     ? Colors.red.withOpacity(0.1)
                     : (isDark
                           ? Colors.white.withOpacity(0.05)
-                          : const Color(0xFF1565C0).withOpacity(0.08)),
+                          : kHomeAccentColor.withOpacity(0.08)),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Image.network(
-                imageUrl,
-                height: 24,
-                width: 24,
-                errorBuilder: (context, error, stackTrace) => Icon(
-                  isLogout ? Icons.logout : Icons.settings,
-                  color: isLogout
-                      ? Colors.red
-                      : (isDark ? Colors.blueAccent : const Color(0xFF1565C0)),
-                  size: 20,
-                ),
+              child: Icon(
+                icon,
+                color: isLogout
+                    ? Colors.red
+                    : (isDark ? Colors.orangeAccent : kHomeAccentColor),
+                size: 20,
               ),
             ),
             const SizedBox(width: 16),

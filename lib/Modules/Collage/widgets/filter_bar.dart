@@ -1,78 +1,121 @@
-// ─────────────────────────────────────────────────────────────────────────────
-//  FILTER BAR — paste this widget into your college_list_page.dart
-// ─────────────────────────────────────────────────────────────────────────────
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:Gixa/common/app_colors.dart';
 
 class FilterBar extends StatelessWidget {
+  final int collegeCount;
   final bool isDark;
   final Color surfaceColor;
-  final Color borderColor;
   final int activeFilterCount;
-  final bool isSortActive;
-  final bool isStateActive;
-  final VoidCallback onSortTap;
   final VoidCallback onFilterTap;
-  final VoidCallback onStateTap;
 
   const FilterBar({
+    required this.collegeCount,
+    super.key,
     required this.isDark,
     required this.surfaceColor,
-    required this.borderColor,
     required this.activeFilterCount,
-    required this.isSortActive,
-    required this.isStateActive,
-    required this.onSortTap,
     required this.onFilterTap,
-    required this.onStateTap,
   });
 
   @override
+  @override
   Widget build(BuildContext context) {
+    final shouldShowCollegeCount = activeFilterCount > 0;
+
     return Container(
       width: double.infinity,
+
       color: surfaceColor,
+
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
+
+      child: Align(
+        alignment: Alignment.centerLeft,
+
         child: Row(
           children: [
-            // ── Sort chip ────────────────────────────────────
-            _Chip(
-              label: isSortActive ? 'Sort (1)' : 'Sort',
-              prefixIcon: Icons.swap_vert_rounded,
-              suffixIcon: null,
-              isActive: isSortActive,
-              isDark: isDark,
-              onTap: onSortTap,
-            ),
-
-            const SizedBox(width: 8),
-
-            // ── All Filters chip ─────────────────────────────
             _Chip(
               label: activeFilterCount > 0
                   ? 'All Filters ($activeFilterCount)'
                   : 'All Filters',
+
               prefixIcon: Icons.tune_rounded,
-              suffixIcon: null,
+
               isActive: activeFilterCount > 0,
+
               isDark: isDark,
+
               onTap: onFilterTap,
             ),
 
-            const SizedBox(width: 8),
+            if (shouldShowCollegeCount) ...[
+              const SizedBox(width: 12),
 
-            // ── State chip ───────────────────────────────────
-            _Chip(
-              label: 'State',
-              prefixIcon: null,
-              suffixIcon: Icons.keyboard_arrow_down_rounded,
-              isActive: isStateActive,
-              isDark: isDark,
-              onTap: onStateTap,
-            ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+
+                curve: Curves.easeOut,
+
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 9,
+                ),
+
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFFF8A00),
+                      Color(0xFFFF3D6B),
+                      Color(0xFF7B3FE4),
+                      Color(0xFF3A8DFF),
+                    ],
+                  ),
+
+                  borderRadius: BorderRadius.circular(12),
+
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF7B3FE4).withOpacity(.22),
+
+                      blurRadius: 10,
+
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+
+                  children: [
+                    const Icon(
+                      Icons.school_rounded,
+
+                      color: Colors.white,
+
+                      size: 16,
+                    ),
+
+                    const SizedBox(width: 6),
+
+                    Text(
+                      collegeCount == 1
+                          ? "1 College Found"
+                          : "$collegeCount Colleges Found",
+
+                      style: GoogleFonts.inter(
+                        fontSize: 12.5,
+
+                        fontWeight: FontWeight.w700,
+
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -80,21 +123,18 @@ class FilterBar extends StatelessWidget {
   }
 }
 
-// ── Single filter chip ────────────────────────────────────────────────────────
 class _Chip extends StatelessWidget {
   final String label;
-  final IconData? prefixIcon;
-  final IconData? suffixIcon;
+  final IconData prefixIcon;
   final bool isActive;
   final bool isDark;
   final VoidCallback onTap;
 
-  static const _kBlue = Color(0xFF1565C0);
+  static const _kBlue = kHomeAccentColor;
 
   const _Chip({
     required this.label,
     required this.prefixIcon,
-    required this.suffixIcon,
     required this.isActive,
     required this.isDark,
     required this.onTap,
@@ -102,7 +142,6 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = _kBlue;
     final inactiveBg = isDark ? Colors.white.withOpacity(0.07) : Colors.white;
     final inactiveBorder = isDark
         ? Colors.white.withOpacity(0.12)
@@ -117,46 +156,27 @@ class _Chip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isActive
-              ? activeColor.withOpacity(isDark ? 0.18 : 0.08)
+              ? _kBlue.withOpacity(isDark ? 0.18 : 0.08)
               : inactiveBg,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isActive ? activeColor.withOpacity(0.55) : inactiveBorder,
+            color: isActive ? _kBlue.withOpacity(0.55) : inactiveBorder,
             width: isActive ? 1.3 : 1.0,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Prefix icon
-            if (prefixIcon != null) ...[
-              Icon(
-                prefixIcon,
-                size: 15,
-                color: isActive ? activeColor : inactiveText,
-              ),
-              const SizedBox(width: 5),
-            ],
-
-            // Label
+            Icon(prefixIcon, size: 15, color: isActive ? _kBlue : inactiveText),
+            const SizedBox(width: 5),
             Text(
               label,
               style: GoogleFonts.inter(
                 fontSize: 12.5,
                 fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                color: isActive ? activeColor : inactiveText,
+                color: isActive ? _kBlue : inactiveText,
               ),
             ),
-
-            // Suffix icon
-            if (suffixIcon != null) ...[
-              const SizedBox(width: 2),
-              Icon(
-                suffixIcon,
-                size: 17,
-                color: isActive ? activeColor : inactiveText,
-              ),
-            ],
           ],
         ),
       ),

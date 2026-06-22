@@ -1,8 +1,9 @@
-import 'package:Gixa/routes/app_routes.dart';
+﻿import 'package:Gixa/routes/app_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controller/home_controller.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class AssistanceCard extends StatelessWidget {
   const AssistanceCard({super.key});
@@ -10,19 +11,17 @@ class AssistanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<HomeController>();
+    const Color kPrimaryBrown = Color.fromARGB(255, 236, 139, 4);
 
     return Obx(() {
       final hasAccess = controller.canAccessCounsellingSteps();
 
-      // 🎨 Dynamic Colors based on feature access
+      // ðŸŽ¨ Dynamic Colors based on feature access
       final gradientColors = hasAccess
-          ? [const Color(0xFF4F46E5), const Color(0xFF818CF8)] // Indigo
-          : [const Color(0xFFF59E0B), const Color(0xFFD97706)]; // Gold
+          ? [kPrimaryBrown, kPrimaryBrown.withOpacity(0.85)]
+          : [kPrimaryBrown.withOpacity(0.6), kPrimaryBrown.withOpacity(0.9)];
 
-      final shadowColor = hasAccess
-          ? const Color(0xFF4F46E5).withOpacity(0.4)
-          : const Color(0xFFF59E0B).withOpacity(0.4);
-
+      final shadowColor = kPrimaryBrown.withOpacity(0.35);
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
@@ -44,7 +43,7 @@ class AssistanceCard extends StatelessWidget {
                 Get.toNamed(AppRoutes.assistance);
               } else {
                 Get.toNamed(AppRoutes.subscription);
-                Get.snackbar(
+                AppSnackbar.show(
                   "Premium Feature",
                   "Upgrade to unlock expert Admission Assistance.",
                   snackPosition: SnackPosition.BOTTOM,
@@ -65,6 +64,7 @@ class AssistanceCard extends StatelessWidget {
                   colors: gradientColors,
                 ),
                 borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withOpacity(0.1)),
               ),
               child: Stack(
                 children: [
@@ -83,7 +83,7 @@ class AssistanceCard extends StatelessWidget {
                         height: 50,
                         width: 50,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(
                             color: Colors.white.withOpacity(0.3),
@@ -131,7 +131,7 @@ class AssistanceCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.white.withOpacity(0.15),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
@@ -151,3 +151,4 @@ class AssistanceCard extends StatelessWidget {
     });
   }
 }
+

@@ -1,63 +1,91 @@
+import 'dart:async';
+
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
+import 'package:Gixa/Modules/subscription/model/subscription_history_model.dart';
 import 'package:Gixa/services/subscription_plan_services.dart';
 import 'package:get/get.dart';
-import 'package:Gixa/Modules/subscription/model/subscription_history_model.dart';
+import 'package:get_storage/get_storage.dart';
 
 class SubscriptionHistoryController extends GetxController {
-  /// 🔹 Get profile controller
   final ProfileController profileController = Get.find<ProfileController>();
+  final GetStorage _box = GetStorage();
 
-  /// Loading state
   final isLoading = false.obs;
-
-  /// Subscription history list
   final historyList = <SubscriptionHistory>[].obs;
-
-  /// Error message
   final errorMessage = ''.obs;
 
+  Future<void>? _loadFuture;
+
+  String get _cacheKey => 'subscription_history_${userId ?? 'unknown'}';
+
   bool isPlanActive(int planId) {
-    for (var history in historyList) {
-      print(
-        'Checking planId: ${history.plan.id}, isActive: ${history.isActive}',
-      );
-      if (history.plan.id == planId && history.isActive == true) {
-        print('Plan $planId is ACTIVE');
+    for (final history in historyList) {
+      if (history.plan.id == planId && history.isActive && !history.isExpired) {
         return true;
       }
     }
-    print('Plan $planId is NOT active');
     return false;
   }
 
-  /// 🔹 Safe getter for userId
-  int? get userId => profileController.profile.value?.user.id;
-
-  @override
-  void onInit() {
-    super.onInit();
-
-    /// If profile already loaded
-    if (userId != null) {
-      fetchSubscriptionHistory();
-    }
-
-    /// If profile loads later
-    ever(profileController.profile, (_) {
-      if (userId != null) {
-        fetchSubscriptionHistory();
+  bool hasActiveRegularPlan() {
+    for (final history in historyList) {
+      if (history.isActive && !history.isExpired && !history.plan.isAddon) {
+        return true;
       }
-    });
+    }
+    return false;
   }
 
-  // ─────────────────────────────────────
-  // 📦 FETCH SUBSCRIPTION HISTORY
-  // ─────────────────────────────────────
-  Future<void> fetchSubscriptionHistory() async {
+  bool hasActiveAddonPlan() {
+    for (final history in historyList) {
+      if (history.isActive && !history.isExpired && history.plan.isAddon) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  int? get userId => profileController.profile.value?.user.id;
+
+  Future<void> ensureLoaded({bool forceRefresh = false}) async {
+    await profileController.ensureLoaded(force: forceRefresh);
+
     final id = userId;
+    if (id == null) {
+      errorMessage.value = "User not found";
+      historyList.clear();
+      return;
+    }
+
+    final inFlight = _loadFuture;
+    if (!forceRefresh && inFlight != null) {
+      return inFlight;
+    }
+
+    final future = fetchSubscriptionHistory(
+      userId: id,
+      forceRefresh: forceRefresh,
+    );
+    _loadFuture = future;
+
+    try {
+      await future;
+    } finally {
+      if (identical(_loadFuture, future)) {
+        _loadFuture = null;
+      }
+    }
+  }
+
+  Future<void> fetchSubscriptionHistory({
+    int? userId,
+    bool forceRefresh = false,
+  }) async {
+    final id = userId ?? this.userId;
 
     if (id == null) {
       errorMessage.value = "User not found";
+      historyList.clear();
       return;
     }
 
@@ -65,9 +93,11 @@ class SubscriptionHistoryController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      final data = await SubscriptionApi.getSubscriptionHistory(userId: id);
+      final data = await SubscriptionApi.getSubscriptionHistory(
+        userId: id,
+        forceRefresh: forceRefresh,
+      );
 
-      /// 🔥 Sort: Active first, newest first
       data.sort((a, b) {
         if (a.isActive && !b.isActive) return -1;
         if (!a.isActive && b.isActive) return 1;
@@ -75,10 +105,37 @@ class SubscriptionHistoryController extends GetxController {
       });
 
       historyList.assignAll(data);
+      _box.write(_cacheKey, data.map((item) => item.toJson()).toList());
     } catch (e) {
-      errorMessage.value = e.toString();
+      final cached = _readCachedHistory();
+      if (cached.isNotEmpty) {
+        historyList.assignAll(cached);
+        errorMessage.value = '';
+      } else {
+        final errStr = e.toString().toLowerCase();
+        
+        if (errStr.contains('socketexception') || errStr.contains('timeout')) {
+          errorMessage.value = 'Network error. Please check your connection.';
+        } else {
+          historyList.clear();
+          errorMessage.value = '';
+        }
+      }
     } finally {
       isLoading.value = false;
     }
+  }
+
+  List<SubscriptionHistory> _readCachedHistory() {
+    final raw = _box.read(_cacheKey);
+    if (raw is! List) return <SubscriptionHistory>[];
+
+    return raw
+        .whereType<Map>()
+        .map(
+          (item) =>
+              SubscriptionHistory.fromJson(Map<String, dynamic>.from(item)),
+        )
+        .toList();
   }
 }

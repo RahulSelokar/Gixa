@@ -12,19 +12,48 @@ class AirComparisonApiService {
     required String course,
     required String quota,
   }) async {
-    final response = await ApiClient.get(
-      "${ApiEndpoints.airComparison}"
-      "?air=$air"
-      "&state=$state"
-      "&category=$category"
-      "&course=$course"
-      "&quota=$quota",
-    );
+    final queryParameters = <String, dynamic>{
+      'air': air,
+      'state': state,
+      'category': category,
+      'course': course,
+      'quota': quota,
+    };
 
-    if (response['status'] == "success") {
-      return AirComparisonModel.fromJson(response);
+    final url = ApiEndpoints.airComparison;
+
+    print('========== AIR COMPARISON API REQUEST ==========');
+    print('Endpoint: $url');
+    print('Query parameters: $queryParameters');
+    print('================================================');
+
+    try {
+      final response = await ApiClient.get(
+        url,
+        queryParameters: queryParameters,
+      );
+
+      print('========== AIR COMPARISON API RESPONSE ==========');
+      print('Response body: $response');
+      print('=================================================');
+
+      if (response['status'] == 'success') {
+        final model = AirComparisonModel.fromJson(response);
+
+        print('========== AIR COMPARISON PARSED DATA ==========');
+        print('================================================');
+
+        return model;
+      }
+
+      print('❌ AIR COMPARISON API FAILED');
+      print('Backend response: $response');
+      return null;
+    } catch (error) {
+      print('❌ AIR COMPARISON API ERROR');
+      print('Sent query parameters: $queryParameters');
+      print('Error: $error');
+      return null;
     }
-
-    return null;
   }
 }

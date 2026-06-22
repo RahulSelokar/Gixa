@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/CollageDetails/controller/collage_detail_controller.dart';
+import 'package:Gixa/Modules/CollageDetails/widgets/collage_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -15,80 +16,72 @@ class CollegeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // --- Theme Palette ---
-    final Color bgColor = isDark ? const Color(0xFF121212) : Colors.white;
-    final Color textColor = isDark ? Colors.white : const Color(0xFF111111);
-    final Color iconColor = isDark
-        ? Colors.grey[300]!
-        : const Color(0xFF333333);
-    final Color borderColor = isDark
-        ? const Color(0xFF333333)
-        : Colors.grey.shade200;
-
-    // Brand Color
-    final Color kPrimaryBlue = const Color(0xFF1565C0);
+    final colors = CollegeTheme.colors(context);
 
     return AppBar(
-      backgroundColor: bgColor,
+      backgroundColor: colors.appBarBackground,
       elevation: 0,
-      scrolledUnderElevation:
-          0, // Prevents color change on scroll in Material 3
-      // Handle Status Bar Icons (White icons on Dark mode, Black on Light)
+      scrolledUnderElevation: 0,
+      surfaceTintColor: Colors.transparent,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(gradient: colors.appBarGradient),
+      ),
       systemOverlayStyle: isDark
           ? SystemUiOverlayStyle.light
           : SystemUiOverlayStyle.dark,
-
-      // Bottom Border for separation
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(1.0),
-        child: Container(color: borderColor, height: 1.0),
+        preferredSize: const Size.fromHeight(1),
+        child: Container(color: colors.subtleBorder, height: 1),
       ),
-
-      // Leading: Back Button
+      leadingWidth: 68,
       leading: IconButton(
-        icon: Icon(
-          Icons.arrow_back_ios_new_rounded,
-          color: iconColor,
-          size: 20,
-        ),
-        onPressed: () => Get.back(),
+        onPressed: Get.back,
         tooltip: "Back",
+        icon: Container(
+          height: 40,
+          width: 40,
+          decoration: BoxDecoration(
+            color: colors.softFill(colors.primary, lightOpacity: 0.10, darkOpacity: 0.18),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: colors.subtleBorder),
+          ),
+          child: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: colors.textMain,
+            size: 18,
+          ),
+        ),
       ),
-
-      // Title: Brand + College Name
       centerTitle: true,
       title: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Brand Label (Small)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: kPrimaryBlue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
+              gradient: colors.warmGradient,
+              borderRadius: BorderRadius.circular(999),
+              boxShadow: colors.floatingShadow,
             ),
             child: Text(
               "GIXA AI VERIFIED",
               style: GoogleFonts.inter(
-                color: kPrimaryBlue,
-                fontSize: 8,
+                color: Colors.white,
+                fontSize: 9,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
+                letterSpacing: 0.7,
               ),
             ),
           ),
-          const SizedBox(height: 2),
-
-          // College Name (Reactive)
+          const SizedBox(height: 4),
           Obx(() {
             final name = controller.college.value?.name ?? "College Details";
             return Text(
               name,
               style: GoogleFonts.inter(
-                color: textColor,
+                color: colors.textMain,
                 fontSize: 14,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -96,18 +89,6 @@ class CollegeAppBar extends StatelessWidget implements PreferredSizeWidget {
           }),
         ],
       ),
-
-      // Actions: Share
-      // actions: [
-      //   IconButton(
-      //     icon: Icon(Icons.share_outlined, color: iconColor, size: 22),
-      //     onPressed: () {
-      //       // TODO: Implement share functionality
-      //     },
-      //     tooltip: "Share College",
-      //   ),
-      //   const SizedBox(width: 8),
-      // ],
     );
   }
 }

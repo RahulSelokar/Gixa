@@ -15,9 +15,11 @@ class VerifyOtpRequest {
     final data = {
       "mobile_number": mobileNumber,
       "otp": otp,
-      "device_id": deviceId,
     };
 
+    if (deviceId.isNotEmpty) {
+      data["device_id"] = deviceId;
+    }
     if (fcmToken != null && fcmToken!.isNotEmpty) {
       data["fcm_token"] = fcmToken!; 
     }

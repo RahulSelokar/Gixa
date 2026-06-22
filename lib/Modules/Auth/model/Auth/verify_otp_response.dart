@@ -4,7 +4,6 @@ class VerifyOtpResponse {
   final String? nextStep;
   final String? accessToken;
   final String? refreshToken;
-
   final String? errorCode;
   final Student? student;
 
@@ -19,22 +18,29 @@ class VerifyOtpResponse {
   });
 
   factory VerifyOtpResponse.fromJson(Map<String, dynamic> json) {
+    final token = json['token'] is Map<String, dynamic>
+        ? json['token'] as Map<String, dynamic>
+        : json['token'] is Map
+            ? Map<String, dynamic>.from(json['token'] as Map)
+            : <String, dynamic>{};
+
     return VerifyOtpResponse(
       message: json['message'] ?? '',
       isRegistered: json['is_registered'] ?? false,
       nextStep: json['next_step'],
-
-      // ✅ FIX: READ FROM token OBJECT
-      accessToken: json['token']?['access'],
-      refreshToken: json['token']?['refresh'],
-
+      accessToken:
+          token['access'] ?? json['access'] ?? json['access_token'],
+      refreshToken:
+          token['refresh'] ?? json['refresh'] ?? json['refresh_token'],
       errorCode: json['error_code'],
       student: json['student'] != null
           ? Student.fromJson(json['student'])
           : null,
     );
   }
+
   bool get isSuccess => accessToken != null;
+
   bool get isAlreadyLoggedInOtherDevice =>
       errorCode == 'ALREADY_LOGGED_IN_OTHER_DEVICE';
 }

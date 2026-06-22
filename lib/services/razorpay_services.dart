@@ -1,6 +1,7 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:Gixa/Modules/payment/controller/payment_controller.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class RazorpayService {
   late Razorpay _razorpay;
@@ -21,16 +22,16 @@ class RazorpayService {
   }) {
     final key = Get.find<PaymentController>().razorpayKey;
 
-    print('🔑 Razorpay Key: $key');
-    print('💰 Amount: $amount');
+    print('ðŸ”‘ Razorpay Key: $key');
+    print('ðŸ’° Amount: $amount');
 
     if (key.isEmpty) {
-      Get.snackbar('Payment Error', 'Razorpay key not loaded');
+      AppSnackbar.show('Payment Error', 'Razorpay key not loaded');
       return;
     }
 
     if (amount <= 0) {
-      Get.snackbar('Payment Error', 'Invalid payment amount');
+      AppSnackbar.show('Payment Error', 'Invalid payment amount');
       return;
     }
 
@@ -48,25 +49,26 @@ class RazorpayService {
     try {
       _razorpay.open(options);
     } catch (e) {
-      print('❌ Razorpay open error: $e');
+      print('âŒ Razorpay open error: $e');
     }
   }
 
   void _onSuccess(PaymentSuccessResponse response) {
-    print('✅ Payment Success: ${response.paymentId}');
-    Get.snackbar('Success', 'Payment Successful');
+    print('âœ… Payment Success: ${response.paymentId}');
+    AppSnackbar.show('Success', 'Payment Successful');
   }
 
   void _onError(PaymentFailureResponse response) {
-    print('❌ Payment Failed: ${response.message}');
-    Get.snackbar('Failed', response.message ?? 'Payment failed');
+    print('âŒ Payment Failed: ${response.message}');
+    AppSnackbar.show('Failed', response.message ?? 'Payment failed');
   }
 
   void _onWallet(ExternalWalletResponse response) {
-    print('👛 Wallet: ${response.walletName}');
+    print('ðŸ‘› Wallet: ${response.walletName}');
   }
 
   void dispose() {
     _razorpay.clear();
   }
 }
+

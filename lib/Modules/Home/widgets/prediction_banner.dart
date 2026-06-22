@@ -1,7 +1,7 @@
+import 'package:Gixa/common/utils/app_responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:get/get.dart';
 
 class PredictionBanner extends StatefulWidget {
   final VoidCallback? onTap;
@@ -14,29 +14,20 @@ class PredictionBanner extends StatefulWidget {
 
 class _PredictionBannerState extends State<PredictionBanner>
     with TickerProviderStateMixin {
-  // ── #1 Entry: slide-up + fade ─────────────────────────────────
   late final AnimationController _entryCtrl;
   late final Animation<Offset> _slideAnim;
   late final Animation<double> _fadeAnim;
-
-  // ── #2 Idle: rocket float loop ────────────────────────────────
   late final AnimationController _floatCtrl;
   late final Animation<Offset> _floatAnim;
-
-  // ── #3 Idle: badge shimmer sweep ──────────────────────────────
   late final AnimationController _shimmerCtrl;
   late final Animation<double> _shimmerAnim;
 
-  // ── #4 Press: scale feedback ──────────────────────────────────
   bool _isPressed = false;
-
-  static const _kAccent = Color(0xFF1A56DB);
 
   @override
   void initState() {
     super.initState();
 
-    // ── #1 Entry ─────────────────────────────────────────────────
     _entryCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -49,12 +40,11 @@ class _PredictionBannerState extends State<PredictionBanner>
       begin: 0,
       end: 1,
     ).animate(CurvedAnimation(parent: _entryCtrl, curve: Curves.easeOut));
-    // Delay so it fires after the screen transition settles
+
     Future.delayed(const Duration(milliseconds: 150), () {
       if (mounted) _entryCtrl.forward();
     });
 
-    // ── #2 Rocket float ──────────────────────────────────────────
     _floatCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2000),
@@ -64,8 +54,6 @@ class _PredictionBannerState extends State<PredictionBanner>
       end: const Offset(0, -0.06),
     ).animate(CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut));
 
-    // ── #3 Badge shimmer ──────────────────────────────────────────
-    // Full cycle = 3400ms: 1400ms sweep + 2000ms pause via Interval
     _shimmerCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 3400),
@@ -89,8 +77,9 @@ class _PredictionBannerState extends State<PredictionBanner>
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      // ── #1 Entry ────────────────────────────────────────────────
+      padding: EdgeInsets.symmetric(
+        horizontal: AppResponsive.horizontalPadding(context),
+      ),
       child: FadeTransition(
         opacity: _fadeAnim,
         child: SlideTransition(position: _slideAnim, child: _buildCard()),
@@ -99,132 +88,241 @@ class _PredictionBannerState extends State<PredictionBanner>
   }
 
   Widget _buildCard() {
-    return GestureDetector(
-      // ── #4 Press ─────────────────────────────────────────────────
-      onTapDown: (_) {
-        HapticFeedback.lightImpact();
-        setState(() => _isPressed = true);
-      },
-      onTapUp: (_) {
-        setState(() => _isPressed = false);
-        widget.onTap?.call();
-      },
-      onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedScale(
-        scale: _isPressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: double.infinity,
-          height: 130,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1A56DB), Color(0xFF1044B2)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: _kAccent.withOpacity(_isPressed ? 0.20 : 0.38),
-                blurRadius: _isPressed ? 10 : 20,
-                spreadRadius: -4,
-                offset: Offset(0, _isPressed ? 4 : 10),
-              ),
-            ],
-          ),
-          child: Stack(
-            clipBehavior: Clip.hardEdge,
-            children: [
-              // ── decorative circles ──────────────────────────────
-              Positioned(
-                right: -30,
-                top: -30,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.055),
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final isTablet = width >= 600;
+        final imageWidth = isTablet ? width * 0.27 : 130.0;
+        final cardHeight = isTablet ? 250.0 : 200.0;
+
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapDown: (_) {
+            HapticFeedback.lightImpact();
+            setState(() => _isPressed = true);
+          },
+          onTapUp: (_) {
+            setState(() => _isPressed = false);
+            widget.onTap?.call();
+          },
+          onTapCancel: () => setState(() => _isPressed = false),
+          child: AnimatedScale(
+            scale: _isPressed ? 0.97 : 1.0,
+            duration: const Duration(milliseconds: 120),
+            curve: Curves.easeOut,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: double.infinity,
+              height: cardHeight,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFFFF8A00),
+                    Color(0xFFFF3D6B),
+                    Color(0xFF7B3FE4),
+                    Color(0xFF3A8DFF),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ),
-              Positioned(
-                right: 60,
-                bottom: -40,
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF3D6B).withOpacity(
+                      _isPressed ? 0.25 : 0.45,
+                    ),
+                    blurRadius: _isPressed ? 12 : 26,
+                    spreadRadius: -6,
+                    offset: Offset(0, _isPressed ? 4 : 12),
                   ),
-                ),
+                ],
               ),
-
-              // ── left content ────────────────────────────────────
-              Positioned.fill(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 130, 0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // ── #3 Shimmer badge ────────────────────────
-                      _ShimmerBadge(animation: _shimmerAnim),
-
-                      const SizedBox(height: 6),
-
-                      Text(
-                        'College\nPredictor',
-                        style: GoogleFonts.inter(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          height: 1.15,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-
-                      const SizedBox(height: 6),
-
-                      Text(
-                        'Find your best-fit colleges →',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.white.withOpacity(0.72),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── #2 Floating rocket ──────────────────────────────
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                child: SlideTransition(
-                  position: _floatAnim,
-                  child: Hero(
-                    tag: 'predict_hero',
-                    child: Image.asset(
-                      'assets/images/genie2.png',
-                      width: 128,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Icon(
-                          Icons.rocket_launch_rounded,
-                          size: 72,
-                          color: Colors.white.withOpacity(0.9),
-                        ),
+              child: Stack(
+                clipBehavior: Clip.hardEdge,
+                children: [
+                  Positioned(
+                    right: -30,
+                    top: -30,
+                    child: Container(
+                      width: isTablet ? 150 : 120,
+                      height: isTablet ? 150 : 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.10),
                       ),
                     ),
                   ),
+                  Positioned(
+                    right: isTablet ? 90 : 60,
+                    bottom: -40,
+                    child: Container(
+                      width: isTablet ? 120 : 90,
+                      height: isTablet ? 120 : 90,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.08),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      isTablet ? 24 : 20,
+                      isTablet ? 22 : 18,
+                      isTablet ? 20 : 12,
+                      isTablet ? 22 : 18,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: isTablet ? width * 0.55 : width,
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _ShimmerBadge(animation: _shimmerAnim),
+                                const SizedBox(height: 8),
+                                Text(
+                                  isTablet
+                                      ? 'College Predictor'
+                                      : 'College\nPredictor',
+                                  style: GoogleFonts.inter(
+                                    fontSize: isTablet ? 24 : 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    height: 1.2,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'AI That Predicts Your Perfect Medical College Match',
+                                  style: GoogleFonts.inter(
+                                    fontSize: isTablet ? 14 : 10.5,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                ),
+                                SizedBox(height: isTablet ? 16 : 8),
+                                _AnimatedPredictButton(
+                                  onTap: widget.onTap,
+                                  isTablet: isTablet,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: isTablet ? 16 : 8),
+                        SizedBox(
+                          width: imageWidth,
+                          child: SlideTransition(
+                            position: _floatAnim,
+                            child: Hero(
+                              tag: 'predict_hero',
+                              child: Image.asset(
+                                'assets/images/genie2.png',
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Icon(
+                                    Icons.auto_awesome_rounded,
+                                    size: isTablet ? 90 : 70,
+                                    color: Colors.white.withOpacity(0.95),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _AnimatedPredictButton extends StatefulWidget {
+  final VoidCallback? onTap;
+  final bool isTablet;
+
+  const _AnimatedPredictButton({this.onTap, required this.isTablet});
+
+  @override
+  State<_AnimatedPredictButton> createState() => _AnimatedPredictButtonState();
+}
+
+class _AnimatedPredictButtonState extends State<_AnimatedPredictButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _pulseCtrl,
+      builder: (context, child) {
+        final scale = 1 + (_pulseCtrl.value * 0.05);
+
+        return Transform.scale(scale: scale, child: child);
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: widget.isTablet ? 20 : 10,
+            vertical: widget.isTablet ? 8 : 4,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.white.withOpacity(0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/genie.png',
+                width: widget.isTablet ? 30 : 32,
+                height: widget.isTablet ? 30 : 32,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                "Predict Now",
+                style: GoogleFonts.inter(
+                  fontSize: widget.isTablet ? 12.5 : 10,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFFFF3D6B),
                 ),
               ),
             ],
@@ -235,8 +333,6 @@ class _PredictionBannerState extends State<PredictionBanner>
   }
 }
 
-// ── Shimmer badge widget ─────────────────────────────────────────────────────
-
 class _ShimmerBadge extends StatelessWidget {
   final Animation<double> animation;
 
@@ -244,6 +340,8 @@ class _ShimmerBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = AppResponsive.isTablet(context);
+
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
@@ -265,18 +363,21 @@ class _ShimmerBadge extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: EdgeInsets.symmetric(
+          horizontal: isTablet ? 10 : 8,
+          vertical: isTablet ? 4 : 3,
+        ),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.15),
+          color: Colors.white.withOpacity(0.18),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withOpacity(0.22), width: 0.8),
+          border: Border.all(color: Colors.white.withOpacity(0.28), width: 0.8),
         ),
         child: Text(
           'AI Powered',
           style: GoogleFonts.inter(
-            fontSize: 9,
+            fontSize: isTablet ? 10 : 9,
             fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withOpacity(0.95),
             letterSpacing: 0.6,
           ),
         ),

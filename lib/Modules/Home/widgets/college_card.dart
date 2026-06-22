@@ -1,4 +1,5 @@
 import 'package:Gixa/routes/app_routes.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +10,7 @@ class CollegeCard extends StatelessWidget {
   // final String rank;
   final String imageUrl;
   final int id;
+  final double? cardWidth;
 
   const CollegeCard({
     super.key,
@@ -17,23 +19,26 @@ class CollegeCard extends StatelessWidget {
     required this.location,
     // required this.rank,
     required this.imageUrl,
+    this.cardWidth,
   });
 
   @override
   Widget build(BuildContext context) {
     // 🌓 Theme Detection
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth >= 600;
 
     // 🎨 Dynamic Colors
     final Color cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final Color textColor = isDark ? Colors.white : const Color(0xFF111111);
     final Color subTextColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
     final Color borderColor = isDark ? Colors.grey[800]! : Colors.grey[200]!;
-    final Color primaryBlue = const Color(0xFF1565C0);
+    final Color primaryBlue = kHomeAccentColor;
 
     return Container(
-      width: 280,
-      margin: const EdgeInsets.only(right: 16),
+      width: cardWidth ?? (isTablet ? 340 : 280),
+      margin: EdgeInsets.only(right: cardWidth == null ? 16 : 0),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -59,18 +64,24 @@ class CollegeCard extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(19),
                 ),
-                child: Image.network(
-                  imageUrl,
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 150,
-                    color: Colors.grey[300],
-                    child: const Center(
-                      child: Icon(Icons.broken_image, color: Colors.grey),
-                    ),
-                  ),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9, // 🔥 IMPORTANT FIX
+                  child: imageUrl.isNotEmpty
+                      ? Image.network(
+                          imageUrl,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+
+                          // 🔥 LOADING FIX
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return _imageLoader();
+                          },
+
+                          // 🔥 ERROR FIX
+                          errorBuilder: (_, __, ___) => _fallbackImage(),
+                        )
+                      : _fallbackImage(),
                 ),
               ),
 
@@ -143,7 +154,7 @@ class CollegeCard extends StatelessWidget {
                 Text(
                   name,
                   style: GoogleFonts.inter(
-                    fontSize: 16,
+                    fontSize: isTablet ? 17 : 16,
                     fontWeight: FontWeight.w700,
                     color: textColor,
                     height: 1.3,
@@ -167,7 +178,7 @@ class CollegeCard extends StatelessWidget {
                       child: Text(
                         location,
                         style: GoogleFonts.inter(
-                          fontSize: 12,
+                          fontSize: isTablet ? 13 : 12,
                           color: subTextColor,
                           fontWeight: FontWeight.w500,
                         ),
@@ -205,7 +216,7 @@ class CollegeCard extends StatelessWidget {
                         Text(
                           "View Details",
                           style: GoogleFonts.inter(
-                            fontSize: 12,
+                            fontSize: isTablet ? 13 : 12,
                             fontWeight: FontWeight.w600,
                             color: primaryBlue,
                           ),
@@ -231,6 +242,28 @@ class CollegeCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _imageLoader() {
+    return Container(
+      color: Colors.grey.shade200,
+      child: const Center(
+        child: SizedBox(
+          width: 22,
+          height: 22,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+    );
+  }
+
+  Widget _fallbackImage() {
+    return Image.asset(
+      "assets/images/Medical_College.png",
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: double.infinity,
     );
   }
 }

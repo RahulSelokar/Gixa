@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/support/controller/support_controller.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -76,8 +77,12 @@ class _AboutPageState extends State<AboutPage> {
               /// App Logo
               CircleAvatar(
                 radius: 45,
-                backgroundColor: Colors.blue.withOpacity(0.1),
-                child: const Icon(Icons.school, size: 45, color: Colors.blue),
+                backgroundColor: kHomeAccentColor.withOpacity(0.1),
+                child: const Icon(
+                  Icons.school,
+                  size: 45,
+                  color: kHomeAccentColor,
+                ),
               ),
 
               const SizedBox(height: 16),
@@ -117,7 +122,7 @@ class _AboutPageState extends State<AboutPage> {
                 contentPadding: EdgeInsets.zero,
                 title: const Text("Terms & Conditions"),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () => _openUrl("https://gixa.in/terms-conditions/"),
+                onTap: () => _openUrl("https://gixa.in/terms-condition/"),
               ),
 
               /// Privacy Policy
@@ -163,7 +168,7 @@ class _AboutPageState extends State<AboutPage> {
                     /// Phone
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.phone, color: Colors.blue),
+                      leading: const Icon(Icons.phone, color: kHomeAccentColor),
                       title: const Text("Phone Number"),
                       subtitle: Text(contact.phoneNumber),
                       onTap: () => _openUrl("tel:${contact.phoneNumber}"),
@@ -174,7 +179,7 @@ class _AboutPageState extends State<AboutPage> {
                     /// Email
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.email, color: Colors.blue),
+                      leading: const Icon(Icons.email, color: kHomeAccentColor),
                       title: const Text("Email"),
                       subtitle: Text(contact.email),
                       onTap: () => _openUrl("mailto:${contact.email}"),

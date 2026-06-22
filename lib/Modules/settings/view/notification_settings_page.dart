@@ -174,10 +174,10 @@ class NotificationSettingsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
+              color: const Color(0xFFEC8B04).withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Colors.blueAccent, size: 20),
+            child: Icon(icon, color: const Color(0xFFEC8B04), size: 20),
           ),
 
           const SizedBox(width: 14),
@@ -230,7 +230,7 @@ class NotificationSettingsScreen extends StatelessWidget {
           Switch(
             value: value,
             onChanged: isLocked ? null : onChanged,
-            activeColor: Colors.blueAccent,
+            activeColor: const Color(0xFFEC8B04),
           ),
         ],
       ),

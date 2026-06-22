@@ -1,6 +1,9 @@
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/Profile/views/profile_screen.dart';
+import 'package:Gixa/Modules/notification/controller/alerts_controller.dart';
 import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
+import 'package:Gixa/common/app_colors.dart';
+import 'package:Gixa/common/utils/app_responsive.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/services/auth_guard.dart';
 import 'package:flutter/material.dart';
@@ -21,12 +24,20 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profileController = Get.find<ProfileController>();
-    final subscriptionController = Get.find<SubscriptionController>();
+    final profileController = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController());
+    final alertsController = Get.isRegistered<AlertsController>()
+        ? Get.find<AlertsController>()
+        : Get.put(AlertsController());
+    final subscriptionController = Get.isRegistered<SubscriptionController>()
+        ? Get.find<SubscriptionController>()
+        : Get.put(SubscriptionController());
 
     return Obx(() {
       final profile = profileController.profile.value;
       final isDark = Theme.of(context).brightness == Brightness.dark;
+      final isTablet = AppResponsive.isTablet(context);
       final greetingColor = isDark
           ? Colors.grey.shade400
           : Colors.grey.shade600;
@@ -53,7 +64,7 @@ class HomeHeader extends StatelessWidget {
             PremiumAvatar(
               isPremium: isPremium,
               child: CircleAvatar(
-                radius: 26,
+                radius: isTablet ? 30 : 26,
                 backgroundColor: isDark ? Colors.grey.shade800 : Colors.white,
                 child: ClipOval(
                   child:
@@ -61,17 +72,23 @@ class HomeHeader extends StatelessWidget {
                           profile!.profilePictureUrl!.isNotEmpty)
                       ? Image.network(
                           profile.profilePictureUrl!,
-                          width: 52,
-                          height: 52,
+                          width: isTablet ? 60 : 52,
+                          height: isTablet ? 60 : 52,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(Icons.person, color: Colors.grey),
                         )
                       : Image.asset(
-                          'assets/images/default_avatar.png',
-                          width: 52,
-                          height: 52,
+                          profileController.genderValue.value == 'F'
+                              ? 'assets/images/female_avtar.png'
+                              : profileController.genderValue.value == 'M'
+                              ? 'assets/images/male_avtar.png'
+                              : 'assets/images/default_avatar.png',
+
+                          width: isTablet ? 60 : 52,
+                          height: isTablet ? 60 : 52,
                           fit: BoxFit.cover,
+
                           errorBuilder: (context, error, stackTrace) =>
                               const Icon(Icons.person, color: Colors.grey),
                         ),
@@ -79,7 +96,7 @@ class HomeHeader extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(width: 14),
+            SizedBox(width: isTablet ? 18 : 14),
 
             /// ───── GREETING & NAME ─────
             Expanded(
@@ -90,7 +107,7 @@ class HomeHeader extends StatelessWidget {
                     "Hii 👋",
                     style: GoogleFonts.inter(
                       color: greetingColor,
-                      fontSize: 13,
+                      fontSize: isTablet ? 14 : 13,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -101,7 +118,7 @@ class HomeHeader extends StatelessWidget {
                         : "Student",
                     style: GoogleFonts.inter(
                       color: textPrimary,
-                      fontSize: 18,
+                      fontSize: isTablet ? 20 : 18,
                       fontWeight: FontWeight.w700,
                     ),
                     maxLines: 1,
@@ -114,10 +131,14 @@ class HomeHeader extends StatelessWidget {
             /// 🔔 NOTIFICATION BELL
             GestureDetector(
               onTap: () {
-                Get.toNamed(AppRoutes.notifications);
+                AuthGuard.checkAccess(
+                  onAllowed: () {
+                    Get.toNamed(AppRoutes.alerts);
+                  },
+                );
               },
               child: Container(
-                padding: const EdgeInsets.all(10),
+                padding: EdgeInsets.all(isTablet ? 12 : 10),
                 decoration: BoxDecoration(
                   color: isDark ? Colors.grey.shade900 : Colors.white,
                   shape: BoxShape.circle,
@@ -126,12 +147,25 @@ class HomeHeader extends StatelessWidget {
                   ),
                 ),
                 child: Badge(
+                  isLabelVisible: alertsController.hasAlerts,
                   backgroundColor: Colors.redAccent,
-                  smallSize: 8,
+                  offset: const Offset(6, -6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  label: Text(
+                    alertsController.alertBadgeLabel,
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   child: Icon(
-                    Icons.notifications_none_rounded,
+                    Icons.notifications_none,
                     color: textPrimary,
-                    size: 24,
+                    size: isTablet ? 26 : 24,
                   ),
                 ),
               ),
@@ -184,7 +218,7 @@ class _PremiumAvatarState extends State<PremiumAvatar>
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: const Color(0xFF1565C0).withOpacity(0.2),
+            color: kHomeAccentColor.withOpacity(0.2),
             width: 2,
           ),
         ),
@@ -204,15 +238,15 @@ class _PremiumAvatarState extends State<PremiumAvatar>
                 gradient: SweepGradient(
                   transform: GradientRotation(_controller.value * 6.28),
                   colors: const [
-                    Color(0xFF1565C0),
-                    Color(0xFF42A5F5),
-                    Color(0xFF7E57C2),
-                    Color(0xFF1565C0),
+                    kHomeAccentColor,
+                    Color(0xFFF59E0B),
+                    Color(0xFFD97706),
+                    kHomeAccentColor,
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF1565C0).withOpacity(0.5),
+                    color: kHomeAccentColor.withOpacity(0.5),
                     blurRadius: 12,
                     spreadRadius: 1,
                   ),

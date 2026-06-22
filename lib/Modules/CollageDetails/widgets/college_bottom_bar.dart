@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:Gixa/common/app_colors.dart';
 
 class CollegeBottomBar extends StatelessWidget {
   const CollegeBottomBar({super.key});
@@ -13,7 +14,7 @@ class CollegeBottomBar extends StatelessWidget {
     final Color borderColor = isDark
         ? const Color(0xFF333333)
         : Colors.transparent;
-    final Color kPrimaryBlue = const Color(0xFF1565C0);
+    final Color kPrimaryBlue = kHomeAccentColor;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),

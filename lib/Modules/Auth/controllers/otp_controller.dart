@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:Gixa/Modules/Auth/model/Auth/send_otp_request.dart';
 import 'package:Gixa/Modules/Auth/model/Auth/verify_otp_request.dart';
+import 'package:Gixa/Modules/Auth/model/Auth/verify_otp_response.dart';
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
+import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
+import 'package:Gixa/naivgation/controller/nav_bar_controller.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/routes/app_start_controller.dart';
 import 'package:Gixa/services/auth_services.dart';
@@ -13,70 +16,121 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
+import 'package:Gixa/Modules/Auth/Veiw/login_bottom_sheet.dart';
 
 class OtpController extends GetxController {
-  /// Call this on logout to clear state
+  static const int _otpExpirySeconds = 60;
+  var isLoggedIn = false.obs;
+
+  /// Call this on logout to clear state.
   void reset() {
+    isLoggedIn.value = false;
     mobileNumber.value = '';
     otp.value = '';
-    secondsRemaining.value = 30;
+    secondsRemaining.value = _otpExpirySeconds;
     canResendOtp.value = false;
     isLoading.value = false;
+    isSendingOtp.value = false;
+    isVerifyingOtp.value = false;
+    isResendingOtp.value = false;
     otpFromBackend.value = '';
+    otpInputResetTrigger.value++;
     otpRequestStartTime.value = null;
     otpResponseTime.value = null;
     _timer?.cancel();
-    print('🔴 OtpController state reset');
+    print('OtpController state reset');
   }
 
   final mobileNumber = ''.obs;
   final otp = ''.obs;
-  final secondsRemaining = 30.obs;
+  final secondsRemaining = _otpExpirySeconds.obs;
   final canResendOtp = false.obs;
   Timer? _timer;
   final isLoading = false.obs;
   final otpFromBackend = ''.obs;
+  final otpInputResetTrigger = 0.obs;
   final otpRequestStartTime = Rxn<DateTime>();
   final otpResponseTime = Rxn<DateTime>();
 
-  Future<void> sendOtp(String number) async {
-    if (!RegExp(r'^[0-9]{10}$').hasMatch(number)) {
-      Get.snackbar('Invalid', 'Please enter a valid 10-digit mobile number');
-      return;
+  final isSendingOtp = false.obs;
+  final isVerifyingOtp = false.obs;
+  final isResendingOtp = false.obs;
+
+  Future<bool> sendOtp(String number) async {
+    // Prevent multiple simultaneous requests
+    if (isSendingOtp.value) {
+      AppSnackbar.show(
+        'Please Wait',
+        'OTP request already in progress',
+        snackPosition: SnackPosition.TOP,
+      );
+      return false;
+    }
+
+    // Validate mobile number
+    if (!RegExp(r'^[0-9]{10}$').hasMatch(number.trim())) {
+      AppSnackbar.show(
+        'Invalid',
+        'Please enter a valid 10-digit mobile number',
+        snackPosition: SnackPosition.TOP,
+      );
+      return false;
+    }
+
+    // Prevent resend before timer ends
+    final isFirstRequest = otpRequestStartTime.value == null;
+
+    if (!isFirstRequest && !canResendOtp.value && !isResendingOtp.value) {
+      AppSnackbar.show(
+        'Please Wait',
+        'You can request OTP again after timer ends',
+        snackPosition: SnackPosition.TOP,
+      );
+      return false;
     }
 
     try {
-      isLoading.value = true;
-      mobileNumber.value = number;
+      isSendingOtp.value = true;
+
+      final cleanNumber = number.trim();
+
+      mobileNumber.value = cleanNumber;
+
       otp.value = '';
+      otpInputResetTrigger.value++;
 
       otpRequestStartTime.value = DateTime.now();
 
       final response = await AuthServices.sendOtp(
-        SendOtpRequest(mobileNumber: number),
+        SendOtpRequest(mobileNumber: cleanNumber),
       );
 
       otpResponseTime.value = DateTime.now();
 
       if (response.data?.otp != null) {
         otpFromBackend.value = response.data!.otp;
-        _showOtpSnackBar(otpFromBackend.value);
       }
-
       _startTimer();
 
-      Get.toNamed(AppRoutes.verifyOtp, arguments: {'mobileNumber': number});
+      AppSnackbar.show(
+        'Success',
+        'OTP sent successfully',
+        snackPosition: SnackPosition.TOP,
+      );
+
+      return true;
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      AppSnackbar.show('Error', e.toString(), snackPosition: SnackPosition.TOP);
+
+      return false;
     } finally {
-      isLoading.value = false;
+      isSendingOtp.value = false;
     }
   }
 
-  // ───────────────────────── TIMER ─────────────────────────
-
   void _startTimer() {
-    secondsRemaining.value = 30;
+    secondsRemaining.value = _otpExpirySeconds;
     canResendOtp.value = false;
 
     _timer?.cancel();
@@ -90,135 +144,308 @@ class OtpController extends GetxController {
     });
   }
 
-  // ───────────────────────── RESEND OTP ─────────────────────────
-
   Future<void> resendOtp() async {
-    if (mobileNumber.value.isEmpty) return;
+    // Prevent multiple simultaneous requestsc
+    if (isResendingOtp.value) {
+      AppSnackbar.show(
+        'Please Wait',
+        'OTP request already in progress',
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+
+    // Check mobile number exists
+    if (mobileNumber.value.isEmpty) {
+      AppSnackbar.show(
+        'Error',
+        'Mobile number not found',
+        snackPosition: SnackPosition.TOP,
+      );
+      return;
+    }
+
+    // Prevent resend before timer ends
+    if (!canResendOtp.value) {
+      AppSnackbar.show('Please Wait', 'You can resend OTP after timer ends');
+      return;
+    }
 
     try {
-      isLoading.value = true;
-      otp.value = '';
+      isResendingOtp.value = true;
 
+      // Clear old entered OTP
+      _clearEnteredOtp(clearBackendOtp: true);
+
+      // Save resend request time
+      otpRequestStartTime.value = DateTime.now();
+
+      // API Call
       final response = await AuthServices.sendOtp(
-        SendOtpRequest(mobileNumber: mobileNumber.value),
+        SendOtpRequest(mobileNumber: mobileNumber.value.trim()),
       );
 
+      // Save response time
+      otpResponseTime.value = DateTime.now();
+
+      // OPTIONAL:
+      // Remove this in production for security reasons
       if (response.data?.otp != null) {
         otpFromBackend.value = response.data!.otp;
-        _showOtpSnackBar(otpFromBackend.value);
       }
 
+      // Restart timer
       _startTimer();
+
+      AppSnackbar.show(
+        'Success',
+        'OTP resent successfully',
+        snackPosition: SnackPosition.TOP,
+      );
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      AppSnackbar.show('Error', e.toString(), snackPosition: SnackPosition.TOP);
     } finally {
-      isLoading.value = false;
+      isResendingOtp.value = false;
     }
   }
 
-  // ───────────────────────── VERIFY OTP ─────────────────────────
+  void _clearEnteredOtp({bool clearBackendOtp = false}) {
+    otp.value = '';
+    otpInputResetTrigger.value++;
+    if (clearBackendOtp) {
+      otpFromBackend.value = '';
+    }
+  }
+
+  void _enableOtpResendNow() {
+    _timer?.cancel();
+    secondsRemaining.value = 0;
+    canResendOtp.value = true;
+  }
 
   Future<void> verifyOtp() async {
-    if (isLoading.value) {
-      print("⛔ verifyOtp prevented (already loading)");
+    await _verifyOtpInternal();
+  }
+
+  Future<void> verifyOtpForBottomSheet({
+    VoidCallback? onRegisteredSuccess,
+  }) async {
+    await _verifyOtpInternal(
+      useBottomSheetFlow: true,
+      onRegisteredSuccess: onRegisteredSuccess,
+    );
+  }
+
+  Future<void> _verifyOtpInternal({
+    bool useBottomSheetFlow = false,
+    VoidCallback? onRegisteredSuccess,
+  }) async {
+    if (isVerifyingOtp.value) {
+      print('verifyOtp prevented (already loading)');
       return;
     }
-    isLoading.value = true;
+
     final cleanOtp = otp.value.trim();
     final cleanMobile = mobileNumber.value.trim();
-    final deviceId = await DeviceUtils.getDeviceId();
-    final fcmToken = await FcmUtils.getFcmToken();
 
     if (!RegExp(r'^[0-9]{6}$').hasMatch(cleanOtp)) {
-      Get.snackbar('Invalid OTP', 'Enter a valid 6-digit OTP');
-      isLoading.value = false;
-      return;
-    }
-
-    if (otpFromBackend.isNotEmpty && cleanOtp != otpFromBackend.value) {
-      Get.snackbar(
-        'Incorrect OTP',
-        'Please enter the correct OTP',
-        snackPosition: SnackPosition.BOTTOM,
+      AppSnackbar.show(
+        'Invalid OTP',
+        'Enter a valid 6-digit OTP',
+        snackPosition: SnackPosition.TOP,
       );
-      isLoading.value = false;
       return;
     }
 
-    try {
-      // isLoading.value = true;
+    await _performOtpVerification(
+      cleanMobile: cleanMobile,
+      cleanOtp: cleanOtp,
+      useBottomSheetFlow: useBottomSheetFlow,
+      onRegisteredSuccess: onRegisteredSuccess,
+    );
+  }
 
+  Future<void> _performOtpVerification({
+    required String cleanMobile,
+    required String cleanOtp,
+    bool allowForceLogoutPrompt = true,
+    bool useBottomSheetFlow = false,
+    VoidCallback? onRegisteredSuccess,
+  }) async {
+    isVerifyingOtp.value = true;
+    try {
       final response = await AuthServices.verifyOtp(
         VerifyOtpRequest(
           mobileNumber: cleanMobile,
           otp: cleanOtp,
-          deviceId: deviceId,
-          fcmToken: fcmToken,
+          deviceId: await DeviceUtils.getDeviceId(),
+          fcmToken: await FcmUtils.getFcmToken(),
         ),
       );
 
+      print('--- VERIFY OTP RESPONSE ---');
+      print('Success: ${response.success}');
+      print('Message: ${response.message}');
+      print('Data is null: ${response.data == null}');
+      if (response.data != null) {
+        print('ErrorCode: ${response.data!.errorCode}');
+        print(
+          'IsAlreadyLoggedIn: ${response.data!.isAlreadyLoggedInOtherDevice}',
+        );
+      }
+      print('---------------------------');
+
       if (response.data == null) {
-        Get.snackbar('OTP Failed', response.message);
+        AppSnackbar.show(
+          'OTP Failed',
+          response.message,
+          snackPosition: SnackPosition.TOP,
+        );
         return;
       }
 
       final data = response.data!;
 
-      /// 🚫 SINGLE DEVICE LOGIN CHECK
-      if (data.errorCode == 'ALREADY_LOGGED_IN_OTHER_DEVICE') {
-        _showAlreadyLoggedInDialog(
-          message: data.message,
-          mobile: cleanMobile,
-          otp: cleanOtp,
+      if (data.isAlreadyLoggedInOtherDevice) {
+        if (allowForceLogoutPrompt) {
+          _showAlreadyLoggedInDialog(
+            message: data.message,
+            mobile: cleanMobile,
+          );
+        } else {
+          AppSnackbar.show(
+            'Login Failed',
+            data.message.isNotEmpty
+                ? data.message
+                : 'Unable to verify OTP after force logout.',
+            snackPosition: SnackPosition.TOP,
+          );
+        }
+        return;
+      }
+
+      await _handleVerifiedOtpSuccess(
+        data: data,
+        mobileNumber: cleanMobile,
+        useBottomSheetFlow: useBottomSheetFlow,
+        onRegisteredSuccess: onRegisteredSuccess,
+      );
+    } catch (e) {
+      AppSnackbar.show('Error', e.toString(), snackPosition: SnackPosition.TOP);
+      rethrow;
+    } finally {
+      isVerifyingOtp.value = false;
+    }
+  }
+
+  Future<void> _handleVerifiedOtpSuccess({
+    required VerifyOtpResponse data,
+    required String mobileNumber,
+    bool useBottomSheetFlow = false,
+    VoidCallback? onRegisteredSuccess,
+  }) async {
+    final appStart = Get.find<AppStartController>();
+    await appStart.phoneVerified();
+
+    if (data.isRegistered) {
+      isLoggedIn.value = true;
+      if (data.accessToken == null || data.refreshToken == null) {
+        AppSnackbar.show(
+          'Login Error',
+          'Invalid login session',
+          snackPosition: SnackPosition.TOP,
         );
         return;
       }
 
-      /// 🔐 App Start Flow
-      final appStart = Get.find<AppStartController>();
-      await appStart.phoneVerified();
+      await TokenService.saveTokens(
+        accessToken: data.accessToken!,
+        refreshToken: data.refreshToken!,
+      );
 
-      /// Existing user
-      if (data.isRegistered == true) {
-        if (data.accessToken == null || data.refreshToken == null) {
-          Get.snackbar('Login Error', 'Invalid login session');
-          return;
-        }
-
-        await TokenService.saveTokens(
-          accessToken: data.accessToken!,
-          refreshToken: data.refreshToken!,
-        );
-        final box = GetStorage();
-        Map<String, dynamic> decodedToken = JwtDecoder.decode(
-          data.accessToken!,
-        );
-
+      final box = GetStorage();
+      try {
+        final decodedToken = JwtDecoder.decode(data.accessToken!);
         final userId = decodedToken['user_id'];
-
-        print("Saving USER ID: $userId");
-
-        box.write("user_id", int.parse(userId.toString()));
-
-        await appStart.registrationCompleted();
-        _showOtpSuccessDialog(
-          message: data.message ?? "OTP Verified Successfully",
-          navigateTo: AppRoutes.mainNav,
-        );
+        if (userId != null) {
+          print('Saving USER ID: $userId');
+          box.write('user_id', int.parse(userId.toString()));
+        }
+      } catch (e) {
+        print('Bypass token or missing user_id. Error: $e');
       }
-      /// New user
-      else {
-        _showOtpSuccessDialog(
-          message: "OTP Verified Successfully",
-          navigateTo: AppRoutes.register,
-          arguments: {'mobileNumber': cleanMobile},
+      // Always set registration_completed after successful OTP for registered user
+      box.write('registration_completed', true);
+
+      final navController = Get.isRegistered<MainNavController>()
+          ? Get.find<MainNavController>()
+          : Get.put(MainNavController(), permanent: true);
+      navController.requestSubscriptionPopup();
+
+      await appStart.registrationCompleted();
+
+      if (useBottomSheetFlow) {
+        await _warmUpSessionData();
+        await _closeAuthBottomSheetIfOpen();
+        AppSnackbar.show(
+          'Success',
+          data.message.isNotEmpty ? data.message : 'OTP Verified Successfully',
+          snackPosition: SnackPosition.TOP,
         );
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (Get.isRegistered<OtpController>()) {
+            Get.delete<OtpController>();
+          }
+        });
+        Get.offAllNamed(AppRoutes.mainNav);
+        return;
       }
-    } catch (e) {
-      Get.snackbar('Error', e.toString());
-    } finally {
-      isLoading.value = false;
+
+      _showOtpSuccessDialog(
+        message: data.message.isNotEmpty
+            ? data.message
+            : 'OTP Verified Successfully',
+        navigateTo: AppRoutes.mainNav,
+      );
+      return;
     }
+
+    if (useBottomSheetFlow) {
+      await _closeAuthBottomSheetIfOpen();
+      AppSnackbar.show(
+        'Success',
+        'OTP Verified Successfully',
+        snackPosition: SnackPosition.TOP,
+      );
+      Get.toNamed(
+        AppRoutes.register,
+        arguments: {'mobileNumber': mobileNumber},
+      );
+      return;
+    }
+
+    _showOtpSuccessDialog(
+      message: 'OTP Verified Successfully',
+      navigateTo: AppRoutes.register,
+      arguments: {'mobileNumber': mobileNumber},
+    );
+  }
+
+  Future<void> _warmUpSessionData() async {
+    try {
+      final profileController = Get.find<ProfileController>();
+      await profileController.fetchProfile();
+    } catch (_) {}
+
+    try {
+      final subscriptionController = Get.find<SubscriptionController>();
+      await subscriptionController.ensureActivePlanReady(forceRefresh: true);
+    } catch (_) {}
+  }
+
+  Future<void> _closeAuthBottomSheetIfOpen() async {
+    closeAuthBottomSheet();
+    await Future<void>.delayed(const Duration(milliseconds: 250));
   }
 
   void _showOtpSuccessDialog({
@@ -243,37 +470,27 @@ class OtpController extends GetxController {
   void _showAlreadyLoggedInDialog({
     required String message,
     required String mobile,
-    required String otp,
   }) {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Already Logged In"),
-        content: Text(message),
+        title: const Text('Already Logged In'),
+        content: Text(
+          message.isNotEmpty
+              ? message
+              : 'This account is already active on another device.',
+        ),
         actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               Get.back();
-              // Call logout-other-device API
-              try {
-                isLoading.value = true;
-                await AuthServices.logoutOtherDevice(
-                  deviceId: await DeviceUtils.getDeviceId(),
-                );
-                Get.snackbar(
-                  "Success",
-                  "Logged out from other device successfully",
-                );
-                // Retry OTP verification for current device
-                await verifyOtp();
-              } catch (e) {
-                Get.snackbar('Error', e.toString());
-              } finally {
-                isLoading.value = false;
-              }
+              await _forceLogoutOtherDeviceAndPrepareResend(mobile: mobile);
             },
-            child: const Text("Logout Other Device"),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: const Text('Logout Other Device'),
           ),
         ],
       ),
@@ -281,125 +498,64 @@ class OtpController extends GetxController {
     );
   }
 
-  // ───────────────────────── SNACKBARS ─────────────────────────
-
-  /// 🧪 DEV ONLY – REMOVE BEFORE PROD
-  void _showOtpSnackBar(String otp) {
-    Get.snackbar(
-      'OTP (DEV MODE)',
-      'Your OTP is $otp',
-      snackPosition: SnackPosition.TOP,
-      backgroundColor: const Color(0xFF4F46E5),
-      colorText: Colors.white,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 16,
-      icon: const Icon(Icons.lock_open, color: Colors.white),
-      duration: const Duration(seconds: 3),
-    );
-  }
-
-  void _showWelcomeSnackBar(String message) {
-    Get.snackbar(
-      "Welcome to Gixa 👋",
-      message,
-      snackPosition: SnackPosition.TOP,
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      borderRadius: 16,
-      backgroundColor: const Color(0xFF4F46E5),
-      colorText: Colors.white,
-      icon: const Icon(
-        Icons.celebration_rounded,
-        color: Colors.white,
-        size: 28,
-      ),
-      duration: const Duration(seconds: 3),
-      forwardAnimationCurve: Curves.easeOutBack,
-      reverseAnimationCurve: Curves.easeIn,
-    );
-  }
-
-  // Future<void> _forceLogoutOtherDeviceAndRetry({
-  //   required String mobile,
-  //   required String otp,
-  // }) async {
-  //   try {
-  //     isLoading.value = true;
-
-  //     // 🔑 logout other device (backend decides which one)
-  //     await AuthServices.logoutOtherDevice(
-  //       deviceId: await DeviceUtils.getDeviceId(),
-  //     );
-
-  //     // 🔁 retry verify otp after force logout
-  //     final retryResponse = await AuthServices.verifyOtp(
-  //       VerifyOtpRequest(
-  //         mobileNumber: mobile,
-  //         otp: otp,
-  //         deviceId: await DeviceUtils.getDeviceId(),
-  //         fcmToken: await FcmUtils.getFcmToken(),
-  //       ),
-  //     );
-
-  //     final data = retryResponse.data;
-  //     if (data == null) {
-  //       Get.snackbar('Login Failed', retryResponse.message);
-  //       return;
-  //     }
-
-  //     _showWelcomeSnackBar(data.message);
-
-  //     final appStart = Get.find<AppStartController>();
-  //     await appStart.phoneVerified();
-
-  //     if (data.isRegistered == true) {
-  //       await TokenService.saveTokens(
-  //         accessToken: data.accessToken!,
-  //         refreshToken: data.refreshToken!,
-  //       );
-
-  //       await appStart.registrationCompleted();
-  //       Get.offAllNamed(AppRoutes.mainNav);
-  //     } else {
-  //       Get.offAllNamed(
-  //         AppRoutes.register,
-  //         arguments: {'mobileNumber': mobile},
-  //       );
-  //     }
-  //   } catch (e) {
-  //     Get.snackbar('Error', e.toString());
-  //   } finally {
-  //     isLoading.value = false;
-  //   }
-  // }
-
-  // ───────────────────────── CLEANUP ─────────────────────────
-
-  Future<void> _forceLogoutOtherDeviceAndRetry({required String mobile}) async {
+  Future<void> _forceLogoutOtherDeviceAndPrepareResend({
+    required String mobile,
+  }) async {
     try {
-      isLoading.value = true;
+      isVerifyingOtp.value = true;
 
-      print("🔐 Logging out other device...");
+      print('Logging out other device...');
 
       await AuthServices.logoutOtherDevice(
+        mobileNumber: mobile,
         deviceId: await DeviceUtils.getDeviceId(),
       );
 
-      print("✅ Other device logged out successfully");
+      print('Other device logged out successfully');
 
-      await sendOtp(mobile);
+      /// RESET OLD OTP STATE
+      _timer?.cancel();
 
-      Get.snackbar(
-        "Logged out from other device",
-        "A new OTP has been sent. Please verify again.",
-        snackPosition: SnackPosition.BOTTOM,
+      otp.value = '';
+
+      otpFromBackend.value = '';
+
+      otpInputResetTrigger.value++;
+
+      secondsRemaining.value = _otpExpirySeconds;
+
+      canResendOtp.value = false;
+
+      mobileNumber.value = mobile.trim();
+
+      otpRequestStartTime.value = null;
+
+      /// SEND FRESH OTP IMMEDIATELY
+      final success = await sendOtp(mobileNumber.value);
+
+      if (!success) {
+        canResendOtp.value = true;
+
+        AppSnackbar.show(
+          'Error',
+          'Failed to send OTP. Please try again.',
+          snackPosition: SnackPosition.TOP,
+        );
+
+        return;
+      }
+
+      AppSnackbar.show(
+        'Success',
+        'Previous device logged out. New OTP sent successfully.',
+        snackPosition: SnackPosition.TOP,
       );
     } catch (e) {
-      print("❌ Force logout error: $e");
+      print('Force logout error: $e');
 
-      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      AppSnackbar.show('Error', e.toString(), snackPosition: SnackPosition.TOP);
     } finally {
-      isLoading.value = false;
+      isVerifyingOtp.value = false;
     }
   }
 
@@ -443,7 +599,6 @@ class _ModernOtpSuccessDialog extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Success Circle
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
@@ -456,21 +611,15 @@ class _ModernOtpSuccessDialog extends StatelessWidget {
               size: 60,
             ),
           ),
-
           const SizedBox(height: 24),
-
-          // Title
           Text(
-            "OTP Verified Successfully",
+            'OTP Verified Successfully',
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
-
           const SizedBox(height: 10),
-
-          // Message
           Text(
             message,
             textAlign: TextAlign.center,
@@ -479,10 +628,7 @@ class _ModernOtpSuccessDialog extends StatelessWidget {
               height: 1.5,
             ),
           ),
-
           const SizedBox(height: 28),
-
-          // Continue Button
           SizedBox(
             width: double.infinity,
             height: 52,
@@ -492,6 +638,15 @@ class _ModernOtpSuccessDialog extends StatelessWidget {
                   final profileController = Get.find<ProfileController>();
                   await profileController.fetchProfile();
                 } catch (_) {}
+
+                try {
+                  final subscriptionController =
+                      Get.find<SubscriptionController>();
+                  await subscriptionController.ensureActivePlanReady(
+                    forceRefresh: true,
+                  );
+                } catch (_) {}
+
                 Get.offAllNamed(navigateTo, arguments: arguments);
               },
               style: ElevatedButton.styleFrom(
@@ -503,7 +658,7 @@ class _ModernOtpSuccessDialog extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                "Continue",
+                'Continue',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),

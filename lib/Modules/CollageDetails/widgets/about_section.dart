@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
+import 'package:Gixa/Modules/CollageDetails/widgets/collage_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,54 +10,60 @@ class AboutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // --- Theme Palette ---
-    final Color titleColor = isDark ? Colors.white : const Color(0xFF111111);
-    final Color bodyColor = isDark
-        ? Colors.grey[400]!
-        : const Color(0xFF666666);
-    final Color iconColor = isDark ? Colors.blue[300]! : Colors.blue[700]!;
-
-    // Fallback text if API returns empty string
-    // final String description = college.about.isNotEmpty
-    //     ? college.about
-    //     : "${college.name} is one of the premier institutes created to be a Centre of Excellence for training, research, and development in science, engineering, and technology. It offers a wide range of undergraduate and postgraduate programs with state-of-the-art facilities.";
+    final colors = CollegeTheme.colors(context);
+    final description = (college.about ?? '').trim().isNotEmpty
+        ? college.about!.trim()
+        : "${college.name} details will be updated soon.";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header
         Row(
           children: [
-            Icon(Icons.info_outline_rounded, size: 18, color: iconColor),
-            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: colors.softFill(colors.primary),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.info_outline_rounded,
+                size: 18,
+                color: colors.primary,
+              ),
+            ),
+            const SizedBox(width: 12),
             Text(
               "About Institute",
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: titleColor,
+                color: colors.textMain,
               ),
             ),
           ],
         ),
         const SizedBox(height: 12),
-
-        // Expandable Body Text
-        _ExpandableText(
-          text: "Not Available", // Replace with 'description' when API is fixed
-          textColor: bodyColor,
-          linkColor: iconColor,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: colors.surfaceGradient,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colors.border),
+            boxShadow: colors.cardShadow,
+          ),
+          child: _ExpandableText(
+            text: description,
+            textColor: colors.textSub,
+            linkColor: colors.primary,
+          ),
         ),
       ],
     );
   }
 }
 
-// ─────────────────────────────────────────────
-// 🔽 Helper Widget for "Read More" Logic
-// ─────────────────────────────────────────────
 class _ExpandableText extends StatefulWidget {
   final String text;
   final Color textColor;
@@ -80,16 +87,11 @@ class _ExpandableTextState extends State<_ExpandableText> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Create a TextSpan to measure
         final span = TextSpan(
           text: widget.text,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            height: 1.6, // Good line height for readability
-          ),
+          style: GoogleFonts.inter(fontSize: 14, height: 1.6),
         );
 
-        // Use TextPainter to determine if text exceeds maxLines
         final tp = TextPainter(
           text: span,
           maxLines: maxLines,
@@ -97,13 +99,11 @@ class _ExpandableTextState extends State<_ExpandableText> {
         );
         tp.layout(maxWidth: constraints.maxWidth);
 
-        // Check if text overflows
-        final bool isOverflowing = tp.didExceedMaxLines;
+        final isOverflowing = tp.didExceedMaxLines;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // The Text Content
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,
@@ -121,8 +121,6 @@ class _ExpandableTextState extends State<_ExpandableText> {
                 ),
               ),
             ),
-
-            // The "Read More" Button (Only show if overflowing)
             if (isOverflowing) ...[
               const SizedBox(height: 6),
               GestureDetector(

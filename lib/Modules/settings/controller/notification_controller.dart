@@ -1,7 +1,8 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import '../model/notifications_model.dart';
 import 'package:Gixa/services/appnotification_services.dart';
 import 'package:Gixa/network/app_exception.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class NotificationController extends GetxController {
   final isLoading = false.obs;
@@ -16,9 +17,9 @@ class NotificationController extends GetxController {
     fetchSettings();
   }
 
-  // ───────────────────────────────
-  // 🔔 FETCH SETTINGS
-  // ───────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ðŸ”” FETCH SETTINGS
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> fetchSettings() async {
     try {
       isLoading.value = true;
@@ -27,15 +28,15 @@ class NotificationController extends GetxController {
 
       settings.value = result;
     } catch (e) {
-      Get.snackbar("Error", "Failed to load notification settings");
+      AppSnackbar.show("Error", "Failed to load notification settings");
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ───────────────────────────────
-  // 🔄 UPDATE SINGLE TOGGLE
-  // ───────────────────────────────
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ðŸ”„ UPDATE SINGLE TOGGLE
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> updateField({
     required String type,
     required String channel,
@@ -80,7 +81,7 @@ class NotificationController extends GetxController {
         }
       });
 
-      Get.snackbar("Error", e.message);
+      AppSnackbar.show("Error", e.message);
     } catch (e) {
       /// Rollback
       settings.update((data) {
@@ -93,7 +94,8 @@ class NotificationController extends GetxController {
         }
       });
 
-      Get.snackbar("Update Failed", "Unable to update setting");
+      AppSnackbar.show("Update Failed", "Unable to update setting");
     }
   }
 }
+

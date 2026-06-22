@@ -1,8 +1,12 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
+import 'package:Gixa/Modules/predication/view/ai_prediction_result_view.dart';
+import 'package:Gixa/Modules/predication/view/chat_bot_prediction_view.dart';
+import 'package:Gixa/Modules/predication/widgets/ai_activation_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shake/shake.dart';
 import '../controller/prediction_controller.dart';
 
 class PredictionView extends StatefulWidget {
@@ -14,29 +18,20 @@ class PredictionView extends StatefulWidget {
 
 class _PredictionViewState extends State<PredictionView>
     with TickerProviderStateMixin {
-  final PredictionController controller = Get.put(PredictionController());
-  final ProfileController profilecontroller = Get.put(ProfileController());
-
-  final courseController = TextEditingController();
+  final PredictionController controller =
+      Get.isRegistered<PredictionController>()
+      ? Get.find<PredictionController>()
+      : Get.put(PredictionController());
 
   final RxString aiMessage = "Analyzing your rank...".obs;
   final RxInt aiStep = 0.obs;
   final RxString selectedIqNri = ''.obs;
-  Worker? _courseWorker;
+
+  ShakeDetector? detector;
 
   late final AnimationController _pulseCtrl;
   late final AnimationController _rotateCtrl;
-
-  // Cache for profile data
-  String? _profileState;
-  String? _profileCategory;
-  String? _profileQuota;
-  String? _profileCourse;
-  String? _profileInstituteType;
-  String? _profileGender;
-  List<String>? _profileHorizontals;
-
-  static const Color _indigo = Color(0xFF6366F1);
+  static const Color _indigo = Color.fromARGB(255, 236, 139, 4);
   static const Color _indigoDark = Color(0xFF4338CA);
   static const Color _cyan = Color(0xFF06B6D4);
   static const Color _emerald = Color(0xFF10B981);
@@ -76,25 +71,9 @@ class _PredictionViewState extends State<PredictionView>
 
     // Always set selectedYear to current year
     controller.selectedYear.value = DateTime.now().year;
-    _courseWorker = ever(
-      controller.selectedCourse,
-      (v) => courseController.text = v,
-    );
-    courseController.text = controller.selectedCourse.value;
-
-    // Instantly load and sync profile data when navigating to this page
-    profilecontroller.fetchProfile().then((_) {
-      controller.syncWithProfile(profilecontroller);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.ensureBootstrap();
     });
-
-    // Cache profile data on first load (optional, can be removed if always syncing)
-    _profileState = controller.selectedState.value;
-    _profileCategory = controller.selectedCategory.value;
-    _profileQuota = controller.selectedQuota.value;
-    _profileCourse = controller.selectedCourse.value;
-    _profileInstituteType = controller.selectedInstituteType.value;
-    _profileGender = controller.selectedGender.value;
-    _profileHorizontals = List<String>.from(controller.selectedHorizontals);
 
     _pulseCtrl = AnimationController(
       vsync: this,
@@ -105,65 +84,117 @@ class _PredictionViewState extends State<PredictionView>
       vsync: this,
       duration: const Duration(milliseconds: 3000),
     )..repeat();
-  }
+    detector = ShakeDetector.autoStart(
+      onPhoneShake: (ShakeEvent event) {
+        _showAiActivation();
+      },
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    if (controller.selectedState.value.trim().isEmpty &&
-        _profileState != null) {
-      controller.selectedState.value = _profileState!;
-    }
-    if (controller.selectedCategory.value.trim().isEmpty &&
-        _profileCategory != null) {
-      controller.selectedCategory.value = _profileCategory!;
-    }
-    if (controller.selectedQuota.value.trim().isEmpty &&
-        _profileQuota != null) {
-      controller.selectedQuota.value = _profileQuota!;
-    }
-    if (controller.selectedCourse.value.trim().isEmpty &&
-        _profileCourse != null) {
-      controller.selectedCourse.value = _profileCourse!;
-    }
-    if (controller.selectedInstituteType.value.trim().isEmpty &&
-        _profileInstituteType != null) {
-      controller.selectedInstituteType.value = _profileInstituteType!;
-    }
-    if (controller.selectedGender.value.trim().isEmpty &&
-        _profileGender != null) {
-      controller.selectedGender.value = _profileGender!;
-    }
-    if (controller.selectedHorizontals.isEmpty && _profileHorizontals != null) {
-      controller.selectedHorizontals.assignAll(_profileHorizontals!);
-    }
+      shakeThresholdGravity: 7,
+    );
   }
 
   @override
   void dispose() {
-    _courseWorker?.dispose();
-    courseController.dispose();
     _pulseCtrl.dispose();
     _rotateCtrl.dispose();
+    detector?.stopListening();
     super.dispose();
   }
 
-  Future<void> _startAiMessages() async {
+  void _openAiChatBot() {
+    Get.bottomSheet(
+      Container(
+        height: Get.height * 0.92,
+
+        decoration: const BoxDecoration(
+          color: Color(0xFF0B1120),
+
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+
+        child: const ChatBotPredictionView(),
+      ),
+
+      isScrollControlled: true,
+
+      backgroundColor: Colors.transparent,
+
+      enterBottomSheetDuration: const Duration(milliseconds: 500),
+
+      exitBottomSheetDuration: const Duration(milliseconds: 300),
+    );
+  }
+
+  Future<void> _startAiMessages({
+    Duration totalDuration = const Duration(seconds: 3),
+  }) async {
     final steps = _buildAiSteps();
+    if (steps.isEmpty) return;
+
+    final stepDelay = steps.length <= 1
+        ? totalDuration
+        : Duration(
+            milliseconds: (totalDuration.inMilliseconds / steps.length).floor(),
+          );
 
     for (int i = 0; i < steps.length; i++) {
       if (!controller.isPredictionLoading.value) break;
       aiStep.value = i;
       aiMessage.value = steps[i]["msg"] as String;
-      await Future.delayed(const Duration(milliseconds: 1100));
+      if (i < steps.length - 1) {
+        await Future.delayed(stepDelay);
+      }
     }
+  }
+
+  void _showAiActivation() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    Get.dialog(
+      AiActivationDialog(
+        onCompleted: () {
+          _openAiChatBot();
+        },
+      ),
+
+      barrierDismissible: false,
+
+      barrierColor: Colors.black.withOpacity(isDark ? 0.72 : 0.35),
+    );
   }
 
   List<String> _horizontalOptions() {
     return controller.reservationHorizontals
         .where((e) => e != "IQ" && e != "I.Q")
         .toList();
+  }
+
+  Map<String, String> _categoryFullForms() {
+    return controller
+            .stateCategoryMap[controller.selectedState.value]
+            ?.availableCategoriesFullForms ??
+        const <String, String>{};
+  }
+
+  Map<String, String> _horizontalCategoryFullForms() {
+    return controller
+            .stateCategoryMap[controller.selectedState.value]
+            ?.availableHorizontalCategoriesFullForms ??
+        const <String, String>{};
+  }
+
+  String _formatStateLabel(String state) {
+    final stateDisplay =
+        controller.stateCategoryMap[state]?.stateDisplay.trim() ?? '';
+    return stateDisplay.isEmpty ? state : stateDisplay;
+  }
+
+  String _formatOptionLabel(String code, Map<String, String> fullForms) {
+    final fullForm = fullForms[code]?.trim() ?? '';
+    if (fullForm.isEmpty || fullForm.toLowerCase() == code.toLowerCase()) {
+      return code;
+    }
+    return '$code ($fullForm)';
   }
 
   @override
@@ -180,17 +211,7 @@ class _PredictionViewState extends State<PredictionView>
 
           RefreshIndicator(
             onRefresh: () async {
-              // Show loader while refreshing
-              controller.isProfileLoading.value = true;
-              await profilecontroller.fetchProfile();
-              controller.syncWithProfile(profilecontroller);
-              // Print prediction message if available
-              if (controller.predictionData.value?.message != null) {
-                print(
-                  'API Message: \\${controller.predictionData.value?.message}',
-                );
-              }
-              controller.isProfileLoading.value = false;
+              await controller.refreshPageData();
             },
             displacement: 60,
             color: _indigo,
@@ -207,13 +228,7 @@ class _PredictionViewState extends State<PredictionView>
                   const SizedBox(height: 10),
                   _basicDetails(isDark),
                   const SizedBox(height: 20),
-                  _sectionLabel("Reservation"),
-                  const SizedBox(height: 10),
-                  _reservation(isDark),
-                  const SizedBox(height: 20),
-                  _sectionLabel("IQ / NRI Quota"),
-                  const SizedBox(height: 10),
-                  _iqNriQuota(isDark),
+                  _reservationSection(isDark),
                   const SizedBox(height: 10),
                   _sectionLabel("Preferences"),
                   const SizedBox(height: 10),
@@ -225,9 +240,10 @@ class _PredictionViewState extends State<PredictionView>
 
           Positioned(left: 16, right: 16, bottom: 24, child: _predictButton()),
 
-          // ✅ Single Obx — overlay is a plain StatefulWidget, no inner Obx
           Obx(() {
-            if (!controller.isPredictionLoading.value) return const SizedBox();
+            if (!controller.isPredictionLoading.value) {
+              return const SizedBox();
+            }
             return _AiOverlay(
               aiSteps: _buildAiSteps(),
               aiStep: aiStep,
@@ -251,7 +267,9 @@ class _PredictionViewState extends State<PredictionView>
           final horizontals = controller.reservationHorizontals;
 
           final iqList = horizontals
-              .where((e) => e.toUpperCase() == "IQ" || e.toUpperCase() == "I.Q")
+              .where(
+                (e) => e.toUpperCase() == "I.Q." || e.toUpperCase() == "I.Q",
+              )
               .toList();
 
           return Column(
@@ -287,6 +305,10 @@ class _PredictionViewState extends State<PredictionView>
   );
   Widget _quotaTile(String label, bool isDark) {
     final selected = selectedIqNri.value == label;
+    final displayLabel = _formatOptionLabel(
+      label,
+      _horizontalCategoryFullForms(),
+    );
 
     return GestureDetector(
       onTap: () {
@@ -330,7 +352,7 @@ class _PredictionViewState extends State<PredictionView>
             ),
             const SizedBox(width: 10),
             Text(
-              label,
+              displayLabel,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -350,7 +372,9 @@ class _PredictionViewState extends State<PredictionView>
     elevation: 0,
     backgroundColor: Colors.transparent,
     foregroundColor: isDark ? Colors.white : Colors.black87,
+
     centerTitle: true,
+
     title: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -369,13 +393,66 @@ class _PredictionViewState extends State<PredictionView>
             ],
           ),
         ),
+
         const SizedBox(width: 7),
+
         Text(
-          "college_predictor".tr,
+          "College Predictor".tr,
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
         ),
       ],
     ),
+
+    // actions: [
+    //   Padding(
+    //     padding: const EdgeInsets.only(right: 12),
+
+    //     child: GestureDetector(
+    //       onTap: () {
+    //         Get.to(
+    //           () => const ChatBotPredictionView(),
+    //           transition: Transition.rightToLeft,
+    //           duration: const Duration(milliseconds: 350),
+    //         );
+    //       },
+
+    //       child: Container(
+    //         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+
+    //         decoration: BoxDecoration(
+    //           gradient: const LinearGradient(colors: [_indigo, _cyan]),
+
+    //           borderRadius: BorderRadius.circular(14),
+
+    //           boxShadow: [
+    //             BoxShadow(
+    //               color: _indigo.withOpacity(0.25),
+    //               blurRadius: 10,
+    //               offset: const Offset(0, 4),
+    //             ),
+    //           ],
+    //         ),
+
+    //         child: const Row(
+    //           children: [
+    //             Icon(Icons.smart_toy_rounded, color: Colors.white, size: 16),
+
+    //             SizedBox(width: 6),
+
+    //             Text(
+    //               "AI Chat",
+    //               style: TextStyle(
+    //                 color: Colors.white,
+    //                 fontSize: 11,
+    //                 fontWeight: FontWeight.w700,
+    //               ),
+    //             ),
+    //           ],
+    //         ),
+    //       ),
+    //     ),
+    //   ),
+    // ],
   );
 
   // ─── Rank Card ────────────────────────────────────────────────────
@@ -473,10 +550,16 @@ class _PredictionViewState extends State<PredictionView>
             ),
             child: Column(
               children: [
-                const Icon(Icons.verified_rounded, color: _indigo, size: 22),
+                Icon(
+                  controller.isFreeUser
+                      ? Icons.lock_outline_rounded
+                      : Icons.verified_rounded,
+                  color: _indigo,
+                  size: 22,
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  "Auto-fetched",
+                  controller.isFreeUser ? "Free Plan" : "Auto-fetched",
                   style: TextStyle(
                     fontSize: 9,
                     color: isDark ? Colors.white54 : Colors.black45,
@@ -491,7 +574,6 @@ class _PredictionViewState extends State<PredictionView>
     ),
   );
 
-  // ─── Section Label ────────────────────────────────────────────────
   Widget _sectionLabel(String titleKey) => Row(
     children: [
       Container(
@@ -519,22 +601,141 @@ class _PredictionViewState extends State<PredictionView>
     ],
   );
 
+  Widget _reservationSection(bool isDark) => Obx(() {
+    final profileController = Get.find<ProfileController>();
+    final primaryState = profileController.profile.value?.state?.trim() ?? '';
+    final selectedState = controller.selectedState.value.trim();
+
+    if (primaryState.isEmpty ||
+        selectedState.isEmpty ||
+        selectedState.toLowerCase() != primaryState.toLowerCase()) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel("Reservation"),
+        const SizedBox(height: 10),
+        _reservation(isDark),
+        const SizedBox(height: 20),
+      ],
+    );
+  });
+
   // ─── Basic Details ────────────────────────────────────────────────
   Widget _basicDetails(bool isDark) => Column(
     children: [
-      Obx(
-        () => _aiDropdown(
-          label: "state".tr,
+      Obx(() {
+        if (!controller.isFreeUser) {
+          return const SizedBox();
+        }
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: _indigo.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _indigo.withOpacity(0.2)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.lock_outline_rounded, size: 16, color: _indigo),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 11,
+                      height: 1.5,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.white70 : Colors.black87,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: "Rank, State & Category ",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: _indigo,
+                        ),
+                      ),
+                      const TextSpan(
+                        text:
+                            "are locked on the Free Plan.\nUpgrade to Premium to unlock full customization and smarter Gixa AI predictions.",
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+      Obx(() {
+        final profileController = Get.find<ProfileController>();
+        final profileState = profileController.profile.value?.state;
+
+        if (profileState == null || profileState.isEmpty) {
+          return const SizedBox();
+        }
+
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEC8B04).withOpacity(0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: const Color(0xFFEC8B04).withOpacity(0.25),
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.location_on, size: 16, color: Color(0xFFEC8B04)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  "Primary State: $profileState",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFEC8B04),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
+      SizedBox(height: 10),
+      Obx(() {
+        /// 🔥 PRINT STATES COUNT
+        print("📍 Total States: ${controller.stateList.length}");
+
+        /// 🔥 PRINT ALL STATES
+        print("📍 States List:");
+        for (var s in controller.stateList) {
+          print("➡️ ${s.name}");
+        }
+
+        return _aiDropdown(
+          // label: "state".tr,
+          label: 'Secondary State'.tr,
           icon: Icons.map_outlined,
           value: controller.selectedState.value,
           items: controller.stateList.map((e) => e.name).toList(),
+          itemLabelBuilder: _formatStateLabel,
+          enabled: true,
           onChanged: (v) {
             if (v == null) return;
             controller.onStateChanged(v);
           },
           isDark: isDark,
-        ),
-      ),
+        );
+      }),
       const SizedBox(height: 10),
       Obx(
         () => _aiDropdown(
@@ -542,6 +743,11 @@ class _PredictionViewState extends State<PredictionView>
           icon: Icons.group_outlined,
           value: controller.selectedCategory.value,
           items: controller.categoryList.map((e) => e.name).toList(),
+          enabled: false,
+          helperText: "Read only from your profile",
+          suffixIcon: Icons.lock_outline_rounded,
+          itemLabelBuilder: (item) =>
+              _formatOptionLabel(item, _categoryFullForms()),
           onChanged: (v) {
             if (v == null) return;
             controller.selectedCategory.value = v;
@@ -550,14 +756,30 @@ class _PredictionViewState extends State<PredictionView>
         ),
       ),
       const SizedBox(height: 10),
-      _aiInput(
-        label: "course".tr,
-        icon: Icons.school_outlined,
-        ctrl: courseController,
-        onChanged: (v) => controller.selectedCourse.value = v,
-        isDark: isDark,
-      ),
-      // Year field removed from UI, year is always current year
+      Obx(() {
+        final profileController = Get.find<ProfileController>();
+        final p = profileController.profile.value;
+        final predCourses = p?.predictionCourses ?? [];
+        final hasPredCourses = predCourses.isNotEmpty;
+
+        final dropdownItems = hasPredCourses
+            ? predCourses
+            : controller.courseList.map((e) => e.name).toList();
+
+        return _aiDropdown(
+          label: "course".tr,
+          icon: Icons.school_outlined,
+          value: controller.selectedCourse.value,
+          items: dropdownItems,
+          enabled: hasPredCourses,
+          suffixIcon: hasPredCourses ? null : Icons.lock_outline_rounded,
+          onChanged: (v) {
+            if (v == null) return;
+            controller.selectedCourse.value = v;
+          },
+          isDark: isDark,
+        );
+      }),
     ],
   );
 
@@ -568,33 +790,33 @@ class _PredictionViewState extends State<PredictionView>
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Obx(
-          () => _pillRow(
-            items: ["Male", "Female"],
-            values: ["M", "F"],
-            selected: controller.selectedGender.value,
-            onTap: (v) => controller.selectedGender.value = v,
-            isDark: isDark,
-          ),
-        ),
-        const SizedBox(height: 14),
+        // Obx(
+        //   () => _pillRow(
+        //     items: ["Male", "Female"],
+        //     values: ["M", "F"],
+        //     selected: controller.selectedGender.value,
+        //     onTap: (v) => controller.selectedGender.value = v,
+        //     isDark: isDark,
+        //   ),
+        // ),
+        // const SizedBox(height: 14),
         Obx(() {
-          final options = _horizontalOptions();
+          final profileController = Get.find<ProfileController>();
+
+          final userHorizontals =
+              profileController.profile.value?.horizontals ?? [];
+
           controller.selectedHorizontals.length;
-          if (options.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                "Select a state to load reservation categories",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isDark ? Colors.white54 : Colors.black45,
-                ),
-              ),
-            );
+
+          /// Hide reservation section if no horizontal reservation selected
+          if (userHorizontals.isEmpty) {
+            return const SizedBox.shrink();
           }
+
           return Column(
-            children: options.map((e) => _checkTile(e, isDark)).toList(),
+            children: userHorizontals
+                .map((e) => _checkTile(e, isDark))
+                .toList(),
           );
         }),
         const SizedBox(height: 8),
@@ -689,33 +911,47 @@ class _PredictionViewState extends State<PredictionView>
     ),
     child: Material(
       color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: () {
-          controller.isPredictionLoading.value = true;
-          _startAiMessages();
-          controller.fetchPrediction();
-        },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                "predict".tr,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
-                ),
+      child: Obx(() {
+        final isBusy =
+            controller.isPredictionLoading.value ||
+            controller.isInitializing.value;
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: isBusy
+              ? null
+              : () async {
+                  aiStep.value = 0;
+                  final predictionFuture = controller.fetchPrediction(
+                    minimumLoadingDuration: const Duration(seconds: 3),
+                  );
+                  _startAiMessages(totalDuration: const Duration(seconds: 3));
+                  await predictionFuture;
+                },
+          child: Opacity(
+            opacity: isBusy ? 0.72 : 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    "predict".tr,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     ),
   );
 
@@ -780,6 +1016,12 @@ class _PredictionViewState extends State<PredictionView>
   // ─── Check tile — called from inside Obx, so NO inner Obx needed ──
   Widget _checkTile(String label, bool isDark) {
     final selected = controller.selectedHorizontals.contains(label);
+    final displayLabel = _formatOptionLabel(
+      label,
+      _horizontalCategoryFullForms(),
+    );
+    final isLocked = controller.lockedHorizontals.contains(label);
+
     return GestureDetector(
       onTap: () => controller.handleHorizontalSelection(label),
       child: AnimatedContainer(
@@ -819,7 +1061,7 @@ class _PredictionViewState extends State<PredictionView>
             ),
             const SizedBox(width: 10),
             Text(
-              label,
+              displayLabel,
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
@@ -877,6 +1119,10 @@ class _PredictionViewState extends State<PredictionView>
     required List<String> items,
     required Function(String?) onChanged,
     required bool isDark,
+    String Function(String)? itemLabelBuilder,
+    bool enabled = true,
+    String? helperText,
+    IconData? suffixIcon,
   }) {
     final uniqueItems = <String>[];
     for (final item in items) {
@@ -887,48 +1133,110 @@ class _PredictionViewState extends State<PredictionView>
 
     final selectedValue = uniqueItems.contains(value) ? value : null;
 
-    return DropdownButtonFormField<String>(
-      value: selectedValue,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        color: isDark ? Colors.white : Colors.black87,
-      ),
-      dropdownColor: isDark ? _surface : _cardLight,
-      icon: Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: _indigo.withOpacity(0.6),
-        size: 18,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          fontSize: 12,
-          color: isDark ? Colors.white38 : Colors.black38,
+    return IgnorePointer(
+      ignoring: !enabled,
+      child: DropdownButtonFormField<String>(
+        value: selectedValue,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: enabled
+              ? (isDark ? Colors.white : Colors.black)
+              : (isDark ? Colors.white : Colors.black),
         ),
-        prefixIcon: Icon(icon, size: 16, color: _indigo.withOpacity(0.7)),
-        filled: true,
-        fillColor: isDark ? _surface : _cardLight,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
+        dropdownColor: isDark ? _surface : _cardLight,
+        icon: Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: enabled ? _indigo.withOpacity(0.6) : _indigo.withOpacity(0.35),
+          size: 18,
         ),
-        border: _inputBorder(isDark),
-        enabledBorder: _inputBorder(isDark),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: _indigo.withOpacity(0.5), width: 1.5),
-        ),
-      ),
-      items: uniqueItems
-          .map(
-            (e) => DropdownMenuItem(
-              value: e,
-              child: Text(e, style: const TextStyle(fontSize: 13)),
+        decoration: InputDecoration(
+          labelText: label,
+
+          labelStyle: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+
+          prefixIcon: Icon(
+            icon,
+            size: 18,
+            color: isDark ? Colors.white : _indigo,
+          ),
+
+          suffixIcon: suffixIcon == null
+              ? null
+              : Icon(
+                  suffixIcon,
+                  size: 18,
+                  color: isDark ? Colors.white : _indigo,
+                ),
+
+          filled: true,
+
+          fillColor: enabled
+              ? (isDark ? _surface : _cardLight)
+              : (isDark ? const Color(0xFF2A3441) : Colors.grey.shade100),
+
+          helperText: helperText,
+
+          helperStyle: TextStyle(
+            fontSize: 11,
+            color: isDark ? Colors.white70 : Colors.black54,
+          ),
+
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
+
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: isDark ? Colors.white24 : Colors.black12,
             ),
-          )
-          .toList(),
-      onChanged: onChanged,
+          ),
+
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: isDark ? Colors.white24 : Colors.black12,
+            ),
+          ),
+
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: isDark ? Colors.white38 : Colors.black26,
+              width: 1.2,
+            ),
+          ),
+
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: _indigo.withOpacity(0.7), width: 1.5),
+          ),
+        ),
+        items: uniqueItems
+            .map(
+              (e) => DropdownMenuItem(
+                value: e,
+                child: Text(
+                  itemLabelBuilder?.call(e) ?? e,
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: (value) {
+          if (!enabled) {
+            return;
+          }
+
+          onChanged(value);
+        },
+      ),
     );
   }
 
@@ -989,8 +1297,8 @@ class _AiOverlay extends StatefulWidget {
 
 class _AiOverlayState extends State<_AiOverlay> {
   // ─── Design tokens ────────────────────────────────────────────────
-  static const Color _indigo = Color(0xFF6366F1);
-  static const Color _indigoDark = Color(0xFF4338CA);
+  static const Color _indigo = Color.fromARGB(255, 236, 139, 4);
+  static const Color _indigoDark = Color.fromARGB(255, 51, 134, 242);
   static const Color _cyan = Color(0xFF06B6D4);
   static const Color _emerald = Color(0xFF10B981);
 

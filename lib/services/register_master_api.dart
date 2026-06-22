@@ -7,8 +7,18 @@ import 'package:Gixa/network/api_client.dart';
 import 'package:Gixa/network/api_endpoints.dart';
 
 class RegisterMasterApi {
-  Future<Map<String, dynamic>> fetchMasters() async {
-    final response = await ApiClient.get(ApiEndpoints.masters);
+  Future<Map<String, dynamic>> fetchMasters({
+    bool showGlobalNetworkError = true,
+    bool forceRefresh = false,
+  }) async {
+    final response = await ApiClient.get(
+      ApiEndpoints.masters,
+      showGlobalNetworkError: showGlobalNetworkError,
+      requestPolicy: RequestPolicy(
+        ttl: Duration(minutes: 5),
+        forceRefresh: forceRefresh,
+      ),
+    );
 
     /// 🔹 STATES
     final List<StateModel> states = (response['states'] as List<dynamic>? ?? [])
@@ -42,13 +52,30 @@ class RegisterMasterApi {
       'UG': _parseCourseLevel(coursesResponse['UG']),
       'PG': _parseCourseLevel(coursesResponse['PG']),
     };
+    final List<CourseModel> coursesForUg =
+        (response['courses_for_ug'] as List<dynamic>? ?? [])
+            .map((e) => CourseModel.fromJson(e))
+            .toList();
+    final statewiseCities = _parseStatewiseCities(response['statewise_cities']);
 
     return {
       'states': states,
       'categories': categories,
       'quotas': quotas,
-      'rounds': rounds, // ✅ IMPORTANT
+      'rounds': rounds,
       'courses': courses,
+      'courses_for_ug': coursesForUg,
+
+      /// STATEWISE CATEGORY
+      'statewise_categories': response['statewise_categories'],
+
+      /// HORIZONTAL RESERVATIONS
+      'statewise_horizontal_categories':
+          response['statewise_horizontal_categories'],
+
+      /// STATEWISE CITIES
+      'statewise_cities': statewiseCities,
+      'mcc_statewise_city_summary': response['mcc_statewise_city_summary'],
     };
   }
 
@@ -72,4 +99,67 @@ class RegisterMasterApi {
           .toList(),
     };
   }
+
+  Map<String, List<String>> _parseStatewiseCities(dynamic rawData) {
+    final items =
+        (rawData as Map<String, dynamic>?)?['data'] as List<dynamic>? ??
+        const [];
+    final statewiseCities = <String, List<String>>{};
+
+    for (final item in items) {
+      if (item is! Map<String, dynamic>) continue;
+
+      final stateName = (item['state'] ?? '').toString().trim();
+      if (stateName.isEmpty) continue;
+
+      final seen = <String>{};
+      final cities = <String>[];
+
+      for (final city in item['cities'] as List<dynamic>? ?? const []) {
+        final cleanedCity = _cleanCityName(city, stateName);
+        if (cleanedCity == null) continue;
+
+        final normalizedCity = _normalizeLookup(cleanedCity);
+        if (seen.add(normalizedCity)) {
+          cities.add(cleanedCity);
+        }
+      }
+
+      cities.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+      if (cities.isNotEmpty) {
+        statewiseCities[stateName] = cities;
+      }
+    }
+
+    return statewiseCities;
+  }
+
+  String? _cleanCityName(dynamic rawValue, String stateName) {
+    var value = rawValue?.toString().trim() ?? '';
+    if (value.isEmpty) return null;
+
+    value = value.replaceFirst(RegExp(r'^[,\s]+'), '').trim();
+    if (value.isEmpty || value.contains('@')) return null;
+
+    if (value.contains(',')) {
+      value = value.split(',').first.trim();
+    }
+
+    value = value.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (value.isEmpty) return null;
+
+    final normalizedValue = _normalizeLookup(value);
+    if (normalizedValue.isEmpty || normalizedValue == 'none') return null;
+    if (normalizedValue == _normalizeLookup(stateName)) return null;
+
+    return value;
+  }
+
+  String _normalizeLookup(String value) => value
+      .trim()
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
 }

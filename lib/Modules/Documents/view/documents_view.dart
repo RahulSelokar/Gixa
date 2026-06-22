@@ -1,6 +1,8 @@
 import 'package:Gixa/Modules/Documents/controller/documents_controller.dart';
 import 'package:Gixa/Modules/Documents/controller/view_document_controller.dart';
 import 'package:Gixa/routes/app_routes.dart';
+import 'package:Gixa/common/app_colors.dart';
+import 'package:Gixa/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -18,23 +20,21 @@ class UploadDocumentPage extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // 2. Define Adaptive Palette
-    final Color primaryColor = const Color(
-      0xFF3B82F6,
-    ); // Slightly lighter blue for better dark contrast
+    final Color primaryColor = kHomeAccentColor;
     final Color successColor = const Color(0xFF10B981);
 
     final Color backgroundColor = isDark
-        ? const Color(0xFF121212)
+        ? UColors.darkSurface
         : const Color(0xFFF8FAFC);
-    final Color cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color cardColor = isDark ? UColors.darkCard : Colors.white;
     final Color textColor = isDark ? Colors.white : Colors.black87;
     final Color subTextColor = isDark ? Colors.grey.shade400 : Colors.black54;
     final Color borderColor = isDark
-        ? Colors.grey.shade800
-        : Colors.grey.shade200;
+        ? UColors.darkBorder
+        : UColors.border;
     final Color iconBgUnselected = isDark
-        ? const Color(0xFF2C2C2C)
-        : Colors.blueGrey.shade50;
+        ? UColors.darkCard
+        : UColors.softSurface;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -293,16 +293,19 @@ class UploadDocumentPage extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isUploaded
-                        ? Colors.orange.withOpacity(0.1)
+                        ? UColors.primaryLight.withOpacity(0.1)
                         : primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isUploaded ? UColors.primaryLight : primaryColor,
+                    ),
                   ),
                   child: Text(
                     isUploaded ? "Update" : "Upload",
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: isUploaded ? Colors.orange : primaryColor,
+                      color: isUploaded ? UColors.primaryLight : primaryColor,
                     ),
                   ),
                 ),
@@ -335,8 +338,8 @@ void showUpdateDialog(String docType) {
       ? Colors.grey.shade800
       : Colors.grey.shade200;
 
-  const Color primaryColor = Color(0xFF3B82F6);
-  final Color accentColor = Colors.orange;
+  const Color primaryColor = kHomeAccentColor;
+  const Color accentColor = UColors.primaryLight;
 
   Get.dialog(
     Dialog(

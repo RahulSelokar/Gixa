@@ -1,12 +1,11 @@
 import 'package:Gixa/Modules/CollageDetails/controller/collage_detail_controller.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/bottom_appbar.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/collage_header.dart';
+import 'package:Gixa/Modules/CollageDetails/widgets/collage_theme.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/college_app_bar.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/college_hero_image.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/college_tab_bar.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/college_tab_content.dart';
-import 'package:Gixa/Modules/seatMatrix/controller/seat_matrix_controller.dart';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -15,78 +14,113 @@ class CollegeDetailPage extends StatelessWidget {
 
   final CollegeDetailController controller = Get.put(CollegeDetailController());
 
-  final SeatMatrixController seatController = Get.find<SeatMatrixController>();
+  @override
+  Widget build(BuildContext context) {
+    final colors = CollegeTheme.colors(context);
 
-  // 🎨 Brand Color
-  static const Color kPrimaryBlue = Color(0xFF1565C0);
+    return Scaffold(
+      backgroundColor: colors.background,
+      appBar: CollegeAppBar(controller: controller),
+      body: DecoratedBox(
+        decoration: BoxDecoration(gradient: colors.pageBackgroundGradient),
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return Center(
+              child: CircularProgressIndicator(color: colors.primary),
+            );
+          }
+
+          final college = controller.college.value;
+          if (college == null) {
+            return Center(
+              child: Text(
+                'no_data_found'.tr,
+                style: TextStyle(
+                  color: colors.textSub,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            );
+          }
+
+          return Stack(
+            children: [
+              Positioned(
+                top: -110,
+                right: -80,
+                child: _BackgroundGlow(
+                  size: 240,
+                  colors: [
+                    colors.primary.withOpacity(0.18),
+                    colors.pink.withOpacity(0.05),
+                  ],
+                ),
+              ),
+              Positioned(
+                top: 220,
+                left: -90,
+                child: _BackgroundGlow(
+                  size: 210,
+                  colors: [
+                    colors.purple.withOpacity(0.14),
+                    colors.secondary.withOpacity(0.05),
+                  ],
+                ),
+              ),
+              SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 130),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CollegeHeroImage(college: college),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 12),
+                          CollegeHeaderSection(college: college),
+                          const SizedBox(height: 18),
+                          const CollegeTabs(),
+                          const SizedBox(height: 16),
+                          CollegeTabContent(college: college),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: BottomActionBar(college: college),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _BackgroundGlow extends StatelessWidget {
+  final double size;
+  final List<Color> colors;
+
+  const _BackgroundGlow({required this.size, required this.colors});
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final Color bgColor = isDark ? const Color(0xFF121212) : Colors.white;
-
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: CollegeAppBar(controller: controller),
-      body: Obx(() {
-        // ⏳ Loading state
-        if (controller.isLoading.value) {
-          return Center(child: CircularProgressIndicator(color: kPrimaryBlue));
-        }
-
-        final college = controller.college.value;
-
-        // ❌ No data
-        if (college == null) {
-          return Center(child: Text('no_data_found'.tr));
-        }
-
-        return Stack(
-          children: [
-            /// 📜 Scrollable Content
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 110),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// 🖼️ Hero Image (Gallery-based)
-                  CollegeHeroImage(college: college),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 16),
-
-                        /// 🏫 College Header
-                        CollegeHeaderSection(college: college),
-
-                        const SizedBox(height: 16),
-
-                        /// 📑 Tabs + Content
-                        Column(
-                          children: const [CollegeTabs(), SizedBox(height: 12)],
-                        ),
-
-                        CollegeTabContent(college: college),
-
-                        const SizedBox(height: 30),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            /// 🦶 Bottom Action Bar
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: BottomActionBar(college: college),
-            ),
-          ],
-        );
-      }),
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(colors: colors),
+        ),
+      ),
     );
   }
 }

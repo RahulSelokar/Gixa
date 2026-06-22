@@ -1,4 +1,4 @@
-import 'package:Gixa/Modules/version/model/version_model.dart';
+ import 'package:Gixa/Modules/version/model/version_model.dart';
 import 'package:Gixa/network/api_client.dart';
 import 'package:Gixa/network/api_endpoints.dart';
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/services/logout_services.dart';
 import '../../routes/app_routes.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -271,9 +272,9 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Get.back();
-              Get.offAllNamed(AppRoutes.loginWithOtp);
+              await SessionService.logout();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red[700],

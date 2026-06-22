@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
+import 'package:Gixa/Modules/CollageDetails/widgets/collage_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -9,36 +10,24 @@ class CoursesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Efficient Early Return
     if (college.courses.ug.isEmpty && college.courses.pg.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // --- Theme Palette ---
-    // Background: Darker grey (Surface) vs Pure White
-    final Color cardBg = isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    // Main Title Color
-    final Color titleColor = isDark ? Colors.white : const Color(0xFF111111);
-    // Border for the main card
-    final Color borderColor = isDark
-        ? const Color(0xFF333333)
-        : Colors.grey.shade200;
+    final colors = CollegeTheme.colors(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Header
         Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isDark ? Colors.grey[800] : Colors.grey[100],
-                shape: BoxShape.circle,
+                gradient: colors.warmGradient,
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.school_rounded, color: titleColor, size: 18),
+              child: const Icon(Icons.school_rounded, color: Colors.white, size: 18),
             ),
             const SizedBox(width: 12),
             Text(
@@ -46,63 +35,47 @@ class CoursesSection extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: titleColor,
+                color: colors.textMain,
               ),
             ),
           ],
         ),
         const SizedBox(height: 16),
-
-        // Main Card Container
         Container(
           width: double.infinity,
-          decoration: BoxDecoration(
-            color: cardBg,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: borderColor),
-            // Subtle shadow only in light mode
-            boxShadow: isDark
-                ? []
-                : [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-          ),
           padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: colors.surfaceGradient,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colors.border),
+            boxShadow: colors.cardShadow,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // UG Section (Emerald Theme)
               _CourseCategory(
                 title: "Undergraduate (UG)",
                 items: college.courses.ug.map((e) => e.name).toList(),
-                baseColor: const Color(0xFF10B981), // Emerald Green
-                isDark: isDark,
+                baseColor: colors.primary,
+                colors: colors,
               ),
-
-              // Divider (Only if both exist)
               if (college.courses.ug.isNotEmpty &&
                   college.courses.pg.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Divider(
-                    color: isDark ? Colors.grey[800] : Colors.grey[100],
+                    color: colors.subtleBorder,
                     thickness: 1,
                     height: 1,
                   ),
                 ),
-
-              // PG Section (Amber/Orange Theme)
               _CourseCategory(
                 title: "Postgraduate (PG)",
                 items: college.courses.pg
-                    .map((e) => "${e.courseName} • ${e.specialtyType}")
+                    .map((e) => "${e.courseName} - ${e.specialtyType}")
                     .toList(),
-                baseColor: const Color(0xFFF59E0B), // Amber
-                isDark: isDark,
+                baseColor: colors.purple,
+                colors: colors,
               ),
             ],
           ),
@@ -115,14 +88,14 @@ class CoursesSection extends StatelessWidget {
 class _CourseCategory extends StatelessWidget {
   final String title;
   final List<String> items;
-  final Color baseColor; // The main accent color (Green or Orange)
-  final bool isDark;
+  final Color baseColor;
+  final CollegeThemeColors colors;
 
   const _CourseCategory({
     required this.title,
     required this.items,
     required this.baseColor,
-    required this.isDark,
+    required this.colors,
   });
 
   @override
@@ -132,14 +105,15 @@ class _CourseCategory extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Category Title with vertical accent bar
         Row(
           children: [
             Container(
               height: 16,
-              width: 3,
+              width: 4,
               decoration: BoxDecoration(
-                color: baseColor,
+                gradient: LinearGradient(
+                  colors: [baseColor, baseColor.withOpacity(0.7)],
+                ),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -149,58 +123,36 @@ class _CourseCategory extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.grey[400] : Colors.grey[600],
+                color: colors.textSub,
                 letterSpacing: 0.5,
-                textBaseline: TextBaseline.alphabetic,
               ),
             ),
           ],
         ),
         const SizedBox(height: 16),
-
-        // Chips Layout
         Wrap(
           spacing: 8,
           runSpacing: 10,
-          children: items.map((text) => _buildModernChip(text)).toList(),
+          children: items.map(_buildModernChip).toList(),
         ),
       ],
     );
   }
 
   Widget _buildModernChip(String text) {
-    // Determine Chip Colors based on Theme & Base Color
-
-    // Light Mode: Very light pastel background, strong text
-    // Dark Mode: Transparent background with colored border, or low opacity fill
-
-    final Color chipBg = isDark
-        ? baseColor.withOpacity(0.15)
-        : baseColor.withOpacity(0.08);
-
-    final Color chipBorder = isDark
-        ? baseColor.withOpacity(0.3)
-        : Colors.transparent;
-
-    final Color chipText = isDark
-        ? Colors.grey[200]! // Light grey text in dark mode for readability
-        : baseColor.withOpacity(1.0); // Strong colored text in light mode
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: chipBg,
-        borderRadius: BorderRadius.circular(
-          8,
-        ), // Slightly squared for modern look
-        border: isDark ? Border.all(color: chipBorder) : null,
+        color: colors.softFill(baseColor),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: baseColor.withOpacity(colors.isDark ? 0.32 : 0.16)),
       ),
       child: Text(
         text,
         style: GoogleFonts.inter(
           fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: chipText,
+          fontWeight: FontWeight.w600,
+          color: colors.chipText(baseColor),
           height: 1.2,
         ),
       ),

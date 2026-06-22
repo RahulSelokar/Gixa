@@ -9,7 +9,7 @@ class SeatMatrixModel {
   final String quota;
   final String counsellingRound;
   final int totalSeats;
-
+  final int totalCategorySeats;
   final int aiqSeats;
   final int stateQuotaSeats;
 
@@ -29,6 +29,7 @@ class SeatMatrixModel {
     required this.aiqSeats,
     required this.stateQuotaSeats,
     required this.categories,
+    required this.totalCategorySeats,
   });
 
   factory SeatMatrixModel.fromJson(Map<String, dynamic> json) {
@@ -54,9 +55,10 @@ class SeatMatrixModel {
       counsellingRound: json['counselling_round']?.toString() ?? '',
       totalSeats: (json['total_seats'] as num?)?.toInt() ?? 0,
       aiqSeats: (json['aiq_seats'] as num?)?.toInt() ?? 0,
-      stateQuotaSeats:
-          (json['state_quota_seats'] as num?)?.toInt() ?? 0,
+      stateQuotaSeats: (json['state_quota_seats'] as num?)?.toInt() ?? 0,
       categories: categoryList,
+      totalCategorySeats:
+          (json['state_quota']?['total_category_seats'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -65,10 +67,7 @@ class CategorySeat {
   final String category;
   final int seats;
 
-  CategorySeat({
-    required this.category,
-    required this.seats,
-  });
+  CategorySeat({required this.category, required this.seats});
 
   factory CategorySeat.fromJson(Map<String, dynamic> json) {
     return CategorySeat(

@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/Assistance/controller/counselor_detail_controller.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -277,7 +278,7 @@ class _ActionBar extends StatelessWidget {
         icon: Icon(icon, size: 18),
         label: Text(label),
         style: ElevatedButton.styleFrom(
-          backgroundColor: enabled ? const Color(0xFF1565C0) : Colors.grey,
+          backgroundColor: enabled ? kHomeAccentColor : Colors.grey,
           padding: const EdgeInsets.symmetric(vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),

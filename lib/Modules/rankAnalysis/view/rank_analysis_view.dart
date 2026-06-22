@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/common/app_colors.dart';
 import '../controller/rank_analysis_controller.dart';
 
 class RankAnalysisScreen extends StatefulWidget {
@@ -86,12 +87,12 @@ class _RankAnalysisScreenState extends State<RankAnalysisScreen> {
                       height: 50,
                       width: 50,
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.15),
+                        color: kHomeAccentColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
                         Icons.school,
-                        color: Colors.blue,
+                        color: kHomeAccentColor,
                         size: 28,
                       ),
                     ),
@@ -185,12 +186,15 @@ class _RankAnalysisScreenState extends State<RankAnalysisScreen> {
                           child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.08),
+                              color: const Color(0xFFEC8B04).withOpacity(0.08),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
                               children: [
-                                const Icon(Icons.person, color: Colors.blue),
+                                const Icon(
+                                  Icons.person,
+                                  color: Color(0xFFEC8B04),
+                                ),
 
                                 const SizedBox(height: 6),
 
@@ -206,7 +210,7 @@ class _RankAnalysisScreenState extends State<RankAnalysisScreen> {
                                   style: const TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
+                                    color: const Color(0xFFEC8B04),
                                   ),
                                 ),
                               ],
@@ -308,231 +312,230 @@ class _RankAnalysisScreenState extends State<RankAnalysisScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              // const SizedBox(height: 20),
 
               /// ---------------- CUTOFF TREND ----------------
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.show_chart, color: Colors.orange),
-                      SizedBox(width: 6),
-                      Text(
-                        "Cutoff Trend",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+              // Column(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   children: [
+              //     Row(
+              //       children: const [
+              //         Icon(Icons.show_chart, color: Colors.orange),
+              //         SizedBox(width: 6),
+              //         Text(
+              //           "Cutoff Trend",
+              //           style: TextStyle(
+              //             fontSize: 18,
+              //             fontWeight: FontWeight.bold,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
 
-                  const SizedBox(height: 14),
+              //     const SizedBox(height: 14),
 
-                  ...data.cutoffTrend.map((trend) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xff1E1E1E) : Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withOpacity(0.06)
-                              : Colors.grey.shade200,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          /// YEAR
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                size: 18,
-                                color: Colors.blue,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                trend.year.toString(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 15,
-                                ),
-                              ),
-                            ],
-                          ),
+              //     ...data.cutoffTrend.map((trend) {
+              //       return Container(
+              //         margin: const EdgeInsets.only(bottom: 10),
+              //         padding: const EdgeInsets.symmetric(
+              //           horizontal: 16,
+              //           vertical: 14,
+              //         ),
+              //         decoration: BoxDecoration(
+              //           color: isDark ? const Color(0xff1E1E1E) : Colors.white,
+              //           borderRadius: BorderRadius.circular(14),
+              //           border: Border.all(
+              //             color: isDark
+              //                 ? Colors.white.withOpacity(0.06)
+              //                 : Colors.grey.shade200,
+              //           ),
+              //         ),
+              //         child: Row(
+              //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //           children: [
+              //             /// YEAR
+              //             Row(
+              //               children: [
+              //                 const Icon(
+              //                   Icons.calendar_today,
+              //                   size: 18,
+              //                   color: Colors.blue,
+              //                 ),
+              //                 const SizedBox(width: 8),
+              //                 Text(
+              //                   trend.year.toString(),
+              //                   style: const TextStyle(
+              //                     fontWeight: FontWeight.w600,
+              //                     fontSize: 15,
+              //                   ),
+              //                 ),
+              //               ],
+              //             ),
 
-                          /// RANK
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.trending_up,
-                                color: Colors.green,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
+              //             /// RANK
+              //             Row(
+              //               children: [
+              //                 const Icon(
+              //                   Icons.trending_up,
+              //                   color: Colors.green,
+              //                   size: 18,
+              //                 ),
+              //                 const SizedBox(width: 6),
 
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  "Rank ${trend.closingRank}",
-                                  style: const TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
+              //                 Container(
+              //                   padding: const EdgeInsets.symmetric(
+              //                     horizontal: 10,
+              //                     vertical: 4,
+              //                   ),
+              //                   decoration: BoxDecoration(
+              //                     color: Colors.green.withOpacity(.12),
+              //                     borderRadius: BorderRadius.circular(20),
+              //                   ),
+              //                   child: Text(
+              //                     "Rank ${trend.closingRank}",
+              //                     style: const TextStyle(
+              //                       color: Colors.green,
+              //                       fontWeight: FontWeight.bold,
+              //                     ),
+              //                   ),
+              //                 ),
+              //               ],
+              //             ),
+              //           ],
+              //         ),
+              //       );
+              //     }),
+              //   ],
+              // ),
 
-              const SizedBox(height: 20),
+              // const SizedBox(height: 20),
 
               /// ---------------- YEAR WISE ROUND CUTOFF ----------------
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// Section Title
-                  Row(
-                    children: const [
-                      Icon(Icons.timeline, color: Colors.deepPurple),
-                      SizedBox(width: 6),
-                      Text(
-                        "Year Wise Round Cutoff",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+              // Column(
+              //   crossAxisAlignment: CrossAxisAlignment.start,
+              //   children: [
+              //     /// Section Title
+              //     Row(
+              //       children: const [
+              //         Icon(Icons.timeline, color: Colors.deepPurple),
+              //         SizedBox(width: 6),
+              //         Text(
+              //           "Year Wise Round Cutoff",
+              //           style: TextStyle(
+              //             fontSize: 18,
+              //             fontWeight: FontWeight.bold,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
 
-                  const SizedBox(height: 14),
+              //     const SizedBox(height: 14),
 
-                  ...data.yearWiseCutoff.map((yearData) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xff1E1E1E) : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark
-                              ? Colors.white.withOpacity(0.05)
-                              : Colors.grey.shade200,
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          /// YEAR HEADER
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.deepPurple.withOpacity(.12),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  "Year ${yearData.year}",
-                                  style: const TextStyle(
-                                    color: Colors.deepPurple,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+              //     ...data.yearWiseCutoff.map((yearData) {
+              //       return Container(
+              //         margin: const EdgeInsets.only(bottom: 14),
+              //         padding: const EdgeInsets.all(16),
+              //         decoration: BoxDecoration(
+              //           color: isDark ? const Color(0xff1E1E1E) : Colors.white,
+              //           borderRadius: BorderRadius.circular(16),
+              //           border: Border.all(
+              //             color: isDark
+              //                 ? Colors.white.withOpacity(0.05)
+              //                 : Colors.grey.shade200,
+              //           ),
+              //         ),
+              //         child: Column(
+              //           crossAxisAlignment: CrossAxisAlignment.start,
+              //           children: [
+              //             /// YEAR HEADER
+              //             Row(
+              //               children: [
+              //                 Container(
+              //                   padding: const EdgeInsets.symmetric(
+              //                     horizontal: 12,
+              //                     vertical: 6,
+              //                   ),
+              //                   decoration: BoxDecoration(
+              //                     color: Colors.deepPurple.withOpacity(.12),
+              //                     borderRadius: BorderRadius.circular(20),
+              //                   ),
+              //                   child: Text(
+              //                     "Year ${yearData.year}",
+              //                     style: const TextStyle(
+              //                       color: Colors.deepPurple,
+              //                       fontWeight: FontWeight.bold,
+              //                     ),
+              //                   ),
+              //                 ),
+              //               ],
+              //             ),
 
-                          const SizedBox(height: 14),
+              //             const SizedBox(height: 14),
 
-                          /// ROUNDS
-                          ...yearData.rounds.map((round) {
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.black.withOpacity(.25)
-                                    : Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  /// ROUND LABEL
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.circle,
-                                        size: 10,
-                                        color: Colors.deepPurple,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        "Round ${round.round}",
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+              //             /// ROUNDS
+              //             ...yearData.rounds.map((round) {
+              //               return Container(
+              //                 margin: const EdgeInsets.only(bottom: 10),
+              //                 padding: const EdgeInsets.symmetric(
+              //                   horizontal: 14,
+              //                   vertical: 12,
+              //                 ),
+              //                 decoration: BoxDecoration(
+              //                   color: isDark
+              //                       ? Colors.black.withOpacity(.25)
+              //                       : Colors.grey.shade50,
+              //                   borderRadius: BorderRadius.circular(12),
+              //                 ),
+              //                 child: Row(
+              //                   mainAxisAlignment:
+              //                       MainAxisAlignment.spaceBetween,
+              //                   children: [
+              //                     /// ROUND LABEL
+              //                     Row(
+              //                       children: [
+              //                         const Icon(
+              //                           Icons.circle,
+              //                           size: 10,
+              //                           color: Colors.deepPurple,
+              //                         ),
+              //                         const SizedBox(width: 8),
+              //                         Text(
+              //                           "Round ${round.round}",
+              //                           style: const TextStyle(
+              //                             fontWeight: FontWeight.w600,
+              //                           ),
+              //                         ),
+              //                       ],
+              //                     ),
 
-                                  /// RANK BADGE
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue.withOpacity(.12),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    child: Text(
-                                      "Rank ${round.closingRank}",
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        ],
-                      ),
-                    );
-                  }),
-                ],
-              ),
-
+              //                     /// RANK BADGE
+              //                     Container(
+              //                       padding: const EdgeInsets.symmetric(
+              //                         horizontal: 10,
+              //                         vertical: 4,
+              //                       ),
+              //                       decoration: BoxDecoration(
+              //                         color: Colors.blue.withOpacity(.12),
+              //                         borderRadius: BorderRadius.circular(20),
+              //                       ),
+              //                       child: Text(
+              //                         "Rank ${round.closingRank}",
+              //                         style: const TextStyle(
+              //                           color: Colors.blue,
+              //                           fontWeight: FontWeight.bold,
+              //                         ),
+              //                       ),
+              //                     ),
+              //                   ],
+              //                 ),
+              //               );
+              //             }),
+              //           ],
+              //         ),
+              //       );
+              //     }),
+              //   ],
+              // ),
               const SizedBox(height: 20),
 
               /// ---------------- CATEGORY CUTOFF ----------------

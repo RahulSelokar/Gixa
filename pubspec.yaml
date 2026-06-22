@@ -2,7 +2,7 @@ name: Gixa
 description: "A new Flutter project."
 
 publish_to: "none"
-version: 1.0.0+5
+version: 1.0.0+14
 
 environment:
   sdk: ^3.9.2
@@ -50,7 +50,18 @@ dependencies:
   connectivity_plus: ^5.0.2
   video_player: ^2.8.2
   open_filex: ^4.3.2
-  toast: 
+  toast:
+  sms_autofill: ^2.3.0
+  showcaseview: ^3.0.0
+  shake: ^3.0.0
+  sensors_plus: ^6.1.2
+  carousel_slider: ^5.1.2
+  file_picker: ^8.1.2
+  photo_view: ^0.15.0
+  cached_network_image: ^3.3.1
+  path_provider: ^2.1.5
+  flutter_app_badge_control: ^0.0.2
+  iconsax: ^0.0.8
 
 
 dev_dependencies:
@@ -63,7 +74,7 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icons/edutrack.png"
+  image_path: "assets/images/Gixxaa_logo.png"
   min_sdk_android: 21
   remove_alpha_ios: true
 
@@ -74,56 +85,31 @@ flutter:
     - assets/lottie/otp.json
     - assets/lottie/verify_otp.json
     - assets/lottie/error.json
-    - assets/lottie/AiData.json
-    - assets/lottie/Search_Doctor.json
-    - assets/lottie/OnlineLearning.json
-    - assets/lottie/premium.json
-    - assets/lottie/predicationAI.json
-    - assets/images/doctors.svg
     - assets/images/student.png
     - assets/images/education.png
-    - assets/images/documents.png
     - assets/images/prefrences.png
     - assets/images/profile.png
     - assets/images/network_error.png
-    - assets/lottie/sign_in.json
-    - assets/lottie/gixa.gif
-    - assets/images/cutoff.png
-    - assets/images/assistance.png
-    - assets/images/applications.png
-    - assets/images/predicttt.png
-    - assets/images/collage.png
-    - assets/images/college.png
-    - assets/images/cutoffff.png
-    - assets/images/helppp.png
-    - assets/images/exam.png
-    - assets/images/assist.png
     - assets/images/genie.png
-    - assets/images/genie2.png
-    - assets/images/help.png
-    - assets/videos/Genie.mp4
-    - assets/images/university.png
-    - assets/images/magic-lamp.png
     - assets/icons/support.png
     - assets/icons/college.png
-    - assets/icons/assistance.png
     - assets/icons/counselling.png
     - assets/icons/cutoff.png
-    - assets/icons/education.png
+    - assets/icons/counseling_new.png
     - assets/icons/exam.png
-    - assets/icons/help.png
-    - assets/icons/home.png
-    - assets/icons/profile.png
-    - assets/icons/prediction.png
-
-
-
-
-
-
-
-
-    
+    - assets/icons/Gixxa1.png
+    - assets/icons/gixxa2.png
+    - assets/icons/gixxa4.png
+    - assets/icons/gixxa5.png
+    - assets/images/male_avtar.png
+    - assets/images/female_avtar.png
+    - assets/icons/animated_gixa.png
+    - assets/images/Medical_College.png
+    - assets/images/genie2.png
+    - assets/icons/G1.png
+    - assets/icons/G2.png
+    - assets/icons/G3.png
+    - assets/videos/client_fev.mp4
 
   #   - images/a_dot_ham.jpeg
 

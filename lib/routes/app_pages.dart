@@ -1,19 +1,19 @@
 import 'package:Gixa/Modules/Auth/controllers/otp_controller.dart';
 import 'package:Gixa/Modules/Chatbot/view/chatbot_view.dart';
-import 'package:Gixa/Modules/Collage/controller/collage_list_controller.dart';
+import 'package:Gixa/Modules/Chatbot/view/admission_chat_view.dart';
 import 'package:Gixa/Modules/Collage/veiw/collage_list_page.dart';
 import 'package:Gixa/Modules/CollageDetails/view/collage_details_page.dart';
 import 'package:Gixa/Modules/Documents/view/documents_view.dart';
 import 'package:Gixa/Modules/Documents/view/update_doc_page.dart';
 import 'package:Gixa/Modules/Documents/view/view_documents_page.dart';
 import 'package:Gixa/Modules/Home/Veiw/home_page.dart';
-import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/Profile/views/profile_screen.dart';
 import 'package:Gixa/Modules/comparison/controller/college_compare_controller.dart';
 import 'package:Gixa/Modules/comparison/view/compare_colleges_page.dart';
 import 'package:Gixa/Modules/comparison/view/compare_history_save.dart';
 import 'package:Gixa/Modules/favourite/view/favourite_colleges_page.dart';
 import 'package:Gixa/Modules/predication/view/predication_view.dart';
+import 'package:Gixa/Modules/counselling_roadmap/view/counselling_roadmap_screen.dart';
 import 'package:Gixa/Modules/register/view/register_page.dart';
 import 'package:Gixa/Modules/settings/view/about_page.dart';
 import 'package:Gixa/Modules/settings/view/data_storage_page.dart';
@@ -21,13 +21,13 @@ import 'package:Gixa/Modules/settings/view/feedback_page.dart';
 import 'package:Gixa/Modules/settings/view/langauge_page.dart';
 import 'package:Gixa/Modules/settings/view/notification_settings_page.dart';
 import 'package:Gixa/Modules/splash/splash_screen.dart';
-import 'package:Gixa/Modules/subscription/controller/subsciption_history_controller.dart';
-import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
 import 'package:Gixa/Modules/subscription/view/my_packages_page.dart';
 import 'package:Gixa/Modules/subscription/view/subscription_plan_page.dart';
 import 'package:Gixa/Modules/support/view/support_page.dart';
 import 'package:Gixa/Modules/ticket/view/ticket_view.dart';
 import 'package:Gixa/Modules/updateProfile/view/edit_profile_screen.dart';
+import 'package:Gixa/Modules/notification/veiw/alerts_page.dart';
+import 'package:Gixa/bindings/admission_chat_binding.dart';
 import 'package:Gixa/bindings/chat_binding.dart';
 import 'package:Gixa/bindings/college_compare_binding.dart';
 import 'package:Gixa/bindings/document_upload_binding.dart';
@@ -37,7 +37,6 @@ import 'package:Gixa/bindings/profile_binding.dart';
 import 'package:Gixa/bindings/subscription_binding.dart';
 import 'package:Gixa/bindings/update_profile_binding.dart';
 import 'package:Gixa/naivgation/controller/nav_bar_controller.dart';
-import 'package:Gixa/routes/app_start_controller.dart';
 import 'package:get/get.dart';
 import 'package:Gixa/Modules/onbording/view/onboarding_screen.dart';
 import 'package:Gixa/Modules/Auth/Veiw/login_with_otp_page.dart';
@@ -52,16 +51,7 @@ class AppPages {
 
   static final routes = <GetPage>[
     /// SPLASH
-    GetPage(
-      name: AppRoutes.splash,
-      page: () => SplashScreen(),
-      binding: BindingsBuilder(() {
-        Get.put(SubscriptionController(), permanent: true);
-        Get.put(SubscriptionHistoryController(), permanent: true);
-        Get.put(ProfileController(), permanent: true);
-        Get.put(AppStartController(), permanent: true);
-      }),
-    ),
+    GetPage(name: AppRoutes.splash, page: () => SplashScreen()),
 
     /// ONBOARDING
     GetPage(name: AppRoutes.onboarding, page: () => OnboardingView()),
@@ -100,6 +90,7 @@ class AppPages {
 
     /// NOTIFICATIONS
     GetPage(name: AppRoutes.notifications, page: () => NotificationPage()),
+    GetPage(name: AppRoutes.alerts, page: () => AlertsPage()),
 
     /// SEARCH
     GetPage(name: AppRoutes.search, page: () => CollegeSearchPage()),
@@ -110,11 +101,7 @@ class AppPages {
       page: () => MainNavPage(),
       binding: BindingsBuilder(() {
         Get.put(MainNavController());
-        Get.put(ProfileController());
-        Get.put(CollegeCompareController());
-        if (!Get.isRegistered<CollegeListController>()) {
-          Get.put(CollegeListController(), permanent: true);
-        }
+        Get.put(CollegeCompareController(), permanent: true);
       }),
     ),
 
@@ -177,6 +164,11 @@ class AppPages {
       page: () => ChatView(),
       binding: ChatBinding(),
     ),
+    GetPage(
+      name: AppRoutes.admissionChat,
+      page: () => AdmissionChatView(),
+      binding: AdmissionChatBinding(),
+    ),
     GetPage(name: AppRoutes.settings, page: () => LangaugePage()),
     GetPage(
       name: AppRoutes.notificationSettings,
@@ -191,6 +183,10 @@ class AppPages {
       name: AppRoutes.prediction,
       page: () => PredictionView(),
       binding: PredicationBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.choiceFilling,
+      page: () =>  CounsellingRoadmapScreen(),
     ),
     GetPage(name: AppRoutes.ticket, page: () => CreateTicketView()),
   ];

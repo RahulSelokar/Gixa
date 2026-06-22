@@ -1,15 +1,25 @@
 import 'package:Gixa/Modules/subscription/model/create_order_model.dart';
 import 'package:Gixa/Modules/subscription/model/subscription_history_model.dart';
+import 'package:Gixa/Modules/subscription/model/subscription_state_model.dart';
 import 'package:Gixa/network/api_client.dart';
 import 'package:Gixa/network/api_endpoints.dart';
 import 'package:Gixa/Modules/subscription/model/subscription_plan.dart';
 import 'package:Gixa/Modules/subscription/model/subscription_purchase_model.dart';
 import 'package:Gixa/Modules/subscription/model/verify_payment_response.dart';
+import 'package:Gixa/network/app_exception.dart';
 
 class SubscriptionApi {
   /// 🔹 GET SUBSCRIPTION PLANS
-  static Future<List<SubscriptionPlan>> getPlans() async {
-    final response = await ApiClient.get(ApiEndpoints.subscriptionPlans);
+  static Future<List<SubscriptionPlan>> getPlans({
+    bool forceRefresh = false,
+  }) async {
+    final response = await ApiClient.get(
+      ApiEndpoints.subscriptionPlans,
+      requestPolicy: RequestPolicy(
+        ttl: Duration(minutes: 5),
+        forceRefresh: forceRefresh,
+      ),
+    );
     print("[API] getPlans response: $response");
     final parsed = SubscriptionPlanResponse.fromJson(response);
     return parsed.data;
@@ -20,13 +30,33 @@ class SubscriptionApi {
     required int planId,
     String? couponCode,
   }) async {
-    final response = await ApiClient.post(ApiEndpoints.subscriptionPurchase, {
-      "plan_id": planId,
-      if (couponCode != null && couponCode.isNotEmpty)
-        "coupon_code": couponCode,
-    });
-    print("[API] purchaseSubscription response: $response");
-    return SubscriptionPurchaseResponse.fromJson(response);
+    try {
+      final response = await ApiClient.post(ApiEndpoints.subscriptionPurchase, {
+        "plan_id": planId,
+        if (couponCode != null && couponCode.isNotEmpty)
+          "coupon_code": couponCode,
+      });
+
+      print("[API] purchaseSubscription response: $response");
+
+      return SubscriptionPurchaseResponse.fromJson(response);
+    } on AppException catch (e) {
+      print("PURCHASE SUBSCRIPTION AppException => ${e.message}");
+
+      return SubscriptionPurchaseResponse(
+        status: false,
+        message: e.message,
+        data: null,
+      );
+    } catch (e) {
+      print("PURCHASE SUBSCRIPTION ERROR => $e");
+
+      return SubscriptionPurchaseResponse(
+        status: false,
+        message: 'Something went wrong',
+        data: null,
+      );
+    }
   }
 
   /// 🔥 CREATE ORDER (REAL PAYMENT)
@@ -68,9 +98,14 @@ class SubscriptionApi {
   /// 🧾 GET SUBSCRIPTION HISTORY
   static Future<List<SubscriptionHistory>> getSubscriptionHistory({
     required int userId,
+    bool forceRefresh = false,
   }) async {
     final response = await ApiClient.get(
       ApiEndpoints.subscriptionHistory(userId),
+      requestPolicy: RequestPolicy(
+        ttl: Duration(seconds: 30),
+        forceRefresh: forceRefresh,
+      ),
     );
 
     print("[API] getSubscriptionHistory response: $response");
@@ -88,5 +123,28 @@ class SubscriptionApi {
     return data
         .map((e) => SubscriptionHistory.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  static Future<SubscriptionStateData> getStatesWithoutSubscription() async {
+    final response = await ApiClient.get(ApiEndpoints.subscriptionStates);
+
+    print("🔥 STATES API RESPONSE: $response");
+
+    final parsed = SubscriptionStateResponse.fromJson(response);
+    return parsed.data;
+  }
+
+  static Future<dynamic> saveSubscriptionStates({
+    required int subscriptionId,
+    required List<int> stateIds,
+  }) async {
+    final response = await ApiClient.post(ApiEndpoints.subscriptionStates, {
+      "subscription_id": subscriptionId,
+      "state_ids": stateIds,
+    });
+
+    if (response['status'] != true) {
+      throw Exception(response['message'] ?? "Failed to save states");
+    }
   }
 }

@@ -101,11 +101,16 @@ class Courses {
 class UgCourse {
   final int id;
   final String name;
+  final String? fee;
 
-  UgCourse({required this.id, required this.name});
+  UgCourse({required this.id, required this.name, required this.fee});
 
   factory UgCourse.fromJson(Map<String, dynamic> json) {
-    return UgCourse(id: json['id'], name: json['course_name']);
+    return UgCourse(
+      id: json['id'],
+      name: json['course_name'],
+      fee: json['course_fees']?.toString(),
+    );
   }
 }
 
@@ -115,6 +120,7 @@ class PgCourse {
   final int? specialtyId;
   final String specialtyName;
   final String? specialtyType;
+  final String? fee;
 
   PgCourse({
     required this.courseId,
@@ -122,6 +128,7 @@ class PgCourse {
     required this.specialtyId,
     required this.specialtyName,
     required this.specialtyType,
+    required this.fee,
   });
 
   factory PgCourse.fromJson(Map<String, dynamic> json) {
@@ -131,6 +138,7 @@ class PgCourse {
       specialtyId: json['specialty_id'],
       specialtyName: json['specialty_name'],
       specialtyType: json['specialty_type'],
+      fee: json['course_fees']?.toString(),
     );
   }
 }

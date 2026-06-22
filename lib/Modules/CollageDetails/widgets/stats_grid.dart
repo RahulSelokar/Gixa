@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -38,7 +39,9 @@ class StatsGrid extends StatelessWidget {
           child: _buildStatCard(
             context,
             label: "ESTABLISHED",
-            value: college.yearEstablished.toString(),
+            value: college.yearEstablished != null
+                ? college.yearEstablished.toString()
+                : "N/A",
             icon: Icons.calendar_month_rounded,
             cardColor: cardColor,
             borderColor: borderColor,
@@ -51,9 +54,7 @@ class StatsGrid extends StatelessWidget {
           child: _buildStatCard(
             context,
             label: "HOSTEL",
-            value: college.hostelAvailable
-                ? (college.hostelFor ?? "Available")
-                : "Not Available",
+            value: college.hostelAvailable ? ("Available") : "Not Available",
 
             icon: Icons.bed_rounded,
             cardColor: cardColor,
@@ -84,10 +85,10 @@ class StatsGrid extends StatelessWidget {
     final valueColor = isDark ? Colors.white : const Color(0xFF111111);
 
     // Icon styling
-    final iconColor = isDark ? Colors.blue[200] : Colors.blue[700];
+    final iconColor = kHomeAccentColor;
     final iconBgColor = isDark
-        ? Colors.blue.withOpacity(0.15)
-        : Colors.blue.withOpacity(0.08);
+        ? kHomeAccentColor.withOpacity(0.18)
+        : kHomeAccentColor.withOpacity(0.10);
 
     return Container(
       padding: const EdgeInsets.all(16),

@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -13,7 +14,7 @@ class FacilitiesSection extends StatelessWidget {
 
     // --- Theme Palette ---
     final Color titleColor = isDark ? Colors.white : const Color(0xFF111111);
-    final Color primaryColor = const Color(0xFF1565C0); // Brand Blue
+    final Color primaryColor = kHomeAccentColor; // Brand Accent
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,7 +108,7 @@ class FacilitiesSection extends StatelessWidget {
   }) {
     // Colors based on availability
     final Color iconColor = isAvailable
-        ? (isDark ? Colors.blue[200]! : primaryColor)
+        ? (isDark ? kHomeAccentColor.withOpacity(0.85) : primaryColor)
         : (isDark ? Colors.grey[600]! : Colors.grey[400]!);
 
     final Color bgBase = isAvailable

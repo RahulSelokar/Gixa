@@ -15,7 +15,7 @@ class CourseModel {
     return CourseModel(
       id: json['id'],
       name: json['course_name'],
-      specialties: (json['specialties'] as List)
+      specialties: (json['specialties'] as List<dynamic>? ?? [])
           .map((e) => SpecialtyModel.fromJson(e))
           .toList(),
     );

@@ -45,7 +45,7 @@ class AirComparisonController extends GetxController {
 
   /// Chance Result
   var chanceText = "".obs;
-  var chanceColor = 0xFF1565C0.obs;
+  var chanceColor = 0xFFEC8B04.obs;
 
   @override
   void onInit() {

@@ -29,6 +29,7 @@ class SubscriptionPlan {
   final int durationDays;
   final String description;
   final bool isRecommended;
+  final bool isAddon;
   final List<Feature> features;
 
   SubscriptionPlan({
@@ -41,42 +42,85 @@ class SubscriptionPlan {
     required this.description,
     required this.isRecommended,
     required this.features,
+    this.isAddon = false,
   });
 
   factory SubscriptionPlan.fromJson(Map<String, dynamic> json) {
+    final rawFeatures = json['features'];
     return SubscriptionPlan(
-      id: json['id'],
-      planName: json['plan_name'],
-      planCode: json['plan_code'],
-      planType: json['plan_type'],
-      amount: json['amount'],
-      durationDays: json['duration_days'],
-      description: json['description'],
-      isRecommended: json['is_recommended'],
+      id: _asInt(json['id']),
+      planName: _asString(json['plan_name']),
+      planCode: _asString(json['plan_code']),
+      planType: _asString(json['plan_type']),
+      amount: _asString(json['amount']),
+      durationDays: _asInt(json['duration_days']),
+      description: _asString(json['description']),
+      isRecommended: json['is_recommended'] == true,
       features: List<Feature>.from(
-        json['features'].map((x) => Feature.fromJson(x)),
+        (rawFeatures is List ? rawFeatures : const [])
+            .whereType<Map>()
+            .map((x) => Feature.fromJson(Map<String, dynamic>.from(x))),
       ),
+      isAddon: json['is_addon'] == true,
     );
   }
-   bool get bestValue => isRecommended;
+  bool get bestValue => isRecommended;
+
+  
 }
 
 class Feature {
   final int id;
+  final String featureCode;
   final String featureTitle;
   final String featureDescription;
+  final bool isEnabled;
+
+  /// ✅ ADD THIS
+  final int? featureLimit;
+
+  /// (optional)
+  final dynamic featureValue;
 
   Feature({
     required this.id,
+    required this.featureCode,
     required this.featureTitle,
     required this.featureDescription,
+    required this.isEnabled,
+    this.featureLimit,
+    this.featureValue,
   });
 
   factory Feature.fromJson(Map<String, dynamic> json) {
     return Feature(
-      id: json['id'],
-      featureTitle: json['feature_title'],
-      featureDescription: json['feature_description'],
+      id: _asInt(json['id']),
+      featureCode: json['feature_code'] ?? '',
+      featureTitle: json['feature_title'] ?? '',
+      featureDescription: json['feature_description'] ?? '',
+      isEnabled: json['is_enabled'] ?? false,
+
+      /// ✅ SAFE PARSE (handles int / string / null)
+      featureLimit: json['feature_limit'] is int
+          ? json['feature_limit']
+          : int.tryParse(json['feature_limit']?.toString() ?? ''),
+
+      featureValue: json['feature_value'],
     );
+
+    
   }
+
+  
+}
+
+String _asString(dynamic value) {
+  if (value == null) return '';
+  final normalized = value.toString().trim();
+  return normalized.toLowerCase() == 'null' ? '' : normalized;
+}
+
+int _asInt(dynamic value) {
+  if (value is int) return value;
+  return int.tryParse(value?.toString() ?? '') ?? 0;
 }

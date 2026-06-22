@@ -1,14 +1,46 @@
 import 'package:Gixa/Modules/Documents/view/doc_preview.dart';
 import 'package:Gixa/Modules/Documents/view/documents_view.dart';
 import 'package:Gixa/Modules/Documents/view/view_documents_page.dart';
+import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
+import 'package:Gixa/Modules/subscription/features/feature_names.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:Gixa/Modules/Documents/controller/documents_controller.dart';
 import 'package:Gixa/Modules/Documents/controller/view_document_controller.dart';
 import 'package:Gixa/Modules/Documents/model/view_documents_model.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class StudentDocumentsUnifiedPage extends StatelessWidget {
   StudentDocumentsUnifiedPage({super.key});
+
+  /// âœ… Added clean display names (NO UI change, just better text)
+  String getDisplayName(String docType) {
+    switch (docType) {
+      case "10th_marksheet":
+        return "10th Marksheet";
+      case "12th_marksheet":
+        return "12th Marksheet";
+      case "neet_marksheet":
+        return "NEET Marksheet";
+      case "aadhar":
+        return "Aadhar Card";
+      case "pan_card":
+        return "PAN Card";
+      case "other":
+        return "Other Document";
+      default:
+        return docType.replaceAll("_", " ").toUpperCase();
+    }
+  }
+
+  bool isLockedDoc(String docType) {
+    final subscriptionController = Get.find<SubscriptionController>();
+
+    final isSubscribed = subscriptionController.isSubscribed;
+
+    return !isSubscribed &&
+        (docType == "aadhar" || docType == "pan_card" || docType == "other");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,14 +97,13 @@ class StudentDocumentsUnifiedPage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final docType = uploadController.requiredDocuments[index];
 
+                    String normalize(String s) =>
+                        s.trim().toLowerCase().replaceAll(RegExp(r'[ _]'), '');
+
                     final uploadedDoc = viewController.documents
                         .firstWhereOrNull(
                           (doc) =>
-                              doc.documentType.toLowerCase().replaceAll(
-                                " ",
-                                "_",
-                              ) ==
-                              docType,
+                              normalize(doc.documentType) == normalize(docType),
                         );
 
                     return _buildCard(
@@ -127,51 +158,117 @@ class StudentDocumentsUnifiedPage extends StatelessWidget {
     DocumentController uploadController,
   ) {
     final primaryColor = const Color(0xFF3B82F6);
+    final isLocked = isLockedDoc(docType);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          docType.replaceAll("_", " ").toUpperCase(),
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Container(
-          height: 90,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: primaryColor.withOpacity(0.07),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: primaryColor.withOpacity(0.25)),
-          ),
-          child: Center(
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              onPressed: () {
-                uploadController.uploadDocument(docType);
-              },
-              icon: const Icon(Icons.upload_file, size: 18),
-              label: const Text(
-                "Upload Document",
-                style: TextStyle(fontSize: 12),
+    return GetBuilder<DocumentController>(
+      builder: (controller) {
+        final isUploading =
+            controller.isUploading && controller.currentUploadingDoc == docType;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              getDisplayName(docType),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
-          ),
-        ),
-      ],
+
+            const SizedBox(height: 10),
+
+            Stack(
+              children: [
+                Container(
+                  height: 90,
+                  width: double.infinity,
+
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.07),
+
+                    borderRadius: BorderRadius.circular(10),
+
+                    border: Border.all(color: primaryColor.withOpacity(0.25)),
+                  ),
+
+                  child: Center(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isLocked ? Colors.grey : primaryColor,
+
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+
+                      onPressed: isLocked || isUploading
+                          ? (isLocked
+                                ? () {
+                                    AppSnackbar.show(
+                                      "Premium Feature",
+                                      "Upgrade your plan to upload this document",
+                                      snackPosition: SnackPosition.BOTTOM,
+                                    );
+                                  }
+                                : null)
+                          : () {
+                              uploadController.uploadDocument(docType);
+                            },
+
+                      icon: isUploading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Icon(
+                              isLocked ? Icons.lock : Icons.upload_file,
+                              size: 18,
+                            ),
+
+                      label: Text(
+                        isLocked
+                            ? "Locked"
+                            : isUploading
+                            ? "Uploading..."
+                            : "Upload Document",
+
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ),
+
+                /// LOCK OVERLAY
+                if (isLocked)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.25),
+
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+
+                      child: const Center(
+                        child: Icon(Icons.lock, color: Colors.white, size: 28),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -189,6 +286,8 @@ class StudentDocumentsUnifiedPage extends StatelessWidget {
         doc.fileUrl.endsWith(".jpg") ||
         doc.fileUrl.endsWith(".png") ||
         doc.fileUrl.endsWith(".jpeg");
+
+    final isPdf = doc.fileUrl.endsWith(".pdf"); // âœ… added
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,13 +330,15 @@ class StudentDocumentsUnifiedPage extends StatelessWidget {
             color: Colors.grey.shade200,
             child: isImage
                 ? Image.network(doc.fileUrl, fit: BoxFit.cover)
-                : const Center(
+                : isPdf
+                ? const Center(
                     child: Icon(
                       Icons.picture_as_pdf,
                       size: 55,
                       color: Colors.red,
                     ),
-                  ),
+                  )
+                : const Center(child: Icon(Icons.insert_drive_file, size: 55)),
           ),
         ),
         const SizedBox(height: 10),
@@ -246,7 +347,6 @@ class StudentDocumentsUnifiedPage extends StatelessWidget {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: () {
-                  // Get.to(DocumentsGalleryPage());
                   showDocumentPreview(doc.fileUrl);
                 },
                 icon: const Icon(Icons.visibility, size: 16),
@@ -258,7 +358,7 @@ class StudentDocumentsUnifiedPage extends StatelessWidget {
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(backgroundColor: editColor),
                 onPressed: () {
-                  uploadController.uploadDocument(docType);
+                  uploadController.updateDocument(docType);
                 },
                 icon: const Icon(Icons.edit, size: 16),
                 label: const Text("Update", style: TextStyle(fontSize: 12)),

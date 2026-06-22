@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class DataStoragePage extends StatelessWidget {
   const DataStoragePage({super.key});
@@ -103,7 +104,7 @@ class DataStoragePage extends StatelessWidget {
             title: "Clear Cache",
             color: Colors.orange,
             onTap: () {
-              Get.snackbar("Success", "Cache cleared");
+              AppSnackbar.show("Success", "Cache cleared");
             },
           ),
 
@@ -112,7 +113,7 @@ class DataStoragePage extends StatelessWidget {
             title: "Clear All Data",
             color: Colors.red,
             onTap: () {
-              Get.snackbar("Warning", "All data cleared");
+              AppSnackbar.show("Warning", "All data cleared");
             },
           ),
         ],
@@ -167,3 +168,4 @@ class DataStoragePage extends StatelessWidget {
     );
   }
 }
+

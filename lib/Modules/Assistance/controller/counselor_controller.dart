@@ -1,6 +1,7 @@
-import 'package:Gixa/Modules/Assistance/model/counselor_model.dart';
+﻿import 'package:Gixa/Modules/Assistance/model/counselor_model.dart';
 import 'package:Gixa/services/counselor_services.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class CounselorController extends GetxController {
   final RxList<Counselor> counselors = <Counselor>[].obs;
@@ -24,26 +25,26 @@ class CounselorController extends GetxController {
       counselors.assignAll(data);
 
       // ===============================
-      // 🧾 DEBUG LOGS (COUNSELOR LIST)
+      // ðŸ§¾ DEBUG LOGS (COUNSELOR LIST)
       // ===============================
-      print("══════════════════════════════════════");
-      print("👨‍🏫 COUNSELOR LIST LOADED");
-      print("📌 REQUEST ID: $requestId");
-      print("📌 TOTAL COUNSELORS: ${data.length}");
+      print("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
+      print("ðŸ‘¨â€ðŸ« COUNSELOR LIST LOADED");
+      print("ðŸ“Œ REQUEST ID: $requestId");
+      print("ðŸ“Œ TOTAL COUNSELORS: ${data.length}");
 
       for (final counselor in data) {
         print(
-          "🧑 ID: ${counselor.id} | "
+          "ðŸ§‘ ID: ${counselor.id} | "
           "Name: ${counselor.name} | "
           "Experience: ${counselor.experienceYears} yrs | "
           "Rating: ${counselor.rating}",
         );
       }
 
-      print("══════════════════════════════════════");
+      print("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
     } catch (e) {
-      print("❌ COUNSELOR FETCH ERROR: $e");
-      Get.snackbar("Error", "Failed to load counselors");
+      print("âŒ COUNSELOR FETCH ERROR: $e");
+      AppSnackbar.show("Error", "Failed to load counselors");
     } finally {
       isLoading.value = false;
     }
@@ -56,13 +57,14 @@ class CounselorController extends GetxController {
         counselorId: counselorId,
       );
 
-      print("✅ COUNSELOR SELECTED: $counselorId");
+      print("âœ… COUNSELOR SELECTED: $counselorId");
 
-      Get.snackbar("Success", "Counselor selected successfully");
+      AppSnackbar.show("Success", "Counselor selected successfully");
       Get.back(); // move to next step (chat / payment)
     } catch (e) {
-      print("❌ COUNSELOR SELECT ERROR: $e");
-      Get.snackbar("Error", "Unable to select counselor");
+      print("âŒ COUNSELOR SELECT ERROR: $e");
+      AppSnackbar.show("Error", "Unable to select counselor");
     }
   }
 }
+

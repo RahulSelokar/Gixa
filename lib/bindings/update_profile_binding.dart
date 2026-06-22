@@ -4,6 +4,6 @@ import 'package:get/get.dart';
 class UpdateProfileBinding extends Bindings {
   @override
   void dependencies() {
-    Get.put(UpdateProfileController());
+    Get.lazyPut<UpdateProfileController>(() => UpdateProfileController());
   }
 }

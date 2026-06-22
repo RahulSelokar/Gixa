@@ -1,108 +1,103 @@
 import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
+import 'package:Gixa/Modules/seatMatrix/controller/seat_matrix_controller.dart';
+import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
 import 'package:get/get.dart';
 import 'package:Gixa/services/college_api_service.dart';
 import 'package:Gixa/network/app_exception.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class CollegeDetailController extends GetxController {
   final CollegeApiService _service = CollegeApiService();
 
   /// UI STATES
-  final isLoading = false.obs;
-  final college = Rxn<CollegeDetail>(); // ✅ Changed from College to CollegeDetail
+  final isLoading = true.obs;
+  final college = Rxn<CollegeDetail>(); 
+  final isFetchingDetails = false.obs; // To track background fetch if needed
   final errorMessage = ''.obs;
 
-  final selectedTabIndex = 0.obs;
+  // final selectedTabIndex = 0.obs;
+  final selectedTabIndex = 'Overview'.obs;
 
   @override
-  void onInit() {
+  void onInit() async {
     super.onInit();
 
     final args = Get.arguments;
     final int? collegeId = args is Map ? args['collegeId'] : null;
+    final initialCollege = args is Map ? args['college'] : null;
+
+    if (initialCollege != null) {
+      college.value = CollegeDetail.fromCollege(initialCollege);
+      isLoading.value = false;
+    }
+
+    final subscriptionController = Get.find<SubscriptionController>();
+
+    /// 🔥 WAIT for plan
+    await subscriptionController.ensureActivePlanReady();
 
     if (collegeId == null) {
       errorMessage.value = 'Invalid college';
-      print("❌ COLLEGE DETAIL ERROR: collegeId missing in arguments");
+      isLoading.value = false;
       return;
     }
 
     fetchCollegeDetail(collegeId);
   }
 
-  // ─────────────────────────────────────────────
-  // 🏫 FETCH COLLEGE DETAIL
-  // ─────────────────────────────────────────────
   Future<void> fetchCollegeDetail(int collegeId) async {
     try {
-      isLoading.value = true;
+      if (college.value == null) {
+        isLoading.value = true;
+      }
+      isFetchingDetails.value = true;
       errorMessage.value = '';
 
       final result = await _service.fetchCollegeDetail(collegeId);
 
-      /// ✅ CONTROLLER-LEVEL LOG
-      print("══════════════════════════════════════");
-      print("🏫 COLLEGE DETAIL LOADED");
-      print("🏫 ID: ${result.id}");
-      print("🏫 Name: ${result.name}");
-      print("📍 State: ${result.state.name}");
-      print("🏛 Institute Type: ${result.instituteType.name}");
-      print("📅 Established: ${result.yearEstablished}");
-      print("🏨 Hostel Available: ${result.hostelAvailable}");
-      print("🏨 Hostel For: ${result.hostelFor}");
-      
-      // ✅ NEW: Log additional detail fields
-      print("🌐 Website: ${result.website}");
-      print("📹 Video URL: ${result.videoUrl}");
-      print("📍 Address: ${result.address}");
-      print("👤 Contact: ${result.contactName} (${result.contactDesignation})");
-      print("📧 Email: ${result.contactEmail}");
-      print("📱 Mobile: ${result.contactMobile}");
-
       // UG COURSES
       if (result.courses.ug.isNotEmpty) {
-        print("🎓 UG Courses:");
+        print("ðŸŽ“ UG Courses:");
         for (final ug in result.courses.ug) {
-          print("   • ${ug.name}");
+          print("   â€¢ ${ug.name}");
         }
       }
 
       // PG COURSES
       if (result.courses.pg.isNotEmpty) {
-        print("🎓 PG Courses:");
+        print("ðŸŽ“ PG Courses:");
         for (final pg in result.courses.pg) {
-          print("   • ${pg.courseName} (${pg.specialtyType})");
+          print("   â€¢ ${pg.courseName} (${pg.specialtyType})");
         }
       }
-
-      print("══════════════════════════════════════");
-
-      /// ✅ UPDATE UI
       college.value = result;
+
+      final seatController = Get.isRegistered<SeatMatrixController>()
+          ? Get.find<SeatMatrixController>()
+          : Get.put(SeatMatrixController());
+
+      await seatController.fetchSeatMatrix(
+        collegeName: result.name,
+        forceRefresh: true,
+      );
     } catch (e) {
       if (e is AppException) {
         errorMessage.value = e.message;
-        print("❌ COLLEGE DETAIL ERROR: ${e.debugMessage ?? e.message}");
-        Get.snackbar('Error', e.message);
+        AppSnackbar.show('Error', e.message);
       } else {
         errorMessage.value = 'Something went wrong';
-        print("❌ UNKNOWN ERROR: $e");
-        Get.snackbar('Error', errorMessage.value);
+        AppSnackbar.show('Error', errorMessage.value);
       }
     } finally {
       isLoading.value = false;
+      isFetchingDetails.value = false;
     }
   }
 
-  // ─────────────────────────────────────────────
-  // 📑 TAB SELECTION
-  // ─────────────────────────────────────────────
-  void changeTab(int index) {
-    selectedTabIndex.value = index;
+  void changeTab(String tab) {
+    selectedTabIndex.value = tab;
   }
 
-  // ─────────────────────────────────────────────
-  // 🔄 REFRESH COLLEGE DETAIL
-  // ─────────────────────────────────────────────
   Future<void> refreshCollegeDetail() async {
     if (college.value != null) {
       await fetchCollegeDetail(college.value!.id);

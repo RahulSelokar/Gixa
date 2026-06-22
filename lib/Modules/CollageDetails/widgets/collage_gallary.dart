@@ -83,7 +83,7 @@ class _CollegeGalleryDialogState extends State<CollegeGalleryDialog> {
                           return Center(
                             child: CircularProgressIndicator.adaptive(
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                isDark ? Colors.white : Colors.blue,
+                                isDark ? Colors.white : const Color(0xFFEC8B04),
                               ),
                             ),
                           );

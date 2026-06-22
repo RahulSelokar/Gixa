@@ -42,7 +42,7 @@ class NewsCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.blueAccent,
+                color: const Color(0xFFEC8B04),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(

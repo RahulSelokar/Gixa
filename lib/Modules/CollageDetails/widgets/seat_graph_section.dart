@@ -82,11 +82,13 @@ class _SeatTheme {
 class SeatGraphTab extends StatefulWidget {
   final List<SeatMatrixModel> seatMatrix;
   final InstituteType instituteType;
+  final String collegeName;
 
   const SeatGraphTab({
     super.key,
     required this.seatMatrix,
     required this.instituteType,
+    required this.collegeName,
   });
 
   @override
@@ -105,9 +107,13 @@ class _SeatGraphTabState extends State<SeatGraphTab>
   static const Color _teal = Color(0xFF00D4AA);
   static const Color _red = Color(0xFFFF6B6B);
 
-  List<SeatMatrixModel> _round1Seats(List<SeatMatrixModel> seats) => seats
-      .where((e) => e.counsellingRound.toLowerCase().contains("round 1"))
-      .toList();
+  List<SeatMatrixModel> _preferredSeats(List<SeatMatrixModel> seats) {
+    final round1Seats = seats
+        .where((e) => e.counsellingRound.toLowerCase().contains("round 1"))
+        .toList();
+
+    return round1Seats.isNotEmpty ? round1Seats : seats;
+  }
 
   @override
   void initState() {
@@ -118,8 +124,8 @@ class _SeatGraphTabState extends State<SeatGraphTab>
     );
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _animController.forward();
-    final r1 = _round1Seats(widget.seatMatrix);
-    if (r1.isNotEmpty) selectedCourse = r1.first.courseName;
+    final seats = _preferredSeats(widget.seatMatrix);
+    if (seats.isNotEmpty) selectedCourse = seats.first.courseName;
   }
 
   @override
@@ -128,17 +134,40 @@ class _SeatGraphTabState extends State<SeatGraphTab>
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant SeatGraphTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final seats = _preferredSeats(widget.seatMatrix);
+    final courses = seats.map((e) => e.courseName).toSet().toList();
+
+    if (courses.isEmpty) {
+      selectedCourse = null;
+      touchedIndex = null;
+      return;
+    }
+
+    if (!courses.contains(selectedCourse)) {
+      selectedCourse = courses.first;
+      touchedIndex = null;
+    }
+  }
+
   _SeatTheme get _t => Theme.of(context).brightness == Brightness.dark
       ? _SeatTheme.dark
       : _SeatTheme.light;
 
   @override
   Widget build(BuildContext context) {
-    final r1 = _round1Seats(widget.seatMatrix);
-    if (r1.isEmpty) return _emptyState();
+    final seats = _preferredSeats(widget.seatMatrix);
+    if (seats.isEmpty) return _emptyState();
 
-    final courses = r1.map((e) => e.courseName).toSet().toList();
-    final seat = r1.firstWhere((e) => e.courseName == selectedCourse);
+    final courses = seats.map((e) => e.courseName).toSet().toList();
+    final currentCourse = courses.contains(selectedCourse)
+        ? selectedCourse!
+        : courses.first;
+    selectedCourse = currentCourse;
+    final seat = seats.firstWhere((e) => e.courseName == currentCourse);
     final cats = seat.categories;
     final showAIQ = widget.instituteType.name.toLowerCase().contains(
       "government",
@@ -149,13 +178,13 @@ class _SeatGraphTabState extends State<SeatGraphTab>
       child: FadeTransition(
         opacity: _fadeAnim,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
+          // padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Round chip (centered)
-              Center(child: _roundChip()),
-              const SizedBox(height: 20),
+              // Center(child: _roundChip()),
+              // const SizedBox(height: 20),
 
               // ── Course selector
               _courseSelector(courses),
@@ -247,7 +276,7 @@ class _SeatGraphTabState extends State<SeatGraphTab>
           ),
           const SizedBox(height: 16),
           Text(
-            "No Round 1 Data",
+            "No Seat Matrix Data",
             style: TextStyle(
               color: _t.textPrimary,
               fontSize: 18,
@@ -256,8 +285,9 @@ class _SeatGraphTabState extends State<SeatGraphTab>
           ),
           const SizedBox(height: 6),
           Text(
-            "Seat data for Round 1 is not available.",
+            "Seat data is not available for ${widget.collegeName}.",
             style: TextStyle(color: _t.textMuted, fontSize: 13),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -415,8 +445,8 @@ class _SeatGraphTabState extends State<SeatGraphTab>
       const SizedBox(width: 10),
       Expanded(
         child: _statCard(
-          label: "Categories",
-          value: "${seat.categories.length}",
+          label: "Total Seats Categories",
+          value: "${seat.totalCategorySeats}",
           icon: Icons.interests_rounded,
           iconColor: _purple,
           bgColor: _t.statCard2,

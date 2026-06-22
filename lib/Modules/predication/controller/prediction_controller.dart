@@ -1,21 +1,25 @@
 import 'dart:convert';
 
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
+import 'package:Gixa/Modules/predication/model/chat_message_model.dart';
 import 'package:Gixa/Modules/predication/model/state_category_model.dart';
 import 'package:Gixa/Modules/subscription/features/feature_names.dart';
 import 'package:Gixa/commonmodels/category_model.dart';
 import 'package:Gixa/commonmodels/course_model.dart';
 import 'package:Gixa/commonmodels/round_model.dart';
 import 'package:Gixa/commonmodels/state_model.dart';
+import 'package:Gixa/network/app_exception.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/services/prediction_services.dart';
-import 'package:Gixa/services/profile_services.dart';
 import 'package:Gixa/services/register_master_api.dart';
 import 'package:Gixa/services/state_category_service.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
 import '../model/predication_model.dart';
 import '../view/ai_prediction_result_view.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class PredictionController extends GetxController {
   /// Syncs PredictionController fields with ProfileController's latest profile
@@ -30,11 +34,30 @@ class PredictionController extends GetxController {
     selectedGender.value = p.gender ?? "M";
     selectedQuota.value = p.quota ?? "";
     selectedInstituteType.value = p.instituteType ?? "Both";
-    if (p.horizontals != null) {
-      selectedHorizontals.assignAll(p.horizontals);
+    if (p.horizontals != null && p.horizontals!.isNotEmpty) {
+      selectedHorizontals.clear();
+
+      lockedHorizontals.clear();
     } else {
       selectedHorizontals.clear();
+      lockedHorizontals.clear();
     }
+  }
+
+  final ScrollController chatScrollController = ScrollController();
+
+  void scrollChatToBottom() {
+    Future.delayed(const Duration(milliseconds: 250), () {
+      if (chatScrollController.hasClients) {
+        chatScrollController.animateTo(
+          chatScrollController.position.maxScrollExtent,
+
+          duration: const Duration(milliseconds: 700),
+
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
   }
 
   // Returns true if current state is Maharashtra
@@ -53,6 +76,13 @@ class PredictionController extends GetxController {
     return horizontalCategoryList;
   }
 
+  /// CHATBOT
+  final messages = <ChatMessageModel>[].obs;
+
+  final isBotTyping = false.obs;
+
+  final currentQuestionIndex = 0.obs;
+
   // Returns true if IQ or I.Q is available for Maharashtra
   bool get showIqQuotaTile =>
       isMaharashtra &&
@@ -68,12 +98,144 @@ class PredictionController extends GetxController {
     return stateData?.availableQuotas ?? [];
   }
 
+  Future<void> startChatBot() async {
+    messages.clear();
+
+    await addBotMessage("""
+Hey ${profileController.profile.value?.user.firstName ?? "Student"} 👋
+
+I analyzed your profile.
+
+🎯 AIR Rank: ${userAir.value}
+📚 Category: ${selectedCategory.value}
+📍 Home State: ${selectedState.value}
+
+Let's find best colleges for you 🚀
+""");
+
+    askStateQuestion();
+  }
+
+  Future<void> addBotMessage(
+    String text, {
+    List<String>? options,
+    String? key,
+  }) async {
+    isBotTyping.value = true;
+
+    await Future.delayed(const Duration(milliseconds: 900));
+
+    isBotTyping.value = false;
+
+    messages.add(
+      ChatMessageModel(
+        message: text,
+        isBot: true,
+        options: options,
+        questionKey: key,
+      ),
+    );
+
+    scrollChatToBottom();
+  }
+
+  void askInstituteQuestion() {
+    addBotMessage(
+      "What type of colleges do you prefer?",
+      options: ["Government", "Private", "Both"],
+      key: "institute",
+    );
+  }
+
+  void askCourseQuestion() {
+    addBotMessage(
+      "Which course are you interested in?",
+      options: courseList.map((e) => e.name).toList(),
+      key: "course",
+    );
+  }
+
+  void askQuotaQuestion() {
+    addBotMessage(
+      "Select quota preference",
+      options: availableQuotasForSelectedState,
+      key: "quota",
+    );
+  }
+
+  void askStateQuestion() {
+    addBotMessage(
+      "Which state are you targeting?",
+      options: stateList.map((e) => e.name).toList(),
+      key: "state",
+    );
+  }
+
+  Future<void> handleAnswer({
+    required String key,
+    required String answer,
+  }) async {
+    addUserMessage(answer);
+
+    /// STATE
+    if (key == "state") {
+      selectedState.value = answer;
+
+      updateCategoriesByState(answer);
+
+      askInstituteQuestion();
+    }
+    /// INSTITUTE
+    else if (key == "institute") {
+      if (answer == "Government") {
+        selectedInstituteType.value = "Govt";
+      } else if (answer == "Private") {
+        selectedInstituteType.value = "Pvt";
+      } else {
+        selectedInstituteType.value = "Both";
+      }
+
+      askCourseQuestion();
+    }
+    /// COURSE
+    else if (key == "course") {
+      selectedCourse.value = answer;
+
+      askQuotaQuestion();
+    }
+    /// QUOTA
+    else if (key == "quota") {
+      selectedQuota.value = answer;
+
+      await generatePrediction();
+    }
+  }
+
+  Future<void> generatePrediction() async {
+    await addBotMessage("""
+✨ Perfect!
+
+Generating your AI college prediction...
+""");
+
+    await fetchPrediction(minimumLoadingDuration: const Duration(seconds: 2));
+  }
+
+  void addUserMessage(String text) {
+    messages.add(ChatMessageModel(message: text, isBot: false));
+
+    scrollChatToBottom();
+  }
+
   final SubscriptionController subscriptionController =
       Get.find<SubscriptionController>();
+  final ProfileController profileController = Get.find<ProfileController>();
 
   bool get canAccessPrediction => subscriptionController.hasFeature(
     FeatureNames.selectedStateCollegePrediction,
   );
+
+  bool get isFreeUser => !subscriptionController.isSubscribed;
 
   /// =========================
   /// STORAGE
@@ -83,9 +245,11 @@ class PredictionController extends GetxController {
   /// =========================
   /// LOADING STATES
   /// =========================
+  var isInitializing = false.obs;
   var isProfileLoading = false.obs;
   var isPredictionLoading = false.obs;
   var errorMessage = ''.obs;
+  Future<void>? _bootstrapFuture;
 
   /// =========================
   /// PROFILE DATA
@@ -111,7 +275,7 @@ class PredictionController extends GetxController {
   /// Helper specifically for prediction (optional, can use canAccessPrediction directly)
   bool get isPredictionUnlocked {
     final unlocked = canAccessPrediction;
-    print("🔥 Premium Access: $unlocked");
+    print("ðŸ”¥ Premium Access: $unlocked");
     return unlocked;
   }
 
@@ -131,13 +295,14 @@ class PredictionController extends GetxController {
   var selectedQuota = "".obs;
   // var selectedRound = "Round 1".obs;
 
-  /// 🔥 Dynamic Statewise Categories
+  /// ðŸ”¥ Dynamic Statewise Categories
   var stateCategoryMap = <String, StateCategoryModel>{}.obs;
   var horizontalCategoryList = <String>[].obs;
   var selectedInstituteType = "Both".obs;
 
   // var selectedHorizontal = "".obs;
   var selectedHorizontals = <String>[].obs;
+  final lockedHorizontals = <String>[].obs;
 
   var predictionData = Rxn<PredictionData>();
   var recentPredictions = <Map<String, dynamic>>[].obs;
@@ -168,74 +333,50 @@ class PredictionController extends GetxController {
   }
 
   String _getFormattedHorizontal() {
-    return selectedHorizontals
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .join(" ");
-  }
+    if (selectedHorizontals.isEmpty) {
+      return "";
+    }
 
-  String _getSelectedCombinationKey() {
-    final stateData = stateCategoryMap[selectedState.value.trim()];
-    final category = selectedCategory.value.trim();
-    if (category.isEmpty) return "";
-
-    final selectedHorizontalItems = selectedHorizontals
+    final cleaned = selectedHorizontals
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
         .toList();
 
-    // Do not send category as horizontal when user has not selected any
-    // horizontal reservation.
-    if (selectedHorizontalItems.isEmpty) return "";
-
-    final orderedHorizontals = stateData == null
-        ? selectedHorizontalItems
-        : stateData.availableHorizontalCategories
-              .where(selectedHorizontals.contains)
-              .toList();
-
-    final candidate = [category, ...orderedHorizontals].join("|");
-    if (stateData?.availableCombinationKeys.contains(candidate) ?? false) {
-      return candidate;
-    }
-
-    final normalizedSelected = {
-      category,
-      ...orderedHorizontals.map((e) => e.trim()).where((e) => e.isNotEmpty),
-    };
-
-    final matches =
-        (stateData?.availableCombinationKeys ?? const <String>[]).where((key) {
-            final parts = key
-                .split("|")
-                .map((e) => e.trim())
-                .where((e) => e.isNotEmpty)
-                .toList();
-
-            if (parts.isEmpty || parts.first != category) return false;
-
-            return normalizedSelected.every(parts.contains);
-          }).toList()
-          ..sort((a, b) => a.split("|").length.compareTo(b.split("|").length));
-
-    return matches.isNotEmpty ? matches.first : candidate;
+    return cleaned.join(",");
   }
 
   void handleHorizontalSelection(String label) {
+    /// LOCKED ITEMS
+    if (lockedHorizontals.contains(label)) {
+      AppSnackbar.show(
+        "Locked Reservation",
+        "This reservation category is synced from your profile.",
+      );
+
+      return;
+    }
+
+    /// REMOVE
     if (selectedHorizontals.contains(label)) {
       selectedHorizontals.remove(label);
     } else {
+      /// LIMIT 2
+      if (selectedHorizontals.length >= 2) {
+        AppSnackbar.show(
+          "Limit Reached",
+          "You can select only 2 reservation categories.",
+        );
+
+        return;
+      }
+
       selectedHorizontals.add(label);
     }
 
-    // IQ selection should always behave as management quota.
-    // if (label == "IQ") {
-    //   if (selectedHorizontals.contains("IQ")) {
-    //     selectedQuota.value = "IQ/Management";
-    //   } else if (selectedQuota.value == "IQ/Management") {
-    //     selectedQuota.value = "State Quota";
-    //   }
-    // }
+    /// FORCE UPDATE
+    selectedHorizontals.refresh();
+
+    print("🔥 Selected Horizontals: $selectedHorizontals");
   }
 
   String _getFormattedQuota() {
@@ -264,15 +405,24 @@ class PredictionController extends GetxController {
     }
   }
 
-  Future<void> loadStatewiseCategories() async {
+  Future<void> loadStatewiseCategories({
+    bool showGlobalNetworkError = false,
+    bool forceRefresh = false,
+  }) async {
     try {
-      // Optionally, you can use all states or a default list if needed
-      // For now, use the states from the master list
-      final stateNames = stateList.map((e) => e.name).toList();
-
       final data = await StateCategoryApiService.getStateCategories(
-        states: stateNames,
+        showGlobalNetworkError: showGlobalNetworkError,
+        forceRefresh: forceRefresh,
       );
+
+      stateCategoryMap.clear();
+      if (data.isEmpty) {
+        stateList.clear();
+        categoryList.clear();
+        horizontalCategoryList.clear();
+        selectedState.value = "";
+        return;
+      }
 
       // Update stateList to only those states returned by the API
       // StateCategoryModel from statewiseAvailability API does not provide id, so use 0 as a placeholder
@@ -283,6 +433,13 @@ class PredictionController extends GetxController {
       for (var item in data) {
         stateCategoryMap[item.state] = item;
       }
+      final selectedStateExists = stateList.any(
+        (state) => state.name == selectedState.value,
+      );
+      if (!selectedStateExists) {
+        selectedState.value = stateList.isNotEmpty ? stateList.first.name : "";
+      }
+
       if (selectedState.value.isNotEmpty) {
         updateCategoriesByState(
           selectedState.value,
@@ -290,7 +447,7 @@ class PredictionController extends GetxController {
         );
       }
     } catch (e) {
-      print("❌ Failed to load statewise categories: $e");
+      print("âŒ Failed to load statewise categories: $e");
     }
   }
 
@@ -328,7 +485,21 @@ class PredictionController extends GetxController {
           : "";
     }
 
+    /// Preserve already selected horizontals
+    final currentSelections = List<String>.from(selectedHorizontals);
+
     selectedHorizontals.clear();
+
+    /// Restore locked horizontals
+    selectedHorizontals.addAll(lockedHorizontals);
+
+    /// Restore previous selections
+    for (final item in currentSelections) {
+      if (!selectedHorizontals.contains(item) &&
+          horizontalCategoryList.contains(item)) {
+        selectedHorizontals.add(item);
+      }
+    }
   }
 
   void onStateChanged(String state) {
@@ -349,34 +520,61 @@ class PredictionController extends GetxController {
 
     selectedYear.value = DateTime.now().year;
     loadRecentPredictions();
-
-    _initializePredictionInputs();
   }
 
-  Future<void> _initializePredictionInputs() async {
-    await fetchUserProfile();
-    await loadMasters();
-    await loadStatewiseCategories();
+  Future<void> ensureBootstrap({bool forceRefresh = false}) async {
+    final inFlight = _bootstrapFuture;
+    if (!forceRefresh && inFlight != null) {
+      return inFlight;
+    }
+
+    final future = initializePredictionInputs(forceRefresh: forceRefresh);
+    _bootstrapFuture = future;
+
+    try {
+      await future;
+    } finally {
+      if (identical(_bootstrapFuture, future)) {
+        _bootstrapFuture = null;
+      }
+    }
+  }
+
+  Future<void> initializePredictionInputs({bool forceRefresh = false}) async {
+    if (isInitializing.value && !forceRefresh) return;
+
+    isInitializing.value = true;
+    try {
+      await fetchUserProfile(forceRefresh: forceRefresh);
+      syncWithProfile(profileController);
+      await loadMasters(forceRefresh: forceRefresh);
+      await loadStatewiseCategories(forceRefresh: forceRefresh);
+    } finally {
+      isInitializing.value = false;
+    }
+  }
+
+  Future<void> refreshPageData() async {
+    await ensureBootstrap(forceRefresh: true);
   }
 
   // FETCH USER PROFILE
-  Future<void> fetchUserProfile() async {
+  Future<void> fetchUserProfile({
+    bool showGlobalNetworkError = false,
+    bool forceRefresh = false,
+  }) async {
     try {
       isProfileLoading.value = true;
       errorMessage.value = '';
 
-      final profile = await ProfileService.getProfile();
-
-      userAir.value = profile.allIndiaRank ?? 0;
-      userMarks.value = profile.neetScore ?? 0;
-      // userGender.value = profile.gender ?? "";
-
-      selectedState.value = profile.state ?? "";
-      selectedCategory.value = profile.category ?? "";
-      selectedCourse.value = profile.course ?? "";
+      await profileController.ensureLoaded(force: forceRefresh);
+      syncWithProfile(profileController);
+    } on AppException catch (e) {
+      errorMessage.value = e.message;
+      AppSnackbar.show("Error", e.message);
     } catch (e) {
       errorMessage.value = "Failed to load profile";
-      Get.snackbar("Error", "Unable to fetch profile");
+      AppSnackbar.show("Error", "Unable to fetch profile");
     } finally {
       isProfileLoading.value = false;
     }
@@ -387,7 +585,12 @@ class PredictionController extends GetxController {
   // =====================================================
   bool _validateInputs() {
     if (userAir.value == 0) {
-      Get.snackbar("Error", "AIR not found in profile");
+      AppSnackbar.show("Error", "AIR not found in profile");
+      return false;
+    }
+
+    if (selectedQuota.value.trim().isEmpty) {
+      AppSnackbar.show("Error", "Please select quota");
       return false;
     }
 
@@ -395,7 +598,7 @@ class PredictionController extends GetxController {
         selectedCategory.value.trim().isEmpty ||
         selectedCourse.value.trim().isEmpty ||
         selectedYear.value == null) {
-      Get.snackbar("Error", "Please fill all required fields");
+      AppSnackbar.show("Error", "Please fill all required fields");
       return false;
     }
 
@@ -405,8 +608,12 @@ class PredictionController extends GetxController {
   // =====================================================
   // FETCH PREDICTION
   // =====================================================
-  Future<void> fetchPrediction() async {
+  Future<void> fetchPrediction({
+    Duration minimumLoadingDuration = Duration.zero,
+  }) async {
+    final startedAt = DateTime.now();
     final instituteType = _getFormattedInstituteType();
+    final formattedQuota = _getFormattedQuota();
 
     if (!_validateInputs()) return;
 
@@ -414,8 +621,8 @@ class PredictionController extends GetxController {
       isPredictionLoading.value = true;
       errorMessage.value = '';
 
-      /// 🔥 CLEAN REQUEST BODY (remove nulls)
-      final combinationKey = _getSelectedCombinationKey();
+      /// ðŸ”¥ CLEAN REQUEST BODY (remove nulls)
+      final formattedHorizontal = _getFormattedHorizontal();
 
       final requestBody = {
         "year": selectedYear.value,
@@ -430,19 +637,25 @@ class PredictionController extends GetxController {
         // if (isMinority.value) "minority": true,
         // if (isOrphan.value) "orphan": true,
         // if (isHillyArea.value) "hilly_area": true,
-        "horizontal": combinationKey,
+        "horizontal": formattedHorizontal,
 
-        if (_getFormattedInstituteType().isNotEmpty)
-          "institute_type": _getFormattedInstituteType(),
-        "quota": _getFormattedQuota(),
+        if (instituteType.isNotEmpty) "institute_type": instituteType,
+        if (formattedQuota.isNotEmpty) "quota": formattedQuota,
       };
       print("Selected Horizontals: $selectedHorizontals");
-      print("Formatted Horizontal: ${_getFormattedHorizontal()}");
-      print("Combination Key: $combinationKey");
+      print("Formatted Horizontal: $formattedHorizontal");
 
       _logPredictionRequest(requestBody);
 
       final data = await PredictionService.fetchPrediction(requestBody);
+
+      print("ðŸ“¦ FULL RESPONSE OBJECT: $data");
+
+      try {
+        print("ðŸ“¦ RESPONSE JSON: ${jsonEncode(data)}");
+      } catch (e) {
+        print("âš ï¸ Cannot convert to JSON: $e");
+      }
 
       predictionData.value = data;
 
@@ -472,30 +685,41 @@ class PredictionController extends GetxController {
 
       /// Get recent predictions (returns List<Map>)
 
-      /// 🔥 HANDLE PRIVATE FALLBACK
+      /// ðŸ”¥ HANDLE PRIVATE FALLBACK
       // if (data.noChanceInHomeState) {
-      //   Get.snackbar(
+      //   AppSnackbar.show(
       //     "No Government College",
       //     "Showing Private College Suggestions",
       //     snackPosition: SnackPosition.BOTTOM,
       //   );
       // } else {
-      //   Get.snackbar(
+      //   AppSnackbar.show(
       //     "Success",
       //     "Government Colleges Found",
       //     snackPosition: SnackPosition.BOTTOM,
       //   );
       // }
 
+      final elapsed = DateTime.now().difference(startedAt);
+      final remainingDelay = minimumLoadingDuration - elapsed;
+      if (!remainingDelay.isNegative && remainingDelay > Duration.zero) {
+        await Future.delayed(remainingDelay);
+      }
+
       /// Navigate AFTER data is ready
-      await Future.delayed(const Duration(seconds: 5));
       Get.to(() => AiPredictionResultView(predictionData: data));
+    } on AppException catch (e) {
+      print("Prediction Error: $e");
+
+      errorMessage.value = e.message;
+
+      AppSnackbar.show("Error", e.message, snackPosition: SnackPosition.BOTTOM);
     } catch (e) {
-      print("❌ Prediction Error: $e");
+      print("Prediction Error: $e");
 
       errorMessage.value = "Prediction failed";
 
-      Get.snackbar(
+      AppSnackbar.show(
         "Error",
         "Unable to fetch prediction",
         snackPosition: SnackPosition.BOTTOM,
@@ -509,15 +733,36 @@ class PredictionController extends GetxController {
     return recentPredictions.toList();
   }
 
-  Future<void> loadMasters() async {
+  Future<void> loadMasters({
+    bool showGlobalNetworkError = false,
+    bool forceRefresh = false,
+  }) async {
     try {
-      final data = await RegisterMasterApi().fetchMasters();
+      final data = await RegisterMasterApi().fetchMasters(
+        showGlobalNetworkError: showGlobalNetworkError,
+        forceRefresh: forceRefresh,
+      );
 
-      /// existing
-      stateList.value = data['states'];
+      /// State dropdown should come from statewise-availability only.
       categoryList.value = data['categories'];
+
+      /// Courses dropdown should come from backend masters.
+      final fetchedCourses = data['courses_for_ug'] as List<CourseModel>? ?? [];
+      courseList.assignAll(fetchedCourses);
+
+      /// Keep profile-selected course when valid; otherwise fallback to first.
+      final hasSelectedCourse = courseList.any(
+        (course) => course.name == selectedCourse.value,
+      );
+      if (!hasSelectedCourse) {
+        selectedCourse.value = courseList.isNotEmpty
+            ? courseList.first.name
+            : "";
+      }
+    } on AppException catch (e) {
+      AppSnackbar.show("Error", e.message);
     } catch (e) {
-      Get.snackbar("Error", "Failed to load master data");
+      AppSnackbar.show("Error", "Failed to load master data");
     }
   }
 
@@ -529,6 +774,6 @@ class PredictionController extends GetxController {
     final round = roundsList.firstWhere((e) => e.roundName == value);
 
     selectedRound.value = round.roundName;
-    selectedRoundId.value = round.id; // 🔥 important
+    selectedRoundId.value = round.id; // ðŸ”¥ important
   }
 }

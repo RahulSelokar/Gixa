@@ -1,7 +1,3 @@
-// ===============================
-// CHAT START RESPONSE
-// ===============================
-
 class ChatStartResponse {
   final String sessionId;
   final String mode;
@@ -57,7 +53,7 @@ class ChatHistoryResponse {
 class ChatMessage {
   final String id;
   final String sender; // bot | user | agent
-  final String type;   // text | image | video | options
+  final String type; // text | image | video | options
   final String? content;
   final String? mediaUrl;
   final List<ChatOption>? options;
@@ -74,19 +70,41 @@ class ChatMessage {
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    final rawOptions = json['options'];
+
     return ChatMessage(
       id: json['id'].toString(),
       sender: json['sender'] ?? "",
       type: json['type'] ?? "text",
       content: json['content'],
       mediaUrl: json['media_url'],
-      options: json['options'] != null
-          ? (json['options'] as List)
-              .map((e) => ChatOption.fromJson(e))
-              .toList()
+      options: rawOptions is List
+          ? rawOptions.map((e) => ChatOption.fromJson(e)).toList()
+          : rawOptions is Map<String, dynamic>
+          ? _parseOptionsMap(rawOptions)
           : null,
       createdAt: json['created_at'] ?? "",
     );
+  }
+
+  static List<ChatOption>? _parseOptionsMap(Map<String, dynamic> json) {
+    final nested = json['options'] ?? json['data'] ?? json['items'];
+    if (nested is List) {
+      return nested.map((e) => ChatOption.fromJson(e)).toList();
+    }
+    return null;
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'sender': sender,
+      'type': type,
+      'content': content,
+      'media_url': mediaUrl,
+      'options': options?.map((option) => option.toJson()).toList(),
+      'created_at': createdAt,
+    };
   }
 }
 
@@ -98,16 +116,21 @@ class ChatOption {
   final String key;
   final String label;
 
-  ChatOption({
-    required this.key,
-    required this.label,
-  });
+  ChatOption({required this.key, required this.label});
 
   factory ChatOption.fromJson(Map<String, dynamic> json) {
-    return ChatOption(
-      key: json['key'].toString(),
-      label: json['label'] ?? "",
-    );
+    final resolvedKey =
+        (json['key'] ?? json['option_key'] ?? json['next_node_key'] ?? '')
+            .toString();
+    final resolvedLabel =
+        (json['label'] ?? json['title'] ?? json['text'] ?? json['name'] ?? '')
+            .toString();
+
+    return ChatOption(key: resolvedKey, label: resolvedLabel);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'key': key, 'label': label};
   }
 }
 
@@ -119,15 +142,64 @@ class ChatCommonResponse {
   final String status;
   final String message;
 
-  ChatCommonResponse({
-    required this.status,
-    required this.message,
-  });
+  ChatCommonResponse({required this.status, required this.message});
 
   factory ChatCommonResponse.fromJson(Map<String, dynamic> json) {
     return ChatCommonResponse(
       status: json['status'] ?? "",
       message: json['message'] ?? "",
     );
+  }
+}
+
+// ===============================
+// CHAT SESSION
+// ===============================
+
+class ChatSession {
+  final String sessionId;
+  final String title;
+  final String createdAt;
+
+  ChatSession({
+    required this.sessionId,
+    required this.title,
+    required this.createdAt,
+  });
+
+  factory ChatSession.fromJson(Map<String, dynamic> json) {
+    String parsedTitle = json['title']?.toString() ?? '';
+    if (parsedTitle.isEmpty) {
+      final String sid = (json['session_id'] ?? json['id'] ?? '').toString();
+      if (sid.isNotEmpty) {
+        // Show something like "Chat 8829ef" instead of full ID
+        parsedTitle = 'Chat ${sid.length > 6 ? sid.substring(sid.length - 6) : sid}';
+      } else {
+        parsedTitle = 'New Conversation';
+      }
+    }
+
+    return ChatSession(
+      sessionId: (json['session_id'] ?? json['id'] ?? '').toString(),
+      title: parsedTitle,
+      createdAt: json['created_at']?.toString() ?? '',
+    );
+  }
+
+  String get formattedDate {
+    if (createdAt.isEmpty) return 'Recent';
+    try {
+      final parsed = DateTime.parse(createdAt).toLocal();
+      // Returns format like "Oct 12, 10:30 AM"
+      return '${_monthAbbr(parsed.month)} ${parsed.day}, ${parsed.hour > 12 ? parsed.hour - 12 : (parsed.hour == 0 ? 12 : parsed.hour)}:${parsed.minute.toString().padLeft(2, '0')} ${parsed.hour >= 12 ? 'PM' : 'AM'}';
+    } catch (_) {
+      return createdAt.split('T').first;
+    }
+  }
+
+  static String _monthAbbr(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (month >= 1 && month <= 12) return months[month - 1];
+    return '';
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -33,6 +35,49 @@ class _AppColors {
   static const amber = Color(0xFFF59E0B);
 }
 
+const List<String> _priorityMedicalCourses = [
+  'MBBS',
+  'BDS',
+  'BAMS',
+  'BHMS',
+  'BPT',
+];
+
+List<String> _buildPriorityCourseItems(Iterable<String> rawCourses) {
+  final normalizedMap = <String, String>{};
+  final orderedRaw = <String>[];
+
+  for (final course in rawCourses) {
+    final cleaned = course.trim();
+    if (cleaned.isEmpty) continue;
+    final key = cleaned.toUpperCase();
+    normalizedMap.putIfAbsent(key, () => cleaned);
+    if (!orderedRaw.contains(cleaned)) {
+      orderedRaw.add(cleaned);
+    }
+  }
+
+  final prioritized = <String>[];
+  for (final course in _priorityMedicalCourses) {
+    final match = normalizedMap[course.toUpperCase()];
+    if (match != null) {
+      prioritized.add(match);
+    }
+  }
+
+  final remaining =
+      orderedRaw.where((course) => !prioritized.contains(course)).toList()
+        ..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+  return [...prioritized, ...remaining];
+}
+
+bool _isMccState(String? value) => value?.trim().toLowerCase() == 'mcc';
+
+List<String> _buildInstituteTypeOptions(String? stateValue) {
+  return ['Government', 'Private', if (_isMccState(stateValue)) 'Deemed'];
+}
+
 class CollegeSearchPage extends StatefulWidget {
   CollegeSearchPage({super.key});
 
@@ -43,8 +88,7 @@ class CollegeSearchPage extends StatefulWidget {
 class _CollegeSearchPageState extends State<CollegeSearchPage> {
   final CollegeSearchController controller = Get.put(CollegeSearchController());
   final ScrollController _scrollController = ScrollController();
-  int _displayCount = 20;
-  final int _loadBatch = 20;
+  Timer? _searchDebounce;
 
   @override
   void initState() {
@@ -54,20 +98,24 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _scrollController.dispose();
     super.dispose();
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      final total = controller.colleges.length;
-      if (_displayCount < total) {
-        setState(() {
-          _displayCount = (_displayCount + _loadBatch).clamp(0, total);
-        });
-      }
+    if (!_scrollController.hasClients) return;
+    final threshold = _scrollController.position.maxScrollExtent - 240;
+    if (_scrollController.position.pixels >= threshold) {
+      controller.loadNextPage();
     }
+  }
+
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      controller.updateSearch(value);
+    });
   }
 
   // ─── Helpers ───
@@ -144,64 +192,151 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
                 ),
               ),
               // Stats pill
-              Obx(() {
-                final count = controller.colleges.length;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [_AppColors.indigo, _AppColors.indigoLight],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    // boxShadow: [
-                    //   BoxShadow(
-                    //     color: _AppColors.indigo.withOpacity(0.35),
-                    //     blurRadius: 12,
-                    //     offset: const Offset(0, 4),
-                    //   ),
-                    // ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.school_rounded,
-                        size: 14,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "$count",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
+              // Obx(() {
+              //   final count = controller.colleges.length;
+              //   return AnimatedContainer(
+              //     duration: const Duration(milliseconds: 300),
+              //     padding: const EdgeInsets.symmetric(
+              //       horizontal: 14,
+              //       vertical: 8,
+              //     ),
+              //     decoration: BoxDecoration(
+              //       gradient: const LinearGradient(
+              //         colors: [_AppColors.indigo, _AppColors.indigoLight],
+              //       ),
+              //       borderRadius: BorderRadius.circular(20),
+              //       // boxShadow: [
+              //       //   BoxShadow(
+              //       //     color: _AppColors.indigo.withOpacity(0.35),
+              //       //     blurRadius: 12,
+              //       //     offset: const Offset(0, 4),
+              //       //   ),
+              //       // ],
+              //     ),
+              //     child: Row(
+              //       mainAxisSize: MainAxisSize.min,
+              //       children: [
+              //         const Icon(
+              //           Icons.school_rounded,
+              //           size: 14,
+              //           color: Colors.white,
+              //         ),
+              //         const SizedBox(width: 6),
+              //         Text(
+              //           "$count",
+              //           style: const TextStyle(
+              //             color: Colors.white,
+              //             fontSize: 13,
+              //             fontWeight: FontWeight.w700,
+              //           ),
+              //         ),
+              //       ],
+              //     ),
+              //   );
+              // }),
             ],
           ),
 
           const SizedBox(height: 20),
 
           // Search + Filter row
-          Row(
+          Column(
             children: [
-              Expanded(child: _buildSearchField(isDark)),
-              const SizedBox(width: 12),
-              _buildFilterButton(context, isDark),
+              Row(
+                children: [
+                  Expanded(child: _buildSearchField(isDark)),
+                  const SizedBox(width: 10),
+                  _buildFilterButton(context, isDark),
+                ],
+              ),
+              // const SizedBox(height: 12),
+              // Row(
+              //   children: [
+              //     Expanded(child: _buildStateDropdown(isDark)),
+              //     const SizedBox(width: 10),
+              //     Expanded(child: _buildCourseDropdown(isDark)),
+              //   ],
+              // ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildStateDropdown(bool isDark) {
+    return Obx(() {
+      final states = controller.states.map((e) => e.name).toList();
+
+      return Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: _surface(isDark),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _border(isDark)),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: states.contains(controller.selectedState.value)
+                ? controller.selectedState.value
+                : null,
+            hint: Text(
+              "State",
+              style: TextStyle(color: _textSecondary(isDark), fontSize: 13),
+            ),
+            isExpanded: true,
+            items: states.map((state) {
+              return DropdownMenuItem(value: state, child: Text(state));
+            }).toList(),
+            onChanged: (value) {
+              controller.updateSelectedState(value);
+              if (!_isMccState(controller.selectedState.value)) {
+                controller.removeInstituteType('Deemed');
+              }
+              controller.fetchColleges();
+            },
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildCourseDropdown(bool isDark) {
+    return Obx(() {
+      final courses = _buildPriorityCourseItems(
+        controller.availableCourseOptions,
+      );
+
+      return Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: _surface(isDark),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _border(isDark)),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: courses.contains(controller.selectedCourse.value)
+                ? controller.selectedCourse.value
+                : null,
+            hint: Text(
+              "Course",
+              style: TextStyle(color: _textSecondary(isDark), fontSize: 13),
+            ),
+            isExpanded: true,
+            items: courses.map((course) {
+              return DropdownMenuItem(value: course, child: Text(course));
+            }).toList(),
+            onChanged: (value) {
+              controller.selectedCourse.value = value;
+              controller.fetchColleges();
+            },
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildSearchField(bool isDark) {
@@ -223,13 +358,14 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
       ),
       child: TextField(
         controller: controller.searchController,
+        onChanged: _onSearchChanged,
         style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
           color: isDark ? const Color(0xFFF1F1F8) : const Color(0xFF0F0F1A),
         ),
         decoration: InputDecoration(
-          hintText: "Search by name, city...",
+          hintText: "Search by name, district...",
           hintStyle: TextStyle(
             color: _textSecondary(isDark),
             fontSize: 14,
@@ -275,7 +411,15 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
       final isActive = count > 0;
 
       return GestureDetector(
-        onTap: () => _showFilterSheet(context),
+        // onTap: () => _showFilterSheet(context),
+        onTap: () async {
+          if (controller.states.isEmpty ||
+              controller.ugCourseOptions.isEmpty &&
+                  controller.pgCourseOptions.isEmpty) {
+            await controller.loadMasters();
+          }
+          _showFilterSheet(context);
+        },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           height: 52,
@@ -355,76 +499,138 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
       final chips = <_FilterChipData>[];
 
       void addChip(String? value, String label, VoidCallback onRemove) {
-        if (value != null)
+        if (value != null && value.toString().trim().isNotEmpty) {
           chips.add(_FilterChipData(label: label, onRemove: onRemove));
+        }
       }
 
+      /// 📍 DISTRICT
       addChip(
-        controller.selectedInstituteType.value,
-        controller.selectedInstituteType.value ?? '',
+        controller.selectedCity.value,
+        "District: ${controller.selectedCity.value}",
         () {
-          controller.selectedInstituteType.value = null;
+          controller.selectedCity.value = null;
+          controller.cityCtrl.clear();
           controller.fetchColleges();
         },
       );
+
+      /// 🎓 COURSE TYPE
+      addChip(
+        controller.selectedCourseLevel.value,
+        "Type: ${controller.selectedCourseLevel.value}",
+        () {
+          controller.setCourseLevel(null);
+          controller.fetchColleges();
+        },
+      );
+
+      /// 📚 COURSE
+      addChip(
+        controller.selectedCourse.value,
+        "Course: ${controller.selectedCourse.value}",
+        () {
+          controller.selectedCourse.value = null;
+          controller.fetchColleges();
+        },
+      );
+
+      /// 🏫 INSTITUTE TYPES
+      for (final instituteType in controller.selectedInstituteTypes) {
+        chips.add(
+          _FilterChipData(
+            label: "Institute: $instituteType",
+            onRemove: () {
+              controller.removeInstituteType(instituteType);
+              controller.fetchColleges();
+            },
+          ),
+        );
+      }
+
+      /// 🌍 STATE (🔥 IMPROVED LABEL)
       addChip(
         controller.selectedState.value,
-        controller.selectedState.value ?? '',
+        "State: ${controller.selectedState.value}",
         () {
           controller.selectedState.value = null;
+          controller.removeInstituteType('Deemed');
           controller.fetchColleges();
         },
       );
+
+      addChip(
+        controller.selectedMccState.value,
+        "MCC State: ${controller.selectedMccState.value}",
+        () {
+          controller.selectedMccState.value = null;
+          controller.selectedCity.value = null;
+          controller.cityCtrl.clear();
+          controller.fetchColleges();
+        },
+      );
+
+      /// 📅 YEAR
       addChip(
         controller.selectedYear.value,
-        "📅 ${controller.selectedYear.value}",
+        "Year: ${controller.selectedYear.value}",
         () {
           controller.selectedYear.value = null;
           controller.fetchColleges();
         },
       );
+
+      /// 🎯 QUOTA
       addChip(
         controller.selectedQuota.value,
-        controller.selectedQuota.value ?? '',
+        "Quota: ${controller.selectedQuota.value}",
         () {
           controller.selectedQuota.value = null;
           controller.fetchColleges();
         },
       );
-      if (controller.minSeats.value != null)
-        chips.add(
-          _FilterChipData(
-            label: "Min ${controller.minSeats.value} seats",
-            onRemove: () {
-              controller.minSeats.value = null;
-              controller.minSeatsCtrl.clear();
-              controller.fetchColleges();
-            },
-          ),
-        );
-      if (controller.maxSeats.value != null)
-        chips.add(
-          _FilterChipData(
-            label: "Max ${controller.maxSeats.value} seats",
-            onRemove: () {
-              controller.maxSeats.value = null;
-              controller.maxSeatsCtrl.clear();
-              controller.fetchColleges();
-            },
-          ),
-        );
 
+      /// 🪑 MIN SEATS
+      // if (controller.minSeats.value != null) {
+      //   chips.add(
+      //     _FilterChipData(
+      //       label: "Min ${controller.minSeats.value} seats",
+      //       onRemove: () {
+      //         controller.minSeats.value = null;
+      //         controller.minSeatsCtrl.clear();
+      //         controller.fetchColleges();
+      //       },
+      //     ),
+      //   );
+      // }
+
+      /// 🪑 MAX SEATS
+      // if (controller.maxSeats.value != null) {
+      //   chips.add(
+      //     _FilterChipData(
+      //       label: "Max ${controller.maxSeats.value} seats",
+      //       onRemove: () {
+      //         controller.maxSeats.value = null;
+      //         controller.maxSeatsCtrl.clear();
+      //         controller.fetchColleges();
+      //       },
+      //     ),
+      //   );
+      // }
+
+      /// ❌ NO FILTERS
       if (chips.isEmpty) return const SizedBox.shrink();
 
       return Container(
-        height: 42,
-        margin: const EdgeInsets.only(bottom: 4),
+        height: 44,
+        margin: const EdgeInsets.only(bottom: 6),
         child: ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           scrollDirection: Axis.horizontal,
           itemCount: chips.length + 1,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
+            /// 🔥 CLEAR ALL BUTTON
             if (index == chips.length) {
               return GestureDetector(
                 onTap: controller.clearFilters,
@@ -463,7 +669,9 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
                 ),
               );
             }
+
             final chip = chips[index];
+
             return _ActiveFilterChip(
               label: chip.label,
               onRemove: chip.onRemove,
@@ -485,7 +693,14 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
         child: Row(
           children: [
             Text(
-              "${controller.colleges.length} colleges found",
+              () {
+                final displayCount = controller.backendCount.value > 0
+                    ? controller.backendCount.value
+                    : controller.colleges.length;
+                return displayCount == 1
+                    ? "1 college found"
+                    : "$displayCount colleges found";
+              }(),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -513,37 +728,61 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
   // ════════════════════════════════════════════
   Widget _buildCollegeList(bool isDark) {
     return Obx(() {
-      if (controller.isLoading.value) return _buildShimmerList(isDark);
-      if (controller.colleges.isEmpty) return _buildEmptyState(isDark);
+      // Only show shimmer if loading and no data yet
+      if (controller.isLoading.value && controller.colleges.isEmpty) {
+        return _buildShimmerList(isDark);
+      }
+      // Show empty state if not loading and no data
+      if (!controller.isLoading.value && controller.colleges.isEmpty) {
+        return _buildEmptyState(isDark);
+      }
+
+      final showBottomLoader =
+          controller.isLoadingMore.value && controller.hasMore.value;
+      final showTopLoader =
+          controller.isLoading.value && controller.colleges.isNotEmpty;
 
       return RefreshIndicator(
         color: _AppColors.indigo,
         backgroundColor: _card(isDark),
-        onRefresh: () async {
-          setState(() {
-            _displayCount = _loadBatch;
-          });
-          await controller.fetchColleges();
-        },
-        child: ListView.builder(
+        onRefresh: controller.refreshList,
+        child: CustomScrollView(
           controller: _scrollController,
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
-          itemCount: (_displayCount < controller.colleges.length)
-              ? _displayCount + 1
-              : controller.colleges.length,
-          itemBuilder: (context, index) {
-            if (index >= _displayCount &&
-                _displayCount < controller.colleges.length) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: CircularProgressIndicator(color: _AppColors.indigo),
+          slivers: [
+            if (showTopLoader)
+              SliverToBoxAdapter(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: CircularProgressIndicator(color: _AppColors.indigo),
+                  ),
                 ),
-              );
-            }
-            final college = controller.colleges[index];
-            return _CollegeCard(college: college, isDark: isDark, index: index);
-          },
+              ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  if (showBottomLoader && index == controller.colleges.length) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: CircularProgressIndicator(
+                          color: _AppColors.indigo,
+                        ),
+                      ),
+                    );
+                  }
+                  final college = controller.colleges[index];
+                  return _CollegeCard(
+                    college: college,
+                    isDark: isDark,
+                    index: index,
+                  );
+                },
+                childCount:
+                    controller.colleges.length + (showBottomLoader ? 1 : 0),
+              ),
+            ),
+          ],
         ),
       );
     });
@@ -632,6 +871,9 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
 
     controller.minSeatsCtrl.text = controller.minSeats.value?.toString() ?? '';
     controller.maxSeatsCtrl.text = controller.maxSeats.value?.toString() ?? '';
+    if (!_isMccState(controller.selectedState.value)) {
+      controller.removeInstituteType('Deemed');
+    }
 
     Get.bottomSheet(
       _FilterSheet(
@@ -679,7 +921,10 @@ class _CollegeCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => Get.toNamed(
         AppRoutes.collageDetails,
-        arguments: {'collegeId': college.id},
+        arguments: {
+          'collegeId': college.id,
+          'college': college,
+        },
       ),
       child: Container(
         // margin: const EdgeInsets.only(bottom: 12),
@@ -995,56 +1240,226 @@ class _FilterSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 24),
+
+                  _sectionLabel("State"),
+                  const SizedBox(height: 10),
+                  Obx(() {
+                    final states = controller.states
+                        .map((e) => e.name.toString())
+                        .toList();
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _dropdownField(
+                          value: states.contains(controller.selectedState.value)
+                              ? controller.selectedState.value
+                              : null,
+
+                          hint: "Select State",
+
+                          items: states,
+
+                          onChanged: (value) {
+                            controller.updateSelectedState(value);
+
+                            /// reset city when state changes
+                            controller.selectedCity.value = null;
+                            controller.cityCtrl.clear();
+
+                            /// reset MCC state if normal state selected
+                            if (!_isMccState(value)) {
+                              controller.selectedMccState.value = null;
+
+                              /// remove deemed if not MCC
+                              controller.removeInstituteType('Deemed');
+                            }
+                          },
+                        ),
+
+                        /// MCC STATE DROPDOWN
+                        if (_isMccState(controller.selectedState.value)) ...[
+                          const SizedBox(height: 20),
+
+                          _sectionLabel("MCC State"),
+
+                          const SizedBox(height: 10),
+
+                          Obx(() {
+                            final mccStates = controller.mccStates;
+
+                            return _dropdownField(
+                              value:
+                                  mccStates.contains(
+                                    controller.selectedMccState.value,
+                                  )
+                                  ? controller.selectedMccState.value
+                                  : null,
+
+                              hint: "Select MCC State",
+
+                              items: mccStates,
+
+                              onChanged: (value) {
+                                controller.selectedMccState.value = value;
+
+                                /// reset city when MCC state changes
+                                controller.selectedCity.value = null;
+                                controller.cityCtrl.clear();
+                              },
+                            );
+                          }),
+                        ],
+                      ],
+                    );
+                  }),
+                  const SizedBox(height: 10),
+                  const SizedBox(height: 10),
+                  Obx(() {
+                    if (controller.selectedState.value == null) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final cityOptions =
+                        _isMccState(controller.selectedState.value)
+                        ? controller.mccCities
+                        : controller.availableCityOptions;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _sectionLabel("District"),
+                        const SizedBox(height: 10),
+                        ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: controller.cityCtrl,
+
+                          builder: (context, value, _) {
+                            final currentCity = value.text.trim();
+
+                            return _dropdownField(
+                              key: ValueKey(
+                                "${controller.selectedState.value}_${controller.selectedMccState.value}",
+                              ),
+
+                              value: cityOptions.contains(currentCity)
+                                  ? currentCity
+                                  : null,
+
+                              hint: "Select District",
+
+                              items: cityOptions,
+
+                              onChanged: (val) {
+                                controller.selectedCity.value = val;
+                                controller.cityCtrl.text = val ?? '';
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    );
+                  }),
+                  const SizedBox(height: 24),
+
+                  _sectionLabel("Course Type"),
+                  const SizedBox(height: 10),
+                  Obx(
+                    () => _chipGroup(
+                      const ["UG"],
+                      controller.selectedCourseLevel.value,
+                      controller.setCourseLevel,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // _sectionLabel("Course"),
+                  // const SizedBox(height: 10),
+                  // Obx(
+                  //   () => _chipGroup(
+                  //     controller.availableCourseOptions,
+                  //     controller.selectedCourse.value,
+                  //     (val) => controller.selectedCourse.value = val,
+                  //   ),
+                  // ),
+                  _sectionLabel("Course"),
+                  const SizedBox(height: 10),
+                  Obx(() {
+                    final courses = _buildPriorityCourseItems(
+                      controller.availableCourseOptions,
+                    );
+                    final isLoadingCourses =
+                        controller.ugCourseOptions.isEmpty &&
+                        controller.pgCourseOptions.isEmpty;
+
+                    if (isLoadingCourses) {
+                      return const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text("Loading courses..."),
+                      );
+                    }
+
+                    return _dropdownField(
+                      value: controller.selectedCourse.value,
+                      hint: "Select Course",
+                      items: courses,
+                      onChanged: (val) => controller.selectedCourse.value = val,
+                    );
+                  }),
+                  const SizedBox(height: 24),
+
                   _sectionLabel("Institute Type"),
                   const SizedBox(height: 10),
-                  Obx(
-                    () => _chipGroup(
-                      ["Government", "Private", "Autonomous"],
-                      controller.selectedInstituteType.value,
-                      (val) => controller.selectedInstituteType.value = val,
-                    ),
-                  ),
+                  Obx(() {
+                    final instituteTypes = _buildInstituteTypeOptions(
+                      controller.selectedState.value,
+                    );
+                    return _multiSelectChipGroup(
+                      instituteTypes,
+                      controller.selectedInstituteTypes,
+                      controller.toggleInstituteType,
+                    );
+                  }),
                   const SizedBox(height: 24),
 
-                  _sectionLabel("Year"),
-                  const SizedBox(height: 10),
-                  Obx(
-                    () => _chipGroup(
-                      [
-                        for (
-                          int y = DateTime.now().year;
-                          y >= DateTime.now().year - 4;
-                          y--
-                        )
-                          y.toString(),
-                      ],
-                      controller.selectedYear.value,
-                      (val) => controller.selectedYear.value = val,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+                  // _sectionLabel("Year"),
+                  // const SizedBox(height: 10),
+                  // Obx(
+                  //   () => _chipGroup(
+                  //     [
+                  //       for (
+                  //         int y = DateTime.now().year;
+                  //         y >= DateTime.now().year - 4;
+                  //         y--
+                  //       )
+                  //         y.toString(),
+                  //     ],
+                  //     controller.selectedYear.value,
+                  //     (val) => controller.selectedYear.value = val,
+                  //   ),
+                  // ),
+                  // const SizedBox(height: 24),
+                  // _sectionLabel("Seats Range"),
+                  // const SizedBox(height: 10),
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: _buildTextField(
+                  //         controller.minSeatsCtrl,
+                  //         "Min seats",
+                  //       ),
+                  //     ),
+                  //     const SizedBox(width: 12),
+                  //     Expanded(
+                  //       child: _buildTextField(
+                  //         controller.maxSeatsCtrl,
+                  //         "Max seats",
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
 
-                  _sectionLabel("Seats Range"),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildTextField(
-                          controller.minSeatsCtrl,
-                          "Min seats",
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildTextField(
-                          controller.maxSeatsCtrl,
-                          "Max seats",
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 28),
+                  // const SizedBox(height: 28),
                 ],
               ),
             ),
@@ -1062,13 +1477,15 @@ class _FilterSheet extends StatelessWidget {
               height: 54,
               child: ElevatedButton(
                 onPressed: () {
-                  controller.minSeats.value = int.tryParse(
-                    controller.minSeatsCtrl.text,
+                  controller.applyFilters(
+                    cityValue: controller.cityCtrl.text,
+                    stateValue: controller.selectedState.value,
+                    courseLevelValue: controller.selectedCourseLevel.value,
+                    courseNameValue: controller.selectedCourse.value,
+                    instituteTypeValues: controller.selectedInstituteTypes,
+                    minSeatsValue: int.tryParse(controller.minSeatsCtrl.text),
+                    maxSeatsValue: int.tryParse(controller.maxSeatsCtrl.text),
                   );
-                  controller.maxSeats.value = int.tryParse(
-                    controller.maxSeatsCtrl.text,
-                  );
-                  controller.fetchColleges();
                   Get.back();
                 },
                 style: ElevatedButton.styleFrom(
@@ -1103,6 +1520,35 @@ class _FilterSheet extends StatelessWidget {
     );
   }
 
+  Widget _dropdownField({
+    Key? key,
+    required String? value,
+    required String hint,
+    required List<String> items,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Container(
+      key: key,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _divider),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: items.contains(value) ? value : null,
+          hint: Text(hint, style: TextStyle(color: _textSecondary)),
+          isExpanded: true,
+          items: items.map((item) {
+            return DropdownMenuItem(value: item, child: Text(item));
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+
   Widget _sectionLabel(String text) {
     return Text(
       text.toUpperCase(),
@@ -1120,6 +1566,26 @@ class _FilterSheet extends StatelessWidget {
     String? selected,
     ValueChanged<String?> onSelected,
   ) {
+    if (options.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _divider, width: 1.2),
+        ),
+        child: Text(
+          "No options available yet",
+          style: TextStyle(
+            fontSize: 13,
+            color: _textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -1173,10 +1639,79 @@ class _FilterSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(TextEditingController ctrl, String hint) {
+  Widget _multiSelectChipGroup(
+    List<String> options,
+    List<String> selectedValues,
+    ValueChanged<String> onToggle,
+  ) {
+    final normalizedSelected = selectedValues
+        .map((value) => value.trim().toLowerCase())
+        .toSet();
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.map((option) {
+        final isSelected = normalizedSelected.contains(
+          option.trim().toLowerCase(),
+        );
+
+        return GestureDetector(
+          onTap: () => onToggle(option),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? _AppColors.indigo
+                  : (isDark
+                        ? const Color(0xFF1C1C27)
+                        : const Color(0xFFFFFFFF)),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isSelected
+                    ? Colors.transparent
+                    : (isDark
+                          ? const Color(0xFF2A2A38)
+                          : const Color(0xFFE8EAF2)),
+                width: 1.5,
+              ),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: _AppColors.indigo.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Text(
+              option,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark
+                          ? const Color(0xFFB0B0C8)
+                          : const Color(0xFF4A4A6A)),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildTextField(
+    TextEditingController ctrl,
+    String hint, {
+    TextInputType keyboardType = TextInputType.number,
+  }) {
     return TextField(
       controller: ctrl,
-      keyboardType: TextInputType.number,
+      keyboardType: keyboardType,
       style: TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w500,

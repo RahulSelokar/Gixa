@@ -30,19 +30,17 @@ class UTextFormFieldTheme {
   static InputDecorationTheme lightInputDecorationTheme =
       InputDecorationTheme(
     filled: true,
-    fillColor: Colors.white,
-
-    /// ✅ CURVED SHAPE WITHOUT BORDER
-    border: _defaultBorder(Colors.black),
-    enabledBorder: _defaultBorder(Colors.black),
-
-    /// ✅ BORDER ONLY ON FOCUS
+    fillColor: UColors.softSurface,
+    border: _defaultBorder(UColors.border),
+    enabledBorder: _defaultBorder(UColors.border),
     focusedBorder: _focusedBorder(UColors.primary),
-
-    /// ❌ ERROR STATE
     errorBorder: _errorBorder(UColors.error),
     focusedErrorBorder: _errorBorder(UColors.error),
-
+    labelStyle: const TextStyle(color: UColors.primaryDark),
+    floatingLabelStyle: const TextStyle(color: UColors.primaryDark),
+    hintStyle: TextStyle(color: UColors.grey.withOpacity(0.9)),
+    prefixIconColor: UColors.primary,
+    suffixIconColor: UColors.primaryLight,
     contentPadding:
         const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
   );
@@ -51,19 +49,17 @@ class UTextFormFieldTheme {
   static InputDecorationTheme darkInputDecorationTheme =
       InputDecorationTheme(
     filled: true,
-    fillColor: UColors.darkGrey,
-
-    /// ✅ CURVED SHAPE WITHOUT BORDER
-     border: _defaultBorder(Colors.white),
-    enabledBorder: _defaultBorder(Colors.white),
-
-    /// ✅ BORDER ONLY ON FOCUS
+    fillColor: UColors.darkCard,
+    border: _defaultBorder(UColors.darkBorder),
+    enabledBorder: _defaultBorder(UColors.darkBorder),
     focusedBorder: _focusedBorder(UColors.primaryLight),
-
-    /// ❌ ERROR STATE
     errorBorder: _errorBorder(UColors.error),
     focusedErrorBorder: _errorBorder(UColors.error),
-
+    labelStyle: const TextStyle(color: UColors.primaryLight),
+    floatingLabelStyle: const TextStyle(color: UColors.primaryLight),
+    hintStyle: TextStyle(color: UColors.grey.withOpacity(0.95)),
+    prefixIconColor: UColors.primary,
+    suffixIconColor: UColors.primaryLight,
     contentPadding:
         const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
   );

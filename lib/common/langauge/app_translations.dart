@@ -8,6 +8,7 @@ class AppTranslations extends Translations {
       'college_predictor': 'College Predictor',
       'state': 'State',
       'category': 'Category',
+
       'course': 'Course',
       'institute_type': 'Institute Type',
       'quota': 'Quota',
@@ -62,11 +63,97 @@ class AppTranslations extends Translations {
       'general': 'General',
       'language': 'Language',
       'language_change_hint': 'Changes apply instantly across the app',
+
+      //collge list
+
+      // FILTER
+      'filter_colleges': 'Filter Colleges',
+      'refine_filters': 'Refine results by location, course and type',
+
+      'city': 'City',
+      'enter_city': 'Enter city name',
+      'select_state': 'Select state',
+
+      'course_type': 'Course Type',
+      'select_course': 'Select course',
+      'other_course': 'Other Course',
+      'type_course_name': 'Type course name',
+
+      'institute_type': 'Institute Type',
+
+      'government': 'Government',
+      'private': 'Private',
+      'deemed': 'Deemed',
+
+      'apply_filters': 'Apply Filters',
+
+      // SEARCH
+      'search_colleges': 'Search colleges',
+
+      // CARD
+      'degrees_courses': 'Degrees & Courses',
+      'hostel_available': 'Hostel Available',
+      'total_seats': 'Total Seats',
+      'unknown_college': 'Unknown College',
+      'established': 'Est.',
+
+      // LOCK WALL
+      'colleges_locked': 'Colleges Locked',
+      'unlock_premium_msg':
+          'Upgrade to Premium to unlock all medical colleges & detailed insights',
+
+      'all_colleges': 'All Colleges',
+      'cutoff_data': 'Cutoff Data',
+      'ai_predictor': 'AI Predictor',
+      'seat_matrix': 'Seat Matrix',
+      'unlock_all_colleges': 'Unlock All Colleges',
+
+      //Settings Page
+      'account': 'Account',
+      'student': 'Student',
+      'update_profile': 'Update your profile',
+
+      'services': 'Services',
+      'data_storage': 'Data & Storage',
+
+      'personal_info': 'Personal Info',
+      'documents': 'Documents',
+      'plans': 'Subscription Plans',
+      'my_packages': 'My Packages',
+      'about': 'About',
+      'support': 'Support',
+      'logout': 'Logout',
+
+      'theme': 'Theme',
+      'dark_mode': 'Dark mode',
+      'light_mode': 'Light mode',
+
+      'app_version': 'App Version',
+
+      'new_request': 'New Request',
+      'request_guidance': 'Request Guidance',
+      'no_requests_found': 'No requests found',
+      'submit_request': 'Submit request',
+      'view_details': 'View Details',
+      'request_details': 'Request Details',
+      'your_message': 'Your message',
+      'no_message': 'No message provided',
+      'updated': 'Updated',
+      'created': 'Created',
+      'accepted': 'Accepted',
+      'pending': 'Pending',
+      'total_requests': 'Total requests',
+      'assigned_counselor': 'Assigned counselor',
+      'student_name': 'Student',
+      'mobile': 'Mobile',
+      'email': 'Email',
+      'not_available': 'Not available',
     },
 
     // ================= HINDI =================
     'hi': {
       'home_title': 'होम',
+
       // Prediction Page
       'college_predictor': 'कॉलेज प्रेडिक्टर',
       'state': 'राज्य',
@@ -122,8 +209,85 @@ class AppTranslations extends Translations {
       'general': 'सामान्य',
       'language': 'भाषा',
       'language_change_hint': 'परिवर्तन तुरंत पूरे ऐप में लागू होंगे',
-    },
 
+      // 🔥 NEWLY ADDED (IMPORTANT)
+      'filter_colleges': 'कॉलेज फ़िल्टर करें',
+      'refine_filters': 'स्थान, कोर्स और प्रकार के अनुसार परिणाम फ़िल्टर करें',
+
+      'city': 'शहर',
+      'enter_city': 'शहर का नाम दर्ज करें',
+      'select_state': 'राज्य चुनें',
+      'new_request': 'नई रिक्वेस्ट',
+      'request_guidance': 'मार्गदर्शन अनुरोध',
+      'no_requests_found': 'कोई अनुरोध नहीं मिला',
+      'submit_request': 'अनुरोध भेजें',
+      'view_details': 'विवरण देखें',
+      'request_details': 'अनुरोध विवरण',
+      'your_message': 'आपका संदेश',
+      'no_message': 'कोई संदेश उपलब्ध नहीं',
+      'updated': 'अपडेट किया गया',
+      'created': 'बनाया गया',
+      'accepted': 'स्वीकृत',
+      'pending': 'लंबित',
+      'total_requests': 'कुल अनुरोध',
+      'assigned_counselor': 'नियुक्त काउंसलर',
+      'student_name': 'छात्र',
+      'mobile': 'मोबाइल',
+      'email': 'ईमेल',
+      'not_available': 'उपलब्ध नहीं',
+
+      'course_type': 'कोर्स प्रकार',
+      'select_course': 'कोर्स चुनें',
+      'other_course': 'अन्य कोर्स',
+      'type_course_name': 'कोर्स का नाम लिखें',
+
+      'government': 'सरकारी',
+      'private': 'निजी',
+      'deemed': 'डीम्ड',
+
+      'apply_filters': 'फ़िल्टर लागू करें',
+
+      'search_colleges': 'कॉलेज खोजें',
+
+      'degrees_courses': 'डिग्री और कोर्स',
+
+      'hostel_available': 'हॉस्टल उपलब्ध',
+      'total_seats': 'कुल सीटें',
+      'unknown_college': 'अज्ञात कॉलेज',
+      'established': 'स्थापित',
+
+      'colleges_locked': 'कॉलेज लॉक हैं',
+      'unlock_premium_msg':
+          'सभी मेडिकल कॉलेज और विस्तृत जानकारी अनलॉक करने के लिए प्रीमियम लें',
+
+      'all_colleges': 'सभी कॉलेज',
+      'cutoff_data': 'कटऑफ डेटा',
+      'ai_predictor': 'AI प्रेडिक्टर',
+      'seat_matrix': 'सीट मैट्रिक्स',
+      'unlock_all_colleges': 'सभी कॉलेज अनलॉक करें',
+
+      //settings page
+      'account': 'खाता',
+      'student': 'छात्र',
+      'update_profile': 'अपना प्रोफ़ाइल अपडेट करें',
+
+      'services': 'सेवाएं',
+      'data_storage': 'डेटा और स्टोरेज',
+
+      'personal_info': 'व्यक्तिगत जानकारी',
+      'documents': 'दस्तावेज़',
+      'plans': 'योजनाएं',
+      'my_packages': 'मेरे पैकेज',
+      'about': 'के बारे में',
+      'logout': 'लॉगआउट',
+
+      'theme': 'थीम',
+      'dark_mode': 'डार्क मोड',
+      'light_mode': 'लाइट मोड',
+
+      'app_version': 'ऐप संस्करण',
+      'support': 'सहायता',
+    },
     // ================= MARATHI =================
     'mr': {
       'home_title': 'मुख्यपृष्ठ',
@@ -156,6 +320,25 @@ class AppTranslations extends Translations {
       'colleges': 'कॉलेज',
       'favorites': 'आवडीचे',
 
+      'new_request': 'नवीन विनंती',
+      'request_guidance': 'मार्गदर्शन विनंती',
+      'no_requests_found': 'कोणतीही विनंती सापडली नाही',
+      'submit_request': 'विनंती सबमिट करा',
+      'view_details': 'तपशील पहा',
+      'request_details': 'विनंती तपशील',
+      'your_message': 'तुमचा संदेश',
+      'no_message': 'कोणताही संदेश नाही',
+      'updated': 'अपडेट केले',
+      'created': 'तयार केले',
+      'accepted': 'स्वीकारले',
+      'pending': 'प्रलंबित',
+      'total_requests': 'एकूण विनंत्या',
+      'assigned_counselor': 'नियुक्त सल्लागार',
+      'student_name': 'विद्यार्थी',
+      'mobile': 'मोबाईल',
+      'email': 'ईमेल',
+      'not_available': 'उपलब्ध नाही',
+
       'continue_where_left': 'जिथे थांबलात तिथून सुरू करा',
       'resume_subtitle': 'कॉलेज प्रेडिक्टर • IIT दिल्ली',
       'resume': 'पुन्हा सुरू करा',
@@ -182,6 +365,62 @@ class AppTranslations extends Translations {
       'general': 'सामान्य',
       'language': 'भाषा',
       'language_change_hint': 'बदल त्वरितपणे संपूर्ण अ‍ॅपमध्ये लागू होतील',
+      'filter_colleges': 'कॉलेज फिल्टर करा',
+      'refine_filters': 'स्थान, कोर्स आणि प्रकारानुसार परिणाम फिल्टर करा',
+
+      'city': 'शहर',
+      'enter_city': 'शहराचे नाव टाका',
+      'select_state': 'राज्य निवडा',
+
+      'course_type': 'कोर्स प्रकार',
+      'select_course': 'कोर्स निवडा',
+      'other_course': 'इतर कोर्स',
+      'type_course_name': 'कोर्सचे नाव लिहा',
+
+      'government': 'सरकारी',
+      'private': 'खाजगी',
+      'deemed': 'डीम्ड',
+
+      'apply_filters': 'फिल्टर लागू करा',
+
+      'search_colleges': 'कॉलेज शोधा',
+
+      'degrees_courses': 'डिग्री आणि कोर्स',
+
+      'hostel_available': 'वसतिगृह उपलब्ध',
+      'total_seats': 'एकूण जागा',
+      'unknown_college': 'अज्ञात कॉलेज',
+      'established': 'स्थापना',
+
+      'colleges_locked': 'कॉलेज लॉक आहेत',
+      'unlock_premium_msg':
+          'सर्व मेडिकल कॉलेज आणि सविस्तर माहिती अनलॉक करण्यासाठी प्रीमियम घ्या',
+
+      'all_colleges': 'सर्व कॉलेज',
+      'cutoff_data': 'कटऑफ डेटा',
+      'ai_predictor': 'AI प्रेडिक्टर',
+      'seat_matrix': 'सीट मॅट्रिक्स',
+      'unlock_all_colleges': 'सर्व कॉलेज अनलॉक करा',
+      'account': 'खाते',
+      'student': 'विद्यार्थी',
+      'update_profile': 'तुमचा प्रोफाइल अपडेट करा',
+
+      'services': 'सेवा',
+      'data_storage': 'डेटा आणि स्टोरेज',
+
+      'personal_info': 'वैयक्तिक माहिती',
+      'documents': 'दस्तऐवज',
+      'plans': 'योजना',
+      'my_packages': 'माझे पॅकेजेस',
+      'about': 'माहिती',
+      'logout': 'लॉगआउट',
+
+      'theme': 'थीम',
+      'dark_mode': 'डार्क मोड',
+      'light_mode': 'लाईट मोड',
+
+      'app_version': 'अ‍ॅप आवृत्ती',
+      'support': 'समर्थन',
     },
 
     // ================= TELUGU =================
@@ -202,6 +441,25 @@ class AppTranslations extends Translations {
       'searching_colleges': 'కళాశాలలు వెతుకుతోంది...',
       'checking_quota_seats': 'కోటా సీట్లు తనిఖీ చేస్తోంది...',
       'analyzing_cutoffs': 'గత సంవత్సరం కట్‌ఆఫ్‌లను విశ్లేషిస్తోంది...',
+
+      'new_request': 'కొత్త అభ్యర్థన',
+      'request_guidance': 'మార్గదర్శక అభ్యర్థన',
+      'no_requests_found': 'అభ్యర్థనలు లేవు',
+      'submit_request': 'అభ్యర్థన పంపండి',
+      'view_details': 'వివరాలు చూడండి',
+      'request_details': 'అభ్యర్థన వివరాలు',
+      'your_message': 'మీ సందేశం',
+      'no_message': 'సందేశం లేదు',
+      'updated': 'నవీకరించబడింది',
+      'created': 'సృష్టించబడింది',
+      'accepted': 'ఆమోదించబడింది',
+      'pending': 'పెండింగ్',
+      'total_requests': 'మొత్తం అభ్యర్థనలు',
+      'assigned_counselor': 'కౌన్సిలర్ కేటాయించారు',
+      'student_name': 'విద్యార్థి',
+      'mobile': 'మొబైల్',
+      'email': 'ఈమెయిల్',
+      'not_available': 'అందుబాటులో లేదు',
       'ranking_colleges':
           'ప్రవేశ అవకాశాల ప్రకారం కళాశాలలను ర్యాంక్ చేస్తోంది...',
       'generating_results': 'AI అంచనా ఫలితాలు రూపొందిస్తోంది...',
@@ -244,6 +502,62 @@ class AppTranslations extends Translations {
       'general': 'సాధారణం',
       'language': 'భాష',
       'language_change_hint': 'మార్పులు వెంటనే యాప్ అంతటా అమలవుతాయి',
+      'filter_colleges': 'కాలేజీలను ఫిల్టర్ చేయండి',
+      'refine_filters': 'స్థానం, కోర్సు మరియు రకానికి అనుగుణంగా ఫిల్టర్ చేయండి',
+
+      'city': 'నగరం',
+      'enter_city': 'నగర పేరు నమోదు చేయండి',
+      'select_state': 'రాష్ట్రాన్ని ఎంచుకోండి',
+
+      'course_type': 'కోర్సు రకం',
+      'select_course': 'కోర్సు ఎంచుకోండి',
+      'other_course': 'ఇతర కోర్సు',
+      'type_course_name': 'కోర్సు పేరు టైప్ చేయండి',
+
+      'government': 'ప్రభుత్వ',
+      'private': 'ప్రైవేట్',
+      'deemed': 'డీమ్డ్',
+
+      'apply_filters': 'ఫిల్టర్లు వర్తించండి',
+
+      'search_colleges': 'కాలేజీలను వెతకండి',
+
+      'degrees_courses': 'డిగ్రీలు & కోర్సులు',
+
+      'hostel_available': 'హాస్టల్ అందుబాటులో ఉంది',
+      'total_seats': 'మొత్తం సీట్లు',
+      'unknown_college': 'తెలియని కాలేజీ',
+      'established': 'స్థాపించబడింది',
+
+      'colleges_locked': 'కాలేజీలు లాక్ అయ్యాయి',
+      'unlock_premium_msg':
+          'అన్ని మెడికల్ కాలేజీలు మరియు వివరాలను అన్‌లాక్ చేయడానికి ప్రీమియం తీసుకోండి',
+
+      'all_colleges': 'అన్ని కాలేజీలు',
+      'cutoff_data': 'కట్ ఆఫ్ డేటా',
+      'ai_predictor': 'AI ప్రిడిక్టర్',
+      'seat_matrix': 'సీట్ మ్యాట్రిక్స్',
+      'unlock_all_colleges': 'అన్ని కాలేజీలను అన్‌లాక్ చేయండి',
+      'account': 'ఖాతా',
+      'student': 'విద్యార్థి',
+      'update_profile': 'మీ ప్రొఫైల్‌ను అప్డేట్ చేయండి',
+
+      'services': 'సేవలు',
+      'data_storage': 'డేటా మరియు స్టోరేజ్',
+
+      'personal_info': 'వ్యక్తిగత సమాచారం',
+      'documents': 'పత్రాలు',
+      'plans': 'ప్లాన్లు',
+      'my_packages': 'నా ప్యాకేజీలు',
+      'about': 'గురించి',
+      'logout': 'లాగౌట్',
+
+      'theme': 'థీమ్',
+      'dark_mode': 'డార్క్ మోడ్',
+      'light_mode': 'లైట్ మోడ్',
+
+      'app_version': 'యాప్ వెర్షన్',
+      'support': 'మద్దతు',
     },
 
     // ================= BENGALI =================
@@ -269,6 +583,24 @@ class AppTranslations extends Translations {
       'browse_state': 'রাজ্য অনুযায়ী অনুসন্ধান করুন',
       'assistance': 'ব্যক্তিগত সহায়তা',
       'help': 'সহায়তা',
+      'new_request': 'নতুন অনুরোধ',
+      'request_guidance': 'গাইডেন্স অনুরোধ',
+      'no_requests_found': 'কোন অনুরোধ পাওয়া যায়নি',
+      'submit_request': 'অনুরোধ জমা দিন',
+      'view_details': 'বিস্তারিত দেখুন',
+      'request_details': 'অনুরোধের বিস্তারিত',
+      'your_message': 'আপনার বার্তা',
+      'no_message': 'কোন বার্তা নেই',
+      'updated': 'আপডেট করা হয়েছে',
+      'created': 'তৈরি করা হয়েছে',
+      'accepted': 'গৃহীত',
+      'pending': 'মুলতুবি',
+      'total_requests': 'মোট অনুরোধ',
+      'assigned_counselor': 'নিযুক্ত কাউন্সেলর',
+      'student_name': 'ছাত্র',
+      'mobile': 'মোবাইল',
+      'email': 'ইমেল',
+      'not_available': 'উপলব্ধ নয়',
       'chat_support': 'চ্যাট সহায়তা',
       'top_institutes': 'শীর্ষ প্রতিষ্ঠান',
       'compare_colleges': 'কলেজ তুলনা করুন',
@@ -281,6 +613,62 @@ class AppTranslations extends Translations {
       'general': 'সাধারণ',
       'language': 'ভাষা',
       'language_change_hint': 'পরিবর্তনগুলি অ্যাপে সাথে সাথে প্রয়োগ হবে',
+      'filter_colleges': 'কলেজ ফিল্টার করুন',
+      'refine_filters': 'লোকেশন, কোর্স এবং টাইপ অনুযায়ী ফিল্টার করুন',
+
+      'city': 'শহর',
+      'enter_city': 'শহরের নাম লিখুন',
+      'select_state': 'রাজ্য নির্বাচন করুন',
+
+      'course_type': 'কোর্সের ধরন',
+      'select_course': 'কোর্স নির্বাচন করুন',
+      'other_course': 'অন্যান্য কোর্স',
+      'type_course_name': 'কোর্সের নাম লিখুন',
+
+      'government': 'সরকারি',
+      'private': 'বেসরকারি',
+      'deemed': 'ডিমড',
+
+      'apply_filters': 'ফিল্টার প্রয়োগ করুন',
+
+      'search_colleges': 'কলেজ খুঁজুন',
+
+      'degrees_courses': 'ডিগ্রি ও কোর্স',
+
+      'hostel_available': 'হোস্টেল উপলব্ধ',
+      'total_seats': 'মোট আসন',
+      'unknown_college': 'অজানা কলেজ',
+      'established': 'প্রতিষ্ঠিত',
+
+      'colleges_locked': 'কলেজ লক করা আছে',
+      'unlock_premium_msg':
+          'সব মেডিকেল কলেজ এবং বিস্তারিত জানতে প্রিমিয়াম নিন',
+
+      'all_colleges': 'সব কলেজ',
+      'cutoff_data': 'কাটঅফ ডেটা',
+      'ai_predictor': 'AI প্রেডিক্টর',
+      'seat_matrix': 'সিট ম্যাট্রিক্স',
+      'unlock_all_colleges': 'সব কলেজ আনলক করুন',
+      'account': 'অ্যাকাউন্ট',
+      'student': 'শিক্ষার্থী',
+      'update_profile': 'আপনার প্রোফাইল আপডেট করুন',
+
+      'services': 'সেবা',
+      'data_storage': 'ডেটা ও স্টোরেজ',
+
+      'personal_info': 'ব্যক্তিগত তথ্য',
+      'documents': 'ডকুমেন্ট',
+      'plans': 'প্ল্যান',
+      'my_packages': 'আমার প্যাকেজ',
+      'about': 'সম্পর্কে',
+      'logout': 'লগআউট',
+
+      'theme': 'থিম',
+      'dark_mode': 'ডার্ক মোড',
+      'light_mode': 'লাইট মোড',
+
+      'app_version': 'অ্যাপ ভার্সন',
+      'support': 'সহায়তা',
     },
 
     // ================= GUJARATI =================
@@ -305,6 +693,24 @@ class AppTranslations extends Translations {
       'upcoming_exams': 'આગામી પરીક્ષાઓ',
       'browse_state': 'રાજ્ય પ્રમાણે શોધો',
       'assistance': 'વ્યક્તિગત સહાય',
+      'new_request': 'નવી વિનંતી',
+      'request_guidance': 'માર્ગદર્શન વિનંતી',
+      'no_requests_found': 'કોઈ વિનંતી મળી નથી',
+      'submit_request': 'વિનંતી મોકલો',
+      'view_details': 'વિગતો જુઓ',
+      'request_details': 'વિનંતી વિગતો',
+      'your_message': 'તમારો સંદેશ',
+      'no_message': 'કોઈ સંદેશ નથી',
+      'updated': 'અપડેટ કર્યું',
+      'created': 'બનાવ્યું',
+      'accepted': 'સ્વીકાર્યું',
+      'pending': 'બાકી',
+      'total_requests': 'કુલ વિનંતીઓ',
+      'assigned_counselor': 'નિયુક્ત સલાહકાર',
+      'student_name': 'વિદ્યાર્થી',
+      'mobile': 'મોબાઇલ',
+      'email': 'ઇમેલ',
+      'not_available': 'ઉપલબ્ધ નથી',
       'help': 'મદદ',
       'chat_support': 'ચેટ સહાય',
       'top_institutes': 'શ્રેષ્ઠ સંસ્થાઓ',
@@ -318,12 +724,87 @@ class AppTranslations extends Translations {
       'general': 'સામાન્ય',
       'language': 'ભાષા',
       'language_change_hint': 'ફેરફારો તરત જ એપમાં લાગુ પડશે',
+      'filter_colleges': 'કોલેજ ફિલ્ટર કરો',
+      'refine_filters': 'સ્થાન, કોર્સ અને પ્રકાર મુજબ ફિલ્ટર કરો',
+
+      'city': 'શહેર',
+      'enter_city': 'શહેરનું નામ લખો',
+      'select_state': 'રાજ્ય પસંદ કરો',
+
+      'course_type': 'કોર્સ પ્રકાર',
+      'select_course': 'કોર્સ પસંદ કરો',
+      'other_course': 'અન્ય કોર્સ',
+      'type_course_name': 'કોર્સનું નામ લખો',
+
+      'government': 'સરકારી',
+      'private': 'ખાનગી',
+      'deemed': 'ડીમ્ડ',
+
+      'apply_filters': 'ફિલ્ટર લાગુ કરો',
+
+      'search_colleges': 'કોલેજ શોધો',
+
+      'degrees_courses': 'ડિગ્રી અને કોર્સ',
+
+      'hostel_available': 'હોસ્ટેલ ઉપલબ્ધ',
+      'total_seats': 'કુલ સીટો',
+      'unknown_college': 'અજ્ઞાત કોલેજ',
+      'established': 'સ્થાપિત',
+
+      'colleges_locked': 'કોલેજ લોક છે',
+      'unlock_premium_msg': 'બધા મેડિકલ કોલેજ અને વિગતો અનલોક કરવા પ્રીમિયમ લો',
+
+      'all_colleges': 'બધી કોલેજ',
+      'cutoff_data': 'કટઓફ ડેટા',
+      'ai_predictor': 'AI પ્રેડિક્ટર',
+      'seat_matrix': 'સીટ મેટ્રિક્સ',
+      'unlock_all_colleges': 'બધી કોલેજ અનલોક કરો',
+
+      //settings page
+      'account': 'એકાઉન્ટ',
+      'student': 'વિદ્યાર્થી',
+      'update_profile': 'તમારું પ્રોફાઇલ અપડેટ કરો',
+
+      'services': 'સેવાઓ',
+      'data_storage': 'ડેટા અને સ્ટોરેજ',
+
+      'personal_info': 'વ્યક્તિગત માહિતી',
+      'documents': 'દસ્તાવેજો',
+      'plans': 'પ્લાન્સ',
+      'my_packages': 'મારા પેકેજીસ',
+      'about': 'વિશે',
+      'logout': 'લોગઆઉટ',
+
+      'theme': 'થીમ',
+      'dark_mode': 'ડાર્ક મોડ',
+      'light_mode': 'લાઇટ મોડ',
+
+      'app_version': 'એપ વર્ઝન',
+      'support': 'સહાય',
     },
 
     // ================= KANNADA =================
     'kn': {
       'home_title': 'ಮುಖಪುಟ',
       'predict_colleges': 'ಕಾಲೇಜ್ ಊಹೆ',
+      'new_request': 'ಹೊಸ ವಿನಂತಿ',
+      'request_guidance': 'ಮಾರ್ಗದರ್ಶನ ವಿನಂತಿ',
+      'no_requests_found': 'ಯಾವುದೇ ವಿನಂತಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ',
+      'submit_request': 'ವಿನಂತಿಯನ್ನು ಸಲ್ಲಿಸಿ',
+      'view_details': 'ವಿವರಗಳನ್ನು ನೋಡಿ',
+      'request_details': 'ವಿನಂತಿ ವಿವರಗಳು',
+      'your_message': 'ನಿಮ್ಮ ಸಂದೇಶ',
+      'no_message': 'ಯಾವುದೇ ಸಂದೇಶ ಇಲ್ಲ',
+      'updated': 'ನವೀಕರಿಸಲಾಗಿದೆ',
+      'created': 'ರಚಿಸಲಾಗಿದೆ',
+      'accepted': 'ಅಂಗೀಕರಿಸಲಾಗಿದೆ',
+      'pending': 'ಬಾಕಿ',
+      'total_requests': 'ಒಟ್ಟು ವಿನಂತಿಗಳು',
+      'assigned_counselor': 'ನಿಯೋಜಿತ ಸಲಹೆಗಾರ',
+      'student_name': 'ವಿದ್ಯಾರ್ಥಿ',
+      'mobile': 'ಮೊಬೈಲ್',
+      'email': 'ಇಮೇಲ್',
+      'not_available': 'ಲಭ್ಯವಿಲ್ಲ',
       'get_colleges_based_on_rank':
           'ನಿಮ್ಮ ರ್ಯಾಂಕ್ ಮತ್ತು ವರ್ಗದ ಆಧಾರದ ಮೇಲೆ ಕಾಲೇಜುಗಳನ್ನು ಪಡೆಯಿರಿ',
       'start': 'ಪ್ರಾರಂಭಿಸಿ',
@@ -356,12 +837,88 @@ class AppTranslations extends Translations {
       'language': 'ಭಾಷೆ',
       'language_change_hint':
           'ಬದಲಾವಣೆಗಳು ತಕ್ಷಣವೇ ಅಪ್ಲಿಕೇಶನ್‌ನಲ್ಲಿ ಅನ್ವಯವಾಗುತ್ತವೆ',
+      'filter_colleges': 'ಕಾಲೇಜುಗಳನ್ನು ಫಿಲ್ಟರ್ ಮಾಡಿ',
+      'refine_filters': 'ಸ್ಥಳ, ಕೋರ್ಸ್ ಮತ್ತು ಪ್ರಕಾರದ ಆಧಾರದ ಮೇಲೆ ಫಿಲ್ಟರ್ ಮಾಡಿ',
+
+      'city': 'ನಗರ',
+      'enter_city': 'ನಗರದ ಹೆಸರು ನಮೂದಿಸಿ',
+      'select_state': 'ರಾಜ್ಯವನ್ನು ಆಯ್ಕೆಮಾಡಿ',
+
+      'course_type': 'ಕೋರ್ಸ್ ಪ್ರಕಾರ',
+      'select_course': 'ಕೋರ್ಸ್ ಆಯ್ಕೆಮಾಡಿ',
+      'other_course': 'ಇತರೆ ಕೋರ್ಸ್',
+      'type_course_name': 'ಕೋರ್ಸ್ ಹೆಸರು ಟೈಪ್ ಮಾಡಿ',
+
+      'government': 'ಸರಕಾರಿ',
+      'private': 'ಖಾಸಗಿ',
+      'deemed': 'ಡೀಮ್ಡ್',
+
+      'apply_filters': 'ಫಿಲ್ಟರ್ ಅನ್ವಯಿಸಿ',
+
+      'search_colleges': 'ಕಾಲೇಜುಗಳನ್ನು ಹುಡುಕಿ',
+
+      'degrees_courses': 'ಡಿಗ್ರಿಗಳು ಮತ್ತು ಕೋರ್ಸ್‌ಗಳು',
+
+      'hostel_available': 'ಹಾಸ್ಟೆಲ್ ಲಭ್ಯ',
+      'total_seats': 'ಒಟ್ಟು ಸೀಟುಗಳು',
+      'unknown_college': 'ಅಪರಿಚಿತ ಕಾಲೇಜು',
+      'established': 'ಸ್ಥಾಪಿತ',
+
+      'colleges_locked': 'ಕಾಲೇಜುಗಳು ಲಾಕ್ ಆಗಿವೆ',
+      'unlock_premium_msg':
+          'ಎಲ್ಲಾ ಮೆಡಿಕಲ್ ಕಾಲೇಜುಗಳನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಲು ಪ್ರೀಮಿಯಂ ತೆಗೆದುಕೊಳ್ಳಿ',
+
+      'all_colleges': 'ಎಲ್ಲಾ ಕಾಲೇಜುಗಳು',
+      'cutoff_data': 'ಕಟ್‌ಆಫ್ ಡೇಟಾ',
+      'ai_predictor': 'AI ಪ್ರಿಡಿಕ್ಟರ್',
+      'seat_matrix': 'ಸೀಟ್ ಮ್ಯಾಟ್ರಿಕ್ಸ್',
+      'unlock_all_colleges': 'ಎಲ್ಲಾ ಕಾಲೇಜುಗಳನ್ನು ಅನ್ಲಾಕ್ ಮಾಡಿ',
+
+      //settings page
+      'account': 'ಖಾತೆ',
+      'student': 'ವಿದ್ಯಾರ್ಥಿ',
+      'update_profile': 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಅಪ್ಡೇಟ್ ಮಾಡಿ',
+
+      'services': 'ಸೇವೆಗಳು',
+      'data_storage': 'ಡೇಟಾ ಮತ್ತು ಸಂಗ್ರಹಣೆ',
+
+      'personal_info': 'ವೈಯಕ್ತಿಕ ಮಾಹಿತಿ',
+      'documents': 'ದಾಖಲೆಗಳು',
+      'plans': 'ಯೋಜನೆಗಳು',
+      'my_packages': 'ನನ್ನ ಪ್ಯಾಕೇಜ್‌ಗಳು',
+      'about': 'ಬಗ್ಗೆ',
+      'logout': 'ಲಾಗ್‌ಔಟ್',
+
+      'theme': 'ಥೀಮ್',
+      'dark_mode': 'ಡಾರ್ಕ್ ಮೋಡ್',
+      'light_mode': 'ಲೈಟ್ ಮೋಡ್',
+
+      'app_version': 'ಆಪ್ ಆವೃತ್ತಿ',
+      'support': 'ಸಹಾಯ',
     },
 
     // ================= MALAYALAM =================
     'ml': {
       'home_title': 'ഹോം',
       'predict_colleges': 'കോളേജ് പ്രവചനം',
+      'new_request': 'പുതിയ അഭ്യർത്ഥന',
+      'request_guidance': 'മാർഗനിർദ്ദേശ അഭ്യർത്ഥന',
+      'no_requests_found': 'അഭ്യർത്ഥനകളൊന്നും കണ്ടെത്തിയില്ല',
+      'submit_request': 'അഭ്യർത്ഥന സമർപ്പിക്കുക',
+      'view_details': 'വിശദാംശങ്ങൾ കാണുക',
+      'request_details': 'അഭ്യർത്ഥന വിശദാംശങ്ങൾ',
+      'your_message': 'നിങ്ങളുടെ സന്ദേശം',
+      'no_message': 'സന്ദേശമൊന്നുമില്ല',
+      'updated': 'അപ്ഡേറ്റ് ചെയ്തു',
+      'created': 'സൃഷ്ടിച്ചു',
+      'accepted': 'സ്വീകരിച്ചു',
+      'pending': 'ബാക്കി',
+      'total_requests': 'മൊത്തം അഭ്യർത്ഥനകൾ',
+      'assigned_counselor': 'നിയമിത കൗൺസിലർ',
+      'student_name': 'വിദ്യാർത്ഥി',
+      'mobile': 'മൊബൈൽ',
+      'email': 'ഇമെയിൽ',
+      'not_available': 'ലഭ്യമല്ല',
       'get_colleges_based_on_rank':
           'നിങ്ങളുടെ റാങ്ക് & വിഭാഗം അടിസ്ഥാനമാക്കി കോളേജുകൾ നേടുക',
       'start': 'ആരംഭിക്കുക',
@@ -393,12 +950,86 @@ class AppTranslations extends Translations {
       'general': 'സാധാരണ',
       'language': 'ഭാഷ',
       'language_change_hint': 'മാറ്റങ്ങൾ ഉടൻ തന്നെ ആപ്പിൽ പ്രയോഗിക്കും',
+      'filter_colleges': 'കോളേജുകൾ ഫിൽട്ടർ ചെയ്യുക',
+      'refine_filters': 'സ്ഥലം, കോഴ്സ്, തരം എന്നിവ പ്രകാരം ഫിൽട്ടർ ചെയ്യുക',
+
+      'city': 'നഗരം',
+      'enter_city': 'നഗരത്തിന്റെ പേര് നൽകുക',
+      'select_state': 'സംസ്ഥാനം തിരഞ്ഞെടുക്കുക',
+
+      'course_type': 'കോഴ്സ് തരം',
+      'select_course': 'കോഴ്സ് തിരഞ്ഞെടുക്കുക',
+      'other_course': 'മറ്റ് കോഴ്സ്',
+      'type_course_name': 'കോഴ്സിന്റെ പേര് എഴുതുക',
+
+      'government': 'സർക്കാർ',
+      'private': 'സ്വകാര്യ',
+      'deemed': 'ഡീംഡ്',
+
+      'apply_filters': 'ഫിൽട്ടർ പ്രയോഗിക്കുക',
+
+      'search_colleges': 'കോളേജുകൾ തിരയുക',
+
+      'degrees_courses': 'ഡിഗ്രികളും കോഴ്സുകളും',
+
+      'hostel_available': 'ഹോസ്റ്റൽ ലഭ്യമാണ്',
+      'total_seats': 'ആകെ സീറ്റുകൾ',
+      'unknown_college': 'അജ്ഞാത കോളേജ്',
+      'established': 'സ്ഥാപിത',
+
+      'colleges_locked': 'കോളേജുകൾ ലോക്കാണ്',
+      'unlock_premium_msg':
+          'എല്ലാ മെഡിക്കൽ കോളേജുകളും തുറക്കാൻ പ്രീമിയം എടുക്കുക',
+
+      'all_colleges': 'എല്ലാ കോളേജുകളും',
+      'cutoff_data': 'കട്ട് ഓഫ് ഡാറ്റ',
+      'ai_predictor': 'AI പ്രവചകൻ',
+      'seat_matrix': 'സീറ്റ് മാട്രിക്സ്',
+      'unlock_all_colleges': 'എല്ലാ കോളേജുകളും അൺലോക്ക് ചെയ്യുക',
+      'account': 'അക്കൗണ്ട്',
+      'student': 'വിദ്യാർത്ഥി',
+      'update_profile': 'നിങ്ങളുടെ പ്രൊഫൈൽ അപ്ഡേറ്റ് ചെയ്യുക',
+
+      'services': 'സേവനങ്ങൾ',
+      'data_storage': 'ഡാറ്റയും സ്റ്റോറേജും',
+
+      'personal_info': 'വ്യക്തിഗത വിവരങ്ങൾ',
+      'documents': 'രേഖകൾ',
+      'plans': 'പ്ലാനുകൾ',
+      'my_packages': 'എന്റെ പാക്കേജുകൾ',
+      'about': 'കുറിച്ച്',
+      'logout': 'ലോഗ്ഔട്ട്',
+
+      'theme': 'തീം',
+      'dark_mode': 'ഡാർക്ക് മോഡ്',
+      'light_mode': 'ലൈറ്റ് മോഡ്',
+
+      'app_version': 'ആപ്പ് പതിപ്പ്',
+      'support': 'സഹായം',
     },
 
     // ================= ODIA =================
     'or': {
       'home_title': 'ହୋମ୍',
       'predict_colleges': 'କଲେଜ୍ ଅନୁମାନ',
+      'new_request': 'ନୂତନ ଅନୁରୋଧ',
+      'request_guidance': 'ମାର୍ଗଦର୍ଶନ ଅନୁରୋଧ',
+      'no_requests_found': 'କୌଣସି ଅନୁରୋଧ ମିଳିଲା ନାହିଁ',
+      'submit_request': 'ଅନୁରୋଧ ପଠାନ୍ତୁ',
+      'view_details': 'ବିବରଣୀ ଦେଖନ୍ତୁ',
+      'request_details': 'ଅନୁରୋଧ ବିବରଣୀ',
+      'your_message': 'ଆପଣଙ୍କ ସନ୍ଦେଶ',
+      'no_message': 'କୌଣସି ସନ୍ଦେଶ ନାହିଁ',
+      'updated': 'ଅଦ୍ୟତନ କରାଗଲା',
+      'created': 'ସୃଷ୍ଟି କରାଗଲା',
+      'accepted': 'ଗ୍ରହଣ କରାଗଲା',
+      'pending': 'ବକେୟା',
+      'total_requests': 'ମୋଟ ଅନୁରୋଧ',
+      'assigned_counselor': 'ନିଯୁକ୍ତ ପରାମର୍ଶଦାତା',
+      'student_name': 'ଛାତ୍ର',
+      'mobile': 'ମୋବାଇଲ',
+      'email': 'ଇମେଲ',
+      'not_available': 'ଉପଲବ୍ଧ ନୁହେଁ',
       'get_colleges_based_on_rank':
           'ଆପଣଙ୍କର ର୍ୟାଙ୍କ୍ ଏବଂ ବର୍ଗ ଅନୁଯାୟୀ କଲେଜ୍ ପାଆନ୍ତୁ',
       'start': 'ଆରମ୍ଭ କରନ୍ତୁ',
@@ -430,6 +1061,64 @@ class AppTranslations extends Translations {
       'general': 'ସାଧାରଣ',
       'language': 'ଭାଷା',
       'language_change_hint': 'ପରିବର୍ତ୍ତନଗୁଡ଼ିକ ତୁରନ୍ତ ଆପ୍ରୟୋଗ ହେବ',
+      'filter_colleges': 'କଲେଜ୍ ଫିଲ୍ଟର କରନ୍ତୁ',
+      'refine_filters': 'ସ୍ଥାନ, କୋର୍ସ ଏବଂ ପ୍ରକାର ଅନୁଯାୟୀ ଫିଲ୍ଟର କରନ୍ତୁ',
+
+      'city': 'ସହର',
+      'enter_city': 'ସହର ନାମ ଲେଖନ୍ତୁ',
+      'select_state': 'ରାଜ୍ୟ ବାଛନ୍ତୁ',
+
+      'course_type': 'କୋର୍ସ ପ୍ରକାର',
+      'select_course': 'କୋର୍ସ ବାଛନ୍ତୁ',
+      'other_course': 'ଅନ୍ୟ କୋର୍ସ',
+      'type_course_name': 'କୋର୍ସ ନାମ ଲେଖନ୍ତୁ',
+
+      'government': 'ସରକାରୀ',
+      'private': 'ବେସରକାରୀ',
+      'deemed': 'ଡିମ୍ଡ',
+
+      'apply_filters': 'ଫିଲ୍ଟର ଲାଗୁ କରନ୍ତୁ',
+
+      'search_colleges': 'କଲେଜ୍ ଖୋଜନ୍ତୁ',
+
+      'degrees_courses': 'ଡିଗ୍ରୀ ଓ କୋର୍ସ',
+
+      'hostel_available': 'ହୋଷ୍ଟେଲ୍ ଉପଲବ୍ଧ',
+      'total_seats': 'ମୋଟ ସିଟ୍',
+      'unknown_college': 'ଅଜଣା କଲେଜ୍',
+      'established': 'ସ୍ଥାପିତ',
+
+      'colleges_locked': 'କଲେଜ୍ ଲକ୍ ଅଛି',
+      'unlock_premium_msg':
+          'ସମସ୍ତ ମେଡିକାଲ୍ କଲେଜ୍ ଖୋଲିବା ପାଇଁ ପ୍ରିମିୟମ୍ ନିଅନ୍ତୁ',
+
+      'all_colleges': 'ସମସ୍ତ କଲେଜ୍',
+      'cutoff_data': 'କଟଅଫ ଡାଟା',
+      'ai_predictor': 'AI ପ୍ରିଡିକ୍ଟର୍',
+      'seat_matrix': 'ସିଟ୍ ମ୍ୟାଟ୍ରିକ୍ସ',
+      'unlock_all_colleges': 'ସମସ୍ତ କଲେଜ୍ ଅନଲକ୍ କରନ୍ତୁ',
+
+      //settings page
+      'account': 'ଖାତା',
+      'student': 'ଛାତ୍ର',
+      'update_profile': 'ଆପଣଙ୍କ ପ୍ରୋଫାଇଲ୍ ଅପଡେଟ୍ କରନ୍ତୁ',
+
+      'services': 'ସେବା',
+      'data_storage': 'ଡାଟା ଏବଂ ଷ୍ଟୋରେଜ୍',
+
+      'personal_info': 'ବ୍ୟକ୍ତିଗତ ସୂଚନା',
+      'documents': 'ଡକ୍ୟୁମେଣ୍ଟ',
+      'plans': 'ପ୍ଲାନ୍',
+      'my_packages': 'ମୋର ପ୍ୟାକେଜ୍',
+      'about': 'ବିଷୟରେ',
+      'logout': 'ଲଗଆଉଟ୍',
+
+      'theme': 'ଥିମ୍',
+      'dark_mode': 'ଡାର୍କ ମୋଡ୍',
+      'light_mode': 'ଲାଇଟ୍ ମୋଡ୍',
+
+      'app_version': 'ଆପ୍ ସଂସ୍କରଣ',
+      'support': 'ସହଯୋଗ',
     },
 
     // ================= PUNJABI =================
@@ -466,6 +1155,81 @@ class AppTranslations extends Translations {
       'general': 'ਆਮ',
       'language': 'ਭਾਸ਼ਾ',
       'language_change_hint': 'ਬਦਲਾਅ ਤੁਰੰਤ ਐਪ ਵਿੱਚ ਲਾਗੂ ਹੋਣਗੇ',
+      'filter_colleges': 'ਕਾਲਜ ਫਿਲਟਰ ਕਰੋ',
+      'refine_filters': 'ਸਥਾਨ, ਕੋਰਸ ਅਤੇ ਕਿਸਮ ਅਨੁਸਾਰ ਫਿਲਟਰ ਕਰੋ',
+
+      'city': 'ਸ਼ਹਿਰ',
+      'enter_city': 'ਸ਼ਹਿਰ ਦਾ ਨਾਮ ਦਰਜ ਕਰੋ',
+      'select_state': 'ਰਾਜ ਚੁਣੋ',
+
+      'course_type': 'ਕੋਰਸ ਕਿਸਮ',
+      'select_course': 'ਕੋਰਸ ਚੁਣੋ',
+      'other_course': 'ਹੋਰ ਕੋਰਸ',
+      'type_course_name': 'ਕੋਰਸ ਦਾ ਨਾਮ ਲਿਖੋ',
+
+      'government': 'ਸਰਕਾਰੀ',
+      'private': 'ਨਿੱਜੀ',
+      'deemed': 'ਡੀਮਡ',
+
+      'apply_filters': 'ਫਿਲਟਰ ਲਾਗੂ ਕਰੋ',
+
+      'search_colleges': 'ਕਾਲਜ ਖੋਜੋ',
+
+      'degrees_courses': 'ਡਿਗਰੀਆਂ ਅਤੇ ਕੋਰਸ',
+
+      'hostel_available': 'ਹੋਸਟਲ ਉਪਲਬਧ',
+      'total_seats': 'ਕੁੱਲ ਸੀਟਾਂ',
+      'unknown_college': 'ਅਣਜਾਣ ਕਾਲਜ',
+      'established': 'ਸਥਾਪਿਤ',
+
+      'colleges_locked': 'ਕਾਲਜ ਲਾਕ ਹਨ',
+      'unlock_premium_msg': 'ਸਾਰੇ ਮੈਡੀਕਲ ਕਾਲਜ ਖੋਲ੍ਹਣ ਲਈ ਪ੍ਰੀਮਿਯਮ ਲਵੋ',
+
+      'all_colleges': 'ਸਾਰੇ ਕਾਲਜ',
+      'cutoff_data': 'ਕਟਆਫ ਡੇਟਾ',
+      'ai_predictor': 'AI ਪ੍ਰਿਡਿਕਟਰ',
+      'seat_matrix': 'ਸੀਟ ਮੈਟ੍ਰਿਕਸ',
+      'unlock_all_colleges': 'ਸਾਰੇ ਕਾਲਜ ਅਨਲੌਕ ਕਰੋ',
+
+      //settings page
+      'account': 'ਖਾਤਾ',
+      'student': 'ਵਿਦਿਆਰਥੀ',
+      'update_profile': 'ਆਪਣਾ ਪ੍ਰੋਫਾਈਲ ਅੱਪਡੇਟ ਕਰੋ',
+
+      'services': 'ਸੇਵਾਵਾਂ',
+      'data_storage': 'ਡਾਟਾ ਅਤੇ ਸਟੋਰੇਜ',
+
+      'personal_info': 'ਨਿੱਜੀ ਜਾਣਕਾਰੀ',
+      'documents': 'ਦਸਤਾਵੇਜ਼',
+      'plans': 'ਯੋਜਨਾਵਾਂ',
+      'my_packages': 'ਮੇਰੇ ਪੈਕੇਜ',
+      'about': 'ਬਾਰੇ',
+      'logout': 'ਲੌਗਆਉਟ',
+
+      'theme': 'ਥੀਮ',
+      'dark_mode': 'ਡਾਰਕ ਮੋਡ',
+      'light_mode': 'ਲਾਈਟ ਮੋਡ',
+
+      'app_version': 'ਐਪ ਵਰਜਨ',
+      'support': 'ਸਹਾਯਤਾ',
+      'new_request': 'ਨਵੀਂ ਬੇਨਤੀ',
+      'request_guidance': 'ਮਾਰਗਦਰਸ਼ਨ ਬੇਨਤੀ',
+      'no_requests_found': 'ਕੋਈ ਬੇਨਤੀ ਨਹੀਂ ਮਿਲੀ',
+      'submit_request': 'ਬੇਨਤੀ ਭੇਜੋ',
+      'view_details': 'ਵੇਰਵੇ ਵੇਖੋ',
+      'request_details': 'ਬੇਨਤੀ ਵੇਰਵਾ',
+      'your_message': 'ਤੁਹਾਡਾ ਸੁਨੇਹਾ',
+      'no_message': 'ਕੋਈ ਸੁਨੇਹਾ ਨਹੀਂ',
+      'updated': 'ਅਪਡੇਟ ਕੀਤਾ',
+      'created': 'ਬਣਾਇਆ ਗਿਆ',
+      'accepted': 'ਸਵੀਕਾਰਿਆ ਗਿਆ',
+      'pending': 'ਲੰਬਿਤ',
+      'total_requests': 'ਕੁੱਲ ਬੇਨਤੀਆਂ',
+      'assigned_counselor': 'ਨਿਯੁਕਤ ਕੌਂਸਲਰ',
+      'student_name': 'ਵਿਦਿਆਰਥੀ',
+      'mobile': 'ਮੋਬਾਈਲ',
+      'email': 'ਈਮੇਲ',
+      'not_available': 'ਉਪਲਬਧ ਨਹੀਂ',
     },
 
     // ================= TAMIL =================
@@ -477,6 +1241,24 @@ class AppTranslations extends Translations {
       'start': 'தொடங்கு',
       'matches': 'பொருத்தங்கள்',
       'saved': 'சேமிக்கப்பட்டவை',
+      'new_request': 'புதிய கோரிக்கை',
+      'request_guidance': 'வழிகாட்டல் கோரிக்கை',
+      'no_requests_found': 'கோரிக்கைகள் எதுவும் இல்லை',
+      'submit_request': 'கோரிக்கையை சமர்ப்பிக்கவும்',
+      'view_details': 'விவரங்களை பார்க்க',
+      'request_details': 'கோரிக்கை விவரங்கள்',
+      'your_message': 'உங்கள் செய்தி',
+      'no_message': 'செய்தி இல்லை',
+      'updated': 'புதுப்பிக்கப்பட்டது',
+      'created': 'உருவாக்கப்பட்டது',
+      'accepted': 'ஏற்றுக்கொள்ளப்பட்டது',
+      'pending': 'நிலுவையில் உள்ளது',
+      'total_requests': 'மொத்த கோரிக்கைகள்',
+      'assigned_counselor': 'நியமிக்கப்பட்ட ஆலோசகர்',
+      'student_name': 'மாணவர்',
+      'mobile': 'மொபைல்',
+      'email': 'மின்னஞ்சல்',
+      'not_available': 'கிடைக்கவில்லை',
       'rank': 'தரவரிசை',
       'strong': 'வலுவான',
       'chance': 'வாய்ப்பு',
@@ -503,6 +1285,62 @@ class AppTranslations extends Translations {
       'general': 'பொது',
       'language': 'மொழி',
       'language_change_hint': 'மாற்றங்கள் உடனடியாக செயல்படுத்தப்படும்',
+      'filter_colleges': 'கல்லூரிகளை வடிகட்டவும்',
+      'refine_filters': 'இடம், பாடநெறி மற்றும் வகை அடிப்படையில் வடிகட்டவும்',
+
+      'city': 'நகரம்',
+      'enter_city': 'நகரத்தின் பெயரை உள்ளிடவும்',
+      'select_state': 'மாநிலத்தை தேர்ந்தெடுக்கவும்',
+
+      'course_type': 'பாடநெறி வகை',
+      'select_course': 'பாடநெறி தேர்ந்தெடுக்கவும்',
+      'other_course': 'மற்ற பாடநெறி',
+      'type_course_name': 'பாடநெறி பெயரை எழுதவும்',
+
+      'government': 'அரசு',
+      'private': 'தனியார்',
+      'deemed': 'டீம்ட்',
+
+      'apply_filters': 'வடிகட்டலை பயன்படுத்தவும்',
+
+      'search_colleges': 'கல்லூரிகளை தேடவும்',
+
+      'degrees_courses': 'பட்டங்கள் மற்றும் பாடநெறிகள்',
+
+      'hostel_available': 'ஹாஸ்டல் உள்ளது',
+      'total_seats': 'மொத்த இருக்கைகள்',
+      'unknown_college': 'அறியப்படாத கல்லூரி',
+      'established': 'நிறுவப்பட்டது',
+
+      'colleges_locked': 'கல்லூரிகள் பூட்டப்பட்டுள்ளன',
+      'unlock_premium_msg':
+          'அனைத்து மருத்துவ கல்லூரிகளையும் திறக்க பிரீமியம் எடுக்கவும்',
+
+      'all_colleges': 'அனைத்து கல்லூரிகள்',
+      'cutoff_data': 'கட் ஆஃப் தரவு',
+      'ai_predictor': 'AI கணிப்பான்',
+      'seat_matrix': 'இருப்பு அட்டவணை',
+      'unlock_all_colleges': 'அனைத்து கல்லூரிகளையும் திறக்கவும்',
+      //settings page
+      'account': 'கணக்கு',
+      'student': 'மாணவர்',
+      'update_profile': 'உங்கள் சுயவிவரத்தை புதுப்பிக்கவும்',
+
+      'services': 'சேவைகள்',
+      'data_storage': 'தரவு மற்றும் சேமிப்பு',
+
+      'personal_info': 'தனிப்பட்ட தகவல்',
+      'documents': 'ஆவணங்கள்',
+      'plans': 'திட்டங்கள்',
+      'my_packages': 'என் பேக்கேஜ்கள்',
+      'about': 'பற்றி',
+      'logout': 'வெளியேறு',
+
+      'theme': 'தீம்',
+      'dark_mode': 'டார்க் மோடு',
+      'light_mode': 'லைட் மோடு',
+
+      'app_version': 'ஆப் பதிப்பு',
     },
 
     // ================= URDU =================
@@ -540,6 +1378,62 @@ class AppTranslations extends Translations {
       'general': 'عام',
       'language': 'زبان',
       'language_change_hint': 'تبدیلیاں فوری طور پر ایپ میں لاگو ہوں گی',
+      'filter_colleges': 'کالجز فلٹر کریں',
+      'refine_filters': 'مقام، کورس اور قسم کے مطابق فلٹر کریں',
+
+      'city': 'شہر',
+      'enter_city': 'شہر کا نام درج کریں',
+      'select_state': 'ریاست منتخب کریں',
+
+      'course_type': 'کورس کی قسم',
+      'select_course': 'کورس منتخب کریں',
+      'other_course': 'دیگر کورس',
+      'type_course_name': 'کورس کا نام لکھیں',
+
+      'government': 'سرکاری',
+      'private': 'نجی',
+      'deemed': 'ڈیمڈ',
+
+      'apply_filters': 'فلٹر لاگو کریں',
+
+      'search_colleges': 'کالجز تلاش کریں',
+
+      'degrees_courses': 'ڈگریاں اور کورسز',
+
+      'hostel_available': 'ہاسٹل دستیاب',
+      'total_seats': 'کل نشستیں',
+      'unknown_college': 'نامعلوم کالج',
+      'established': 'قائم',
+
+      'colleges_locked': 'کالجز لاک ہیں',
+      'unlock_premium_msg': 'تمام میڈیکل کالجز کھولنے کے لیے پریمیم حاصل کریں',
+
+      'all_colleges': 'تمام کالجز',
+      'cutoff_data': 'کٹ آف ڈیٹا',
+      'ai_predictor': 'AI پیش گوئی',
+      'seat_matrix': 'سیٹ میٹرکس',
+      'unlock_all_colleges': 'تمام کالجز انلاک کریں',
+
+      //settings page
+      'account': 'اکاؤنٹ',
+      'student': 'طالب علم',
+      'update_profile': 'اپنا پروفائل اپڈیٹ کریں',
+
+      'services': 'سروسز',
+      'data_storage': 'ڈیٹا اور اسٹوریج',
+
+      'personal_info': 'ذاتی معلومات',
+      'documents': 'دستاویزات',
+      'plans': 'منصوبے',
+      'my_packages': 'میرے پیکجز',
+      'about': 'کے بارے میں',
+      'logout': 'لاگ آؤٹ',
+
+      'theme': 'تھیم',
+      'dark_mode': 'ڈارک موڈ',
+      'light_mode': 'لائٹ موڈ',
+
+      'app_version': 'ایپ ورژن',
     },
   };
 }

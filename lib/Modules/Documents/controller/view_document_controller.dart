@@ -1,11 +1,11 @@
-import 'package:Gixa/Modules/Documents/model/view_documents_model.dart';
+﻿import 'package:Gixa/Modules/Documents/model/view_documents_model.dart';
 import 'package:Gixa/services/view_document_service.dart';
 import 'package:get/get.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class StudentDocumentsController extends GetxController {
   final RxBool isLoading = false.obs;
-  final RxList<StudentDocumentModel> documents =
-      <StudentDocumentModel>[].obs;
+  final RxList<StudentDocumentModel> documents = <StudentDocumentModel>[].obs;
 
   @override
   void onInit() {
@@ -22,11 +22,8 @@ class StudentDocumentsController extends GetxController {
       final Map<String, StudentDocumentModel> latestDocs = {};
 
       for (final doc in result) {
-        // 🔥 NORMALIZE document type
-        final key = doc.documentType
-            .trim()
-            .toLowerCase()
-            .replaceAll(' ', '_');
+        // ðŸ”¥ NORMALIZE document type
+        final key = doc.documentType.trim().toLowerCase().replaceAll(' ', '_');
 
         if (!latestDocs.containsKey(key)) {
           latestDocs[key] = doc;
@@ -39,8 +36,14 @@ class StudentDocumentsController extends GetxController {
       }
 
       documents.assignAll(latestDocs.values.toList());
+      print('[DEBUG] Documents after refresh:');
+      for (final doc in documents) {
+        print(
+          '  - docType: "' + doc.documentType + '", id: ' + doc.id.toString(),
+        );
+      }
     } catch (e) {
-      Get.snackbar("Error", "Failed to load documents");
+      AppSnackbar.show("Error", "Failed to load documents");
     } finally {
       isLoading.value = false;
     }
@@ -50,3 +53,4 @@ class StudentDocumentsController extends GetxController {
     await fetchDocuments();
   }
 }
+

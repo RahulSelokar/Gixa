@@ -45,7 +45,10 @@ class User {
       mobileNumber: json['mobile_number'].toString(), // ✅ FIX
       firstName: json['first_name'] ?? '',
       lastName: json['last_name'] ?? '',
-      profilePictureUrl: json['profile_picture']?.toString() ?? '',
+      profilePictureUrl:
+          json['profile_picture_url']?.toString() ??
+          json['profile_picture']?.toString() ??
+          '',
     );
   }
 }

@@ -9,16 +9,21 @@ class UTextTheme {
     headlineLarge: GoogleFonts.robotoSlab(
       fontSize: 28,
       fontWeight: FontWeight.bold,
-      color: UColors.black,
+      color: UColors.primaryDark,
     ),
     titleMedium: GoogleFonts.robotoSlab(
       fontSize: 16,
       fontWeight: FontWeight.w600,
-      color: UColors.black,
+      color: UColors.primaryDark,
     ),
     bodyMedium: GoogleFonts.robotoSlab(
       fontSize: 14,
       color: UColors.black,
+    ),
+    labelLarge: GoogleFonts.robotoSlab(
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      color: UColors.primary,
     ),
   );
 
@@ -26,16 +31,21 @@ class UTextTheme {
     headlineLarge: GoogleFonts.robotoSlab(
       fontSize: 28,
       fontWeight: FontWeight.bold,
-      color: UColors.white,
+      color: UColors.primaryLight,
     ),
     titleMedium: GoogleFonts.robotoSlab(
       fontSize: 16,
       fontWeight: FontWeight.w600,
-      color: UColors.white,
+      color: UColors.primaryLight,
     ),
     bodyMedium: GoogleFonts.robotoSlab(
       fontSize: 14,
       color: UColors.white,
+    ),
+    labelLarge: GoogleFonts.robotoSlab(
+      fontSize: 14,
+      fontWeight: FontWeight.w700,
+      color: UColors.primary,
     ),
   );
 }

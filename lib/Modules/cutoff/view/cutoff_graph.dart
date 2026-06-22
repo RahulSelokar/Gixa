@@ -1,4 +1,5 @@
 import 'package:Gixa/Modules/cutoff/controller/cotoff_controller.dart';
+import 'package:Gixa/common/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -39,7 +40,8 @@ class _AirComparisonGraphPageState extends State<AirComparisonGraphPage> {
         foregroundColor: textPrimary,
         centerTitle: true,
         title: Text(
-          'cutoff_analysis'.tr,
+          // 'cutoff_analysis'.tr,
+          'Cutoff Analysis',
           style: const TextStyle(fontWeight: FontWeight.w700),
         ),
       ),
@@ -48,7 +50,7 @@ class _AirComparisonGraphPageState extends State<AirComparisonGraphPage> {
           return Center(
             child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(
-                isDark ? const Color(0xFF22C55E) : const Color(0xFF1565C0),
+                isDark ? const Color(0xFF22C55E) : kHomeAccentColor,
               ),
             ),
           );
@@ -57,7 +59,7 @@ class _AirComparisonGraphPageState extends State<AirComparisonGraphPage> {
         if (controller.comparison.value == null) {
           return Center(
             child: Text(
-              'no_data_available'.tr,
+              'No data available'.tr,
               style: TextStyle(color: textSecondary),
             ),
           );
@@ -70,6 +72,35 @@ class _AirComparisonGraphPageState extends State<AirComparisonGraphPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.blue.withOpacity(.2), width: 1),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline_rounded,
+                      color: Colors.blue,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Note: This cutoff analysis is personalized based on your rank, category, and state, compared with historical trends from previous years.",
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isDark ? Colors.blue.shade200 : Colors.blue.shade700,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               _heroCard(
                 isDark,
                 data.user.air,
@@ -83,7 +114,7 @@ class _AirComparisonGraphPageState extends State<AirComparisonGraphPage> {
               const SizedBox(height: 12),
 
               /// FILTER CARD
-              _filterCard(isDark, surface, textPrimary, textSecondary),
+              // _filterCard(isDark, surface, textPrimary, textSecondary),
 
               const SizedBox(height: 16),
 
@@ -329,10 +360,10 @@ class _AirComparisonGraphPageState extends State<AirComparisonGraphPage> {
               ),
               icon: const Icon(Icons.keyboard_arrow_down_rounded),
               items: [
-                'state'.tr,
-                'all_india'.tr,
-                'iq'.tr,
-                'nri'.tr,
+                'State'.tr,
+                'All India'.tr,
+                'IQ'.tr,
+                'NRI'.tr,
               ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
               onChanged: (value) {
                 controller.updateFilters(quota: value);
@@ -394,8 +425,8 @@ class _AirComparisonGraphPageState extends State<AirComparisonGraphPage> {
     final allValues = [...alignedCutoffs, ...alignedUserAirLine, userAir];
     final minVal = allValues.reduce((a, b) => a < b ? a : b);
     final maxVal = allValues.reduce((a, b) => a > b ? a : b);
-    final padding = ((maxVal - minVal) * 0.18).clamp(300, 2000);
-    final yMin = ((minVal - padding).clamp(0, double.infinity) as double);
+    final padding = ((maxVal - minVal) * 0.18).clamp(300.0, 2000.0).toDouble();
+    final yMin = (minVal - padding).clamp(0.0, double.infinity).toDouble();
     final yMax = maxVal + padding;
 
     double gridInterval() {

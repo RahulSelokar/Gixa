@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 class PredicationBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<PredictionController>(() => PredictionController());
+    if (!Get.isRegistered<PredictionController>()) {
+      Get.lazyPut<PredictionController>(() => PredictionController());
+    }
   }
 }

@@ -1,6 +1,6 @@
 abstract class AppRoutes {
   AppRoutes._();
-  
+
   static const splash = '/splash';
   static const onboarding = '/onboarding';
   static const loginWithOtp = '/login-with-otp';
@@ -10,6 +10,7 @@ abstract class AppRoutes {
   static const completeProfile = '/complete-profile';
   static const profile = '/profile';
   static const notifications = '/notifications';
+  static const alerts = '/alerts';
   static const search = '/search';
   static const mainNav = '/main-nav';
   static const subscription = '/subscription';
@@ -32,6 +33,7 @@ abstract class AppRoutes {
   static const data_storage = '/data-storage';
   static const updateDocs = '/update-docs';
   static const prediction = '/prediction';
+  static const choiceFilling = '/choice-filling';
   static const ticket = '/ticket';
-
+  static const admissionChat = '/admission-chat';
 }

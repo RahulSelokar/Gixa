@@ -1,4 +1,4 @@
-// import 'package:Gixa/Modules/Documents/controller/view_document_controller.dart';
+﻿// import 'package:Gixa/Modules/Documents/controller/view_document_controller.dart';
 // import 'package:Gixa/Modules/Documents/model/view_documents_model.dart';
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
@@ -152,7 +152,7 @@
 //       Get.to(() => _ImagePreview(url: doc.fileUrl));
 //     } else {
 //       // Later you can open PDF viewer
-//       Get.snackbar("PDF", "Open PDF viewer here");
+//       AppSnackbar.show("PDF", "Open PDF viewer here");
 //     }
 //   }
 // }
@@ -186,6 +186,7 @@ import 'package:get/get.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:Gixa/common/widgets/app_snackbar.dart';
 
 class DocumentsGalleryPage extends StatelessWidget {
   DocumentsGalleryPage({super.key});
@@ -375,7 +376,7 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
         isLoading = false;
       });
     } catch (e) {
-      Get.snackbar("Error", "Failed to load PDF");
+      AppSnackbar.show("Error", "Failed to load PDF");
       isLoading = false;
     }
   }
@@ -398,3 +399,4 @@ class _PdfPreviewPageState extends State<PdfPreviewPage> {
     );
   }
 }
+

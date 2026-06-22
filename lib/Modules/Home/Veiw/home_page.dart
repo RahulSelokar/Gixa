@@ -1,35 +1,57 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:Gixa/Modules/Assistance/view/counselor_page.dart';
+import 'package:Gixa/Modules/Auth/controllers/otp_controller.dart';
+import 'package:Gixa/Modules/Chatbot/view/admission_chat_view.dart';
 import 'package:Gixa/Modules/Chatbot/view/chatbot_view.dart';
+import 'package:Gixa/Modules/Home/widgets/premium_home_card.dart';
+import 'package:Gixa/Modules/cutoff/view/state_wise_distribution_page.dart';
+import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/Modules/Collage/controller/collage_list_controller.dart';
 import 'package:Gixa/Modules/Collage/veiw/collage_list_page.dart';
 import 'package:Gixa/Modules/Faq/controller/faq_controller.dart';
 import 'package:Gixa/Modules/Home/widgets/category_list.dart';
+import 'package:Gixa/Modules/Home/widgets/chatbot_floating_button.dart';
 import 'package:Gixa/Modules/Home/widgets/city_avatar.dart';
 import 'package:Gixa/Modules/Home/widgets/college_card.dart';
 import 'package:Gixa/Modules/Home/widgets/counselling_banner.dart';
+import 'package:Gixa/Modules/Home/widgets/home_alert_slider.dart';
+import 'package:Gixa/Modules/Home/widgets/home_subscription_highlight_card.dart';
 import 'package:Gixa/Modules/Home/widgets/news_card.dart';
 import 'package:Gixa/Modules/Home/widgets/prediction_banner.dart';
+import 'package:Gixa/Modules/Home/widgets/rank_predictor_card.dart';
 import 'package:Gixa/Modules/Home/widgets/update_tile.dart';
 import 'package:Gixa/Modules/Home/widgets/home_header.dart';
 import 'package:Gixa/Modules/Home/widgets/search_bar.dart';
 import 'package:Gixa/Modules/Home/widgets/section_header.dart';
 import 'package:Gixa/Modules/Home/widgets/stream_card.dart';
-import 'package:Gixa/Modules/ProfileProgress/veiw/profile_completion_card.dart';
 import 'package:Gixa/Modules/comparison/view/compare_colleges_page.dart';
+import 'package:Gixa/Modules/counselling_roadmap/view/counselling_roadmap_screen.dart';
 import 'package:Gixa/Modules/cutoff/view/cutoff_graph.dart';
 import 'package:Gixa/Modules/favourite/model/fevorite_model.dart';
 import 'package:Gixa/Modules/favourite/view/favourite_colleges_page.dart';
+import 'package:Gixa/Modules/notification/controller/notification_controller.dart';
 import 'package:Gixa/Modules/predication/controller/prediction_controller.dart';
 import 'package:Gixa/Modules/predication/model/predication_model.dart';
 import 'package:Gixa/Modules/predication/view/ai_prediction_result_view.dart';
 import 'package:Gixa/Modules/predication/view/predication_view.dart';
+import 'package:Gixa/Modules/rank_predication/view/neet_rank_view.dart';
+import 'package:Gixa/Modules/register/view/register_page.dart';
+import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
+import 'package:Gixa/Modules/subscription/view/subscription_plan_page.dart';
+import 'package:Gixa/common/utils/app_responsive.dart';
 import 'package:Gixa/common/widgets/primeum_dailog.dart';
 import 'package:Gixa/naivgation/controller/nav_bar_controller.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/services/auth_guard.dart';
+import 'package:Gixa/services/token_services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:Gixa/common/app_colors.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:showcaseview/showcaseview.dart';
 import '../controller/home_controller.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
@@ -41,20 +63,205 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final HomeController controller = Get.find<HomeController>();
   final MainNavController navController = Get.find();
+  // final NotificationController notificationController =
+  //     Get.find<NotificationController>();
+  final NotificationController notificationController =
+      Get.isRegistered<NotificationController>()
+      ? Get.find<NotificationController>()
+      : Get.put(NotificationController());
   final CollegeListController collegeListController =
       Get.isRegistered<CollegeListController>()
       ? Get.find<CollegeListController>()
-      : Get.put(CollegeListController(), permanent: true);
-  final FaqController faqController = Get.put(FaqController());
+      : Get.put(CollegeListController());
+  final FaqController faqController = Get.isRegistered<FaqController>()
+      ? Get.find<FaqController>()
+      : Get.put(FaqController());
+  final PredictionController predictionController =
+      Get.isRegistered<PredictionController>()
+      ? Get.find<PredictionController>()
+      : Get.put(PredictionController());
+  final SubscriptionController subscriptionController =
+      Get.isRegistered<SubscriptionController>()
+      ? Get.find<SubscriptionController>()
+      : Get.put(SubscriptionController());
 
-  final Color kPrimaryBlue = const Color(0xFF1565C0);
+  final RxBool _isCheckingPremiumStatus = true.obs;
+  final GetStorage _box = GetStorage();
+
+  final GlobalKey _searchKey = GlobalKey();
+  final GlobalKey _rankPredictorKey = GlobalKey();
+  final GlobalKey _predictionKey = GlobalKey();
+  final GlobalKey _categoryKey = GlobalKey();
+  final GlobalKey _featuredCollegeKey = GlobalKey();
+  final GlobalKey _chatbotKey = GlobalKey();
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_prepareHomePageData());
+      faqController.fetchFaqs();
+      collegeListController.fetchColleges();
+
+      _startHomeTour();
+    });
+  }
+
+  void _startHomeTour() {
+    final hasSeenTour = _box.read('home_tour_seen') ?? false;
+
+    if (hasSeenTour) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ShowCaseWidget.of(context).startShowCase([
+        _searchKey,
+        _rankPredictorKey,
+        _predictionKey,
+        _categoryKey,
+        _featuredCollegeKey,
+        _chatbotKey,
+      ]);
+
+      _box.write('home_tour_seen', true);
+    });
+  }
+
+  Future<void> _prepareHomePageData({
+    bool forceRefreshSubscription = false,
+  }) async {
+    if (!notificationController.hasLoaded.value) {
+      await notificationController.fetchNotifications(forceRefresh: true);
+    }
+
+    final shouldLoadAuthenticatedData =
+        await _shouldLoadAuthenticatedHomeData();
+    if (!shouldLoadAuthenticatedData) {
+      _isCheckingPremiumStatus.value = false;
+      return;
+    }
+
+    await subscriptionController.ensureActivePlanReady(
+      forceRefresh: forceRefreshSubscription,
+    );
+
+    // if (mounted && _isCheckingPremiumStatus) {
+    //   setState(() {
+    //     _isCheckingPremiumStatus = false;
+    //   });
+    // }
+    _isCheckingPremiumStatus.value = false;
+  }
+
+  Future<bool> _shouldLoadAuthenticatedHomeData() async {
+    final isRegistered = _box.read('registration_completed') == true;
+    if (!isRegistered) return false;
+
+    final accessToken = await TokenService.getAccessToken();
+    final refreshToken = await TokenService.getRefreshToken();
+
+    return (accessToken != null && accessToken.trim().isNotEmpty) ||
+        (refreshToken != null && refreshToken.trim().isNotEmpty);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(() async {
+        await notificationController.fetchNotifications(forceRefresh: true);
+
+        final shouldLoadAuthenticatedData =
+            await _shouldLoadAuthenticatedHomeData();
+        if (!shouldLoadAuthenticatedData) return;
+        await subscriptionController.ensureActivePlanReady(forceRefresh: true);
+      }());
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  void _openRankPredictor() {
+    Get.to(() => NeetRankView());
+  }
+
+  void _openPredictionSection() {
+    AuthGuard.checkAccess(
+      onAllowed: () {
+        // Only redirect if user was already logged in, otherwise go to home
+        final isRegistered =
+            GetStorage().read('registration_completed') == true;
+        final otpController = Get.isRegistered<OtpController>()
+            ? Get.find<OtpController>()
+            : null;
+        if (isRegistered &&
+            otpController != null &&
+            otpController.isLoggedIn.value == true) {
+          Get.toNamed(AppRoutes.prediction);
+        } else {
+          // Always go to home after login
+          final navController = Get.isRegistered<MainNavController>()
+              ? Get.find<MainNavController>()
+              : null;
+          if (navController != null) {
+            navController.currentIndex.value = 0;
+            navController.isBottomBarVisible.value = true;
+          }
+        }
+      },
+    );
+  }
+
+  void _openSearchSection() {
+    AuthGuard.checkAccess(
+      onAllowed: () {
+        final isRegistered =
+            GetStorage().read('registration_completed') == true;
+        final otpController = Get.isRegistered<OtpController>()
+            ? Get.find<OtpController>()
+            : null;
+        if (isRegistered &&
+            otpController != null &&
+            otpController.isLoggedIn.value == true) {
+          Get.toNamed(AppRoutes.search);
+        } else {
+          final navController = Get.isRegistered<MainNavController>()
+              ? Get.find<MainNavController>()
+              : null;
+          if (navController != null) {
+            navController.currentIndex.value = 0;
+            navController.isBottomBarVisible.value = true;
+          }
+        }
+      },
+    );
+  }
+
+  // void _openPremiumPlans() {
+  //   AuthGuard.checkAccess(onAllowed: () => Get.to(() => SubscriptionPage()));
+  // }
+
+  void _openPremiumPlans() {
+    AuthGuard.checkAccess(onAllowed: () => Get.toNamed(AppRoutes.subscription));
+  }
+
+  void _openCounselorSection() {
+    AuthGuard.checkAccess(
+      onAllowed: () => Get.to(() => const CounselorListView()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final horizontalPadding = AppResponsive.horizontalPadding(context);
+    final contentMaxWidth = AppResponsive.maxContentWidth(context);
+    final isTablet = AppResponsive.isTablet(context);
 
     final bg = isDark ? const Color(0xFF121212) : Colors.white;
     final surface = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -63,849 +270,555 @@ class _HomePageState extends State<HomePage> {
     final textSecondary = isDark ? Colors.grey[400]! : Colors.grey[600]!;
     final border = isDark ? Colors.grey[800]! : Colors.grey[200]!;
 
-    final predictionController = Get.put(PredictionController());
+    return ShowCaseWidget(
+      blurValue: 1,
+      autoPlayDelay: const Duration(seconds: 1),
+      builder: (context) => Scaffold(
+        backgroundColor: bg,
+        resizeToAvoidBottomInset: false,
+        floatingActionButton: Obx(() {
+          final isVisible = navController.isBottomBarVisible.value;
 
-    return Scaffold(
-      backgroundColor: bg,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 90),
-        child: FloatingActionButton(
-          onPressed: () {
-            // AuthGuard.checkAccess(() {
-            //   Get.toNamed('/chat-bot');
-            // });
-            AuthGuard.checkAccess(
-              onAllowed: () {
-                Get.toNamed('/chat-bot');
-              },
-            );
-          },
-          backgroundColor: const Color(0xFF1565C0),
-          elevation: 6,
-          child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      body: SafeArea(
-        child: NotificationListener<UserScrollNotification>(
-          onNotification: (notification) {
-            navController.updateScroll(notification.direction);
-            return true;
-          },
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                  child: HomeHeader(
-                    textPrimary: textPrimary,
-                    textSecondary: textSecondary,
-                    borderColor: border,
-                  ),
-                ),
-
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: InkWell(
-                    onTap: () => Get.toNamed(AppRoutes.search),
-                    borderRadius: BorderRadius.circular(16),
-                    child: AbsorbPointer(
-                      child: HomeSearchBar(
-                        background: inputBg,
-                        hintColor: textSecondary,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-                const ProfileCompletionSlider(),
-                const SizedBox(height: 10),
-
-                // In your home screen — replace the old Padding(…) block with:
-                PredictionBanner(
-                  onTap: () {
-                    AuthGuard.checkAccess(
-                      onAllowed: () {
-                        if (controller.canAccessPrediction()) {
-                          Get.toNamed(AppRoutes.prediction);
-                        } else {
-                          Get.dialog(const PremiumLockDialog());
-                        }
-                      },
-                    );
-                  },
-                ),
-
-                // Show recent predictions as a horizontal row below categories
-                Padding(
-                  padding: const EdgeInsets.only(top: 18, bottom: 0),
-                  child: Obx(() {
-                    final recent = predictionController.recentPredictions;
-                    if (recent.isEmpty) return const SizedBox();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Text(
-                            'Recent Predictions',
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: textPrimary.withOpacity(0.85),
-                              letterSpacing: 0.1,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 70,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: recent.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: 10),
-                            itemBuilder: (context, idx) {
-                              final p = recent[idx];
-                              final cardColor = isDark
-                                  ? Colors.white.withOpacity(0.04)
-                                  : Colors.grey[100];
-                              final borderColor = isDark
-                                  ? Colors.white.withOpacity(0.10)
-                                  : Colors.grey[300];
-                              return InkWell(
-                                borderRadius: BorderRadius.circular(14),
-                                onTap: () {
-                                  final predictionData =
-                                      PredictionData.fromApiResponse(p);
-                                  Get.to(
-                                    () => AiPredictionResultView(
-                                      predictionData: predictionData,
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: 220,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: cardColor,
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: borderColor!),
-                                    boxShadow: [
-                                      if (!isDark)
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.04),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.analytics_outlined,
-                                        size: 22,
-                                        color: isDark
-                                            ? Colors.blue[200]
-                                            : kPrimaryBlue,
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
-                                              '${p['state']} | ${p['category']} | ${p['course']}',
-                                              style: GoogleFonts.inter(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                                color: textPrimary.withOpacity(
-                                                  0.92,
-                                                ),
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              'Year: ${p['year']}  AIR: ${p['rank']}  Quota: ${p['quota']}',
-                                              style: GoogleFonts.inter(
-                                                fontSize: 10,
-                                                color: textSecondary
-                                                    .withOpacity(0.85),
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Icon(
-                                        Icons.arrow_forward_ios,
-                                        size: 14,
-                                        color: textSecondary.withOpacity(0.7),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                ),
-
-                // =========================
-                // PRIMARY ACTION
-                // =========================
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                //   child: Material(
-                //     color: Colors.transparent,
-                //     borderRadius: BorderRadius.circular(24),
-                //     child: InkWell(
-                //       borderRadius: BorderRadius.circular(24),
-                //       splashColor: Colors.white.withOpacity(0.08),
-                //       highlightColor: Colors.white.withOpacity(0.04),
-                //       onTap: () {
-                //         Get.toNamed(AppRoutes.prediction);
-                //       },
-                //       child: Container(
-                //         width: double.infinity,
-                //         height: 130,
-                //         decoration: BoxDecoration(
-                //           gradient: const LinearGradient(
-                //             colors: [
-                //               Color(0xFF1A56DB), // richer blue start
-                //               Color(0xFF1044B2), // deeper end
-                //             ],
-                //             begin: Alignment.topLeft,
-                //             end: Alignment.bottomRight,
-                //           ),
-                //           borderRadius: BorderRadius.circular(24),
-                //           boxShadow: [
-                //             BoxShadow(
-                //               color: const Color(0xFF1A56DB).withOpacity(0.38),
-                //               blurRadius: 20,
-                //               spreadRadius: -4,
-                //               offset: const Offset(0, 10),
-                //             ),
-                //             // subtle inner-top highlight
-                //             BoxShadow(
-                //               color: Colors.white.withOpacity(0.06),
-                //               blurRadius: 1,
-                //               spreadRadius: 0,
-                //               offset: const Offset(0, 1),
-                //             ),
-                //           ],
-                //         ),
-                //         child: Stack(
-                //           clipBehavior: Clip.hardEdge,
-                //           children: [
-                //             // ── decorative circles ──────────────────────────────
-                //             Positioned(
-                //               right: -30,
-                //               top: -30,
-                //               child: Container(
-                //                 width: 120,
-                //                 height: 120,
-                //                 decoration: BoxDecoration(
-                //                   shape: BoxShape.circle,
-                //                   color: Colors.white.withOpacity(0.05),
-                //                 ),
-                //               ),
-                //             ),
-                //             Positioned(
-                //               right: 60,
-                //               bottom: -40,
-                //               child: Container(
-                //                 width: 90,
-                //                 height: 90,
-                //                 decoration: BoxDecoration(
-                //                   shape: BoxShape.circle,
-                //                   color: Colors.white.withOpacity(0.05),
-                //                 ),
-                //               ),
-                //             ),
-
-                //             // ── left content ────────────────────────────────────
-                //             Positioned.fill(
-                //               child: Padding(
-                //                 padding: const EdgeInsets.fromLTRB(
-                //                   20,
-                //                   0,
-                //                   130,
-                //                   0,
-                //                 ),
-                //                 child: Column(
-                //                   mainAxisAlignment: MainAxisAlignment.center,
-                //                   crossAxisAlignment: CrossAxisAlignment.start,
-                //                   children: [
-                //                     // badge chip
-                //                     Container(
-                //                       padding: const EdgeInsets.symmetric(
-                //                         horizontal: 8,
-                //                         vertical: 3,
-                //                       ),
-                //                       decoration: BoxDecoration(
-                //                         color: Colors.white.withOpacity(0.15),
-                //                         borderRadius: BorderRadius.circular(20),
-                //                         border: Border.all(
-                //                           color: Colors.white.withOpacity(0.2),
-                //                           width: 0.8,
-                //                         ),
-                //                       ),
-                //                       child: Text(
-                //                         'AI Powered',
-                //                         style: GoogleFonts.inter(
-                //                           fontSize: 9,
-                //                           fontWeight: FontWeight.w600,
-                //                           color: Colors.white.withOpacity(0.9),
-                //                           letterSpacing: 0.6,
-                //                         ),
-                //                       ),
-                //                     ),
-
-                //                     const SizedBox(height: 6),
-
-                //                     // headline
-                //                     Text(
-                //                       'College\nPredictor',
-                //                       style: GoogleFonts.inter(
-                //                         fontSize: 16,
-                //                         fontWeight: FontWeight.w700,
-                //                         color: Colors.white,
-                //                         height: 1.15,
-                //                         letterSpacing: -0.3,
-                //                       ),
-                //                     ),
-
-                //                     const SizedBox(height: 6),
-
-                //                     // sub-label
-                //                     Text(
-                //                       'Find your best-fit colleges →',
-                //                       style: GoogleFonts.inter(
-                //                         fontSize: 11,
-                //                         fontWeight: FontWeight.w400,
-                //                         color: Colors.white.withOpacity(0.72),
-                //                         letterSpacing: 0.1,
-                //                       ),
-                //                     ),
-                //                   ],
-                //                 ),
-                //               ),
-                //             ),
-
-                //             // ── hero image ──────────────────────────────────────
-                //             Positioned(
-                //               right: 0,
-                //               top: -8,
-                //               bottom: -8,
-                //               child: Hero(
-                //                 tag: 'predict_hero',
-                //                 child: Image.network(
-                //                   'https://cdn3d.iconscout.com/3d/premium/thumb/rocket-4993641-4160494.png',
-                //                   width: 128,
-                //                   fit: BoxFit.contain,
-                //                   errorBuilder: (_, __, ___) => Padding(
-                //                     padding: const EdgeInsets.all(20),
-                //                     child: Icon(
-                //                       Icons.rocket_launch_rounded,
-                //                       size: 72,
-                //                       color: Colors.white.withOpacity(0.9),
-                //                     ),
-                //                   ),
-                //                 ),
-                //               ),
-                //             ),
-                //           ],
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // ),
-                // =========================
-                // CATEGORY LIST
-                // =========================
-                Padding(
-                  padding: const EdgeInsets.symmetric(),
-                  child: CategoryList(
-                    isDark: isDark,
-                    surface: surface,
-                    border: border,
-                    onCollegesTap: () {
+          return IgnorePointer(
+            ignoring: !isVisible,
+            child: AnimatedSlide(
+              offset: isVisible ? Offset.zero : const Offset(0, 1.35),
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutCubic,
+              child: AnimatedOpacity(
+                opacity: isVisible ? 1 : 0,
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOut,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: ChatBotFloatingButton(
+                    onTap: () {
                       AuthGuard.checkAccess(
                         onAllowed: () {
-                          if (controller.canAccessCollegeList()) {
-                            Get.to(() => CollegeListPage());
-                          } else {
-                            Get.dialog(const PremiumLockDialog());
-                          }
+                          Get.toNamed(AppRoutes.chatBot);
                         },
                       );
                     },
-                    onPredictorTap: () {
-                      AuthGuard.checkAccess(
-                        onAllowed: () {
-                          if (controller.canAccessPrediction()) {
-                            Get.to(() => const PredictionView());
-                          } else {
-                            Get.dialog(const PremiumLockDialog());
-                          }
-                        },
-                      );
-                    },
-
-                    onCutoffTap: () {
-                      AuthGuard.checkAccess(
-                        onAllowed: () {
-                          if (controller.canAccessCutoff()) {
-                            Get.to(() => const AirComparisonGraphPage());
-                          } else {
-                            Get.dialog(const PremiumLockDialog());
-                          }
-                        },
-                      );
-                    },
-                    onHelpTap: () => Get.toNamed('/chat-bot'),
-                    onAssistanceTap: () {
-                      // Get.to(() => CounselorListView(requestId: "REQ_101"));
-                      AuthGuard.checkAccess(
-                        onAllowed: () {
-                          if (controller.canAccessCounsellingSteps()) {
-                            Get.to(() =>  CounselorListView( requestId: "REQ_101"));
-                          } else {
-                            Get.dialog(const PremiumLockDialog());
-                          }
-                        },
-                      );
-                    },
-                    onApplicationsTap: () =>
-                        Get.dialog(const PremiumLockDialog()),
                   ),
                 ),
-
-                // const SizedBox(height: 24),
-
-                // =========================
-                // INSIGHTS
-                // =========================
-                // Row(
-                //   children: [
-                //     InsightCard(
-                //       subtitleKey: 'Top Colleges',
-                //       imageUrl: 'https://...',
-                //       color: const Color(0xFF1A56DB),
-                //       onTap: () => Get.toNamed(AppRoutes.collage),
-                //     ),
-                //     InsightCard(
-                //       subtitleKey: 'Favourite Colleges',
-                //       imageUrl: 'https://...',
-                //       color: const Color(0xFF0D9E75),
-                //       onTap: () => Get.toNamed(AppRoutes.fevouriteCollage),
-                //     ),
-                //   ],
-                // ),
-                const SizedBox(height: 6),
-
-                // =========================
-                // PROFILE COMPLETION
-                // =========================
-                // const SizedBox(height: 30),
-
-                // =========================
-                // FEATURED COLLEGES
-                // =========================
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SectionHeader(
-                    title: 'featured_colleges'.tr,
-                    // onSeeAll: () => Get.to(() => CollegeListPage()),
-                  ),
-                ),
-
-                // const SizedBox(height: 16),
-                Obx(() {
-                  final colleges = collegeListController.colleges;
-
-                  if (colleges.isEmpty) {
-                    return SizedBox();
-                  }
-
-                  final topTwo = colleges.take(2).toList();
-
-                  return Column(
+              ),
+            ),
+          );
+        }),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        body: SafeArea(
+          child: NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              navController.updateScroll(notification.direction);
+              return true;
+            },
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: isTablet ? 24 : 8),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: contentMaxWidth),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // const SizedBox(height: 20),
-
-                      /// 🔥 Section Title
-                      // Padding(
-                      //   padding: const EdgeInsets.symmetric(horizontal: 16),
-                      //   child: Text(
-                      //     "Recommended Colleges",
-                      //     style: TextStyle(
-                      //       fontSize: 18,
-                      //       fontWeight: FontWeight.bold,
-                      //     ),
-                      //   ),
-                      // ),
-                      const SizedBox(height: 16),
-
-                      /// 🔥 Horizontal Cards
-                      SizedBox(
-                        height: 320,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.only(left: 16),
-                          itemCount: topTwo.length,
-                          itemBuilder: (context, index) {
-                            final college = topTwo[index];
-
-                            return CollegeCard(
-                              id: college.id,
-                              name: college.name,
-                              location: college.state.name,
-                              // rank: "AIR ${college. ?? '--'}",
-                              imageUrl: college.displayImage ?? "",
-                            );
-                          },
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          isTablet ? 24 : 20,
+                          horizontalPadding,
+                          16,
+                        ),
+                        child: HomeHeader(
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary,
+                          borderColor: border,
                         ),
                       ),
-                    ],
-                  );
-                }),
 
-                const SizedBox(height: 30),
-
-                // =========================
-                // STREAMS
-                // =========================
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                //   child: SectionHeader(title: 'explore_stream'.tr),
-                // ),
-
-                // const SizedBox(height: 16),
-
-                // SingleChildScrollView(
-                //   scrollDirection: Axis.horizontal,
-                //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                //   child: Row(
-                //     children: const [
-                //       StreamCard(
-                //         title: "UG",
-                //         icon: Icons.school_outlined,
-                //         color: Colors.blue,
-                //       ),
-                //       SizedBox(width: 12),
-                //       StreamCard(
-                //         title: "PG",
-                //         icon: Icons.workspace_premium_outlined,
-                //         color: Colors.green,
-                //       ),
-                //       SizedBox(width: 12),
-                //       StreamCard(
-                //         title: "Other",
-                //         icon: Icons.auto_awesome_outlined,
-                //         color: Colors.orange,
-                //       ),
-                //     ],
-                //   ),
-                // ),
-                // const SizedBox(height: 30),
-
-                // DAILY NEWS
-                // =========================
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                //   child: SectionHeader(title: "Daily News"),
-                // ),
-
-                // const SizedBox(height: 16),
-
-                // SizedBox(
-                //   height: 170,
-                //   child: ListView.separated(
-                //     scrollDirection: Axis.horizontal,
-                //     padding: const EdgeInsets.symmetric(horizontal: 20),
-                //     itemCount: 5,
-                //     separatorBuilder: (_, __) => const SizedBox(width: 14),
-                //     itemBuilder: (context, index) {
-                //       final images = [
-                //         "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=600&auto=format&fit=crop",
-                //         "https://images.unsplash.com/photo-1532094349884-543bc11b234d?q=80&w=600&auto=format&fit=crop",
-                //         "https://images.unsplash.com/photo-1576091160550-2173dba999ef?q=80&w=600&auto=format&fit=crop",
-                //       ];
-
-                //       return NewsCard(
-                //         title: "NEET 2024 Counselling Update Released",
-                //         category: "Education",
-                //         time: "2h ago",
-                //         imageUrl: images[index % images.length],
-                //       );
-                //     },
-                //   ),
-                // ),
-
-                // const SizedBox(height: 30),
-
-                // // =========================
-                // // DAILY UPDATES
-                // // =========================
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                //   child: SectionHeader(title: "Daily Updates"),
-                // ),
-
-                // const SizedBox(height: 16),
-
-                // const Padding(
-                //   padding: EdgeInsets.symmetric(horizontal: 20),
-                //   child: Column(
-                //     children: const [
-                //       UpdateTile(
-                //         title: "NEET Registration Deadline Extended",
-                //         subtitle: "Students can now apply till March 5",
-                //         imageUrl:
-                //             "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=200&auto=format&fit=crop",
-                //       ),
-                //       SizedBox(height: 12),
-                //       UpdateTile(
-                //         title: "New Medical Colleges Approved",
-                //         subtitle: "5 new govt colleges approved for 2024",
-                //         imageUrl:
-                //             "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=200&auto=format&fit=crop",
-                //       ),
-                //       SizedBox(height: 12),
-                //       UpdateTile(
-                //         title: "AIIMS Exam Pattern Updated",
-                //         subtitle: "Minor changes in marking scheme",
-                //         imageUrl:
-                //             "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=200&auto=format&fit=crop",
-                //       ),
-                //     ],
-                //   ),
-                // ),
-                const SizedBox(height: 30),
-
-                const CounsellingBanner(),
-                const SizedBox(height: 30),
-
-                /// =========================
-                /// FAQ SECTION
-                /// =========================
-                Obx(() {
-                  if (faqController.isLoading.value) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-
-                  if (faqController.faqList.isEmpty) {
-                    return const SizedBox();
-                  }
-
-                  final faqs = faqController.displayedFaqs;
-                  final isDark =
-                      Theme.of(context).brightness == Brightness.dark;
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        /// HEADER
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.help_outline,
-                              color: Color(0xFF1565C0),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                        ),
+                        child: Showcase(
+                          key: _searchKey,
+                          title: "Search Colleges",
+                          description:
+                              "Search colleges, counselling, cutoff and admission details instantly.",
+                          titleTextStyle: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                          descTextStyle: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.9),
+                            height: 1.4,
+                          ),
+                          tooltipBackgroundColor: const Color(0xFF7B3FE4),
+                          targetBorderRadius: BorderRadius.circular(18),
+                          targetPadding: const EdgeInsets.all(6),
+                          blurValue: 1,
+                          disableMovingAnimation: false,
+                          tooltipPadding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 16,
+                          ),
+                          child: InkWell(
+                            onTap: _openSearchSection,
+                            borderRadius: BorderRadius.circular(16),
+                            child: AbsorbPointer(
+                              child: HomeSearchBar(
+                                background: inputBg,
+                                hintColor: textSecondary,
+                              ),
                             ),
-                            const SizedBox(width: 6),
-                            Text(
-                              "FAQs",
-                              style: GoogleFonts.inter(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 18),
+
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                        ),
+
+                        child: Showcase(
+                          key: _rankPredictorKey,
+
+                          title: "NEET Rank Predictor",
+
+                          description:
+                              "Predict your expected NEET rank instantly based on your marks and get better college insights.",
+
+                          titleTextStyle: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+
+                          descTextStyle: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.92),
+                            height: 1.4,
+                          ),
+
+                          tooltipBackgroundColor: const Color(0xFF7B3FE4),
+
+                          targetBorderRadius: BorderRadius.circular(24),
+
+                          targetPadding: const EdgeInsets.all(6),
+
+                          blurValue: 1,
+
+                          disableMovingAnimation: false,
+
+                          tooltipPadding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 16,
+                          ),
+
+                          child: RankPredictorShortcutCard(
+                            onTap: _openRankPredictor,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 14),
+                      PredictionBanner(onTap: _openPredictionSection),
+
+                      const SizedBox(height: 18),
+
+                      // HomeSubscriptionHighlightCard(onTap: _openPremiumPlans),
+
+                      // =========================
+                      // CATEGORY LIST
+                      // =========================
+                      SizedBox(height: 18),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
+                        ),
+                        child: CategoryList(
+                          key: const ValueKey("category_list"),
+                          isDark: isDark,
+                          surface: surface,
+                          border: border,
+                          onCollegesTap: () {
+                            AuthGuard.checkAccess(
+                              onAllowed: () {
+                                Get.to(() => CollegeListPage());
+                              },
+                            );
+                          },
+                          onRoadmapTap: () {
+                            AuthGuard.checkAccess(
+                              onAllowed: () {
+                                Get.to(() => CounsellingRoadmapScreen());
+                              },
+                            );
+                          },
+
+                          onCutoffTap: () {
+                            AuthGuard.checkAccess(
+                              onAllowed: () {
+                                if (controller.canAccessCutoff()) {
+                                  Get.to(() => StateWiseDistributionGraphPage());
+                                } else {
+                                  Get.dialog(const PremiumLockDialog());
+                                }
+                              },
+                            );
+                          },
+                          // onHelpTap: () => Get.toNamed('/chat-bot'),
+                          onHelpTap: () {
+                            AuthGuard.checkAccess(
+                              onAllowed: () {
+                                Get.toNamed(AppRoutes.admissionChat);
+                              },
+                            );
+                          },
+                          onAssistanceTap: () {
+                            AuthGuard.checkAccess(
+                              onAllowed: () {
+                                Get.to(() => const CounselorListView());
+                              },
+                            );
+                          },
+                          onApplicationsTap: () =>
+                              Get.toNamed(AppRoutes.ticket),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      HomeAlertSlider(),
+
+                      const SizedBox(height: 10),
+                      Obx(() {
+                        final colleges = collegeListController.colleges;
+                        final displayCount = isTablet ? 3 : 2;
+
+                        if (collegeListController.isLoading.value && colleges.isEmpty) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding,
+                                ),
+                                child: SectionHeader(
+                                  title: 'featured_colleges'.tr,
+                                  onSeeAll: () => Get.to(() => CollegeListPage()),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                height: isTablet ? 380 : 330,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.only(left: 16),
+                                  itemCount: displayCount,
+                                  itemBuilder: (context, index) {
+                                    return _buildShimmerCard(isTablet, isDark, border);
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+
+                        if (colleges.isEmpty) {
+                          return const SizedBox();
+                        }
+
+                        final displayColleges = colleges.take(displayCount).toList();
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: horizontalPadding,
+                              ),
+                              child: SectionHeader(
+                                title: 'featured_colleges'.tr,
+                                onSeeAll: () => Get.to(() => CollegeListPage()),
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            /// 🔥 Horizontal Cards
+                            SizedBox(
+                              height: isTablet ? 380 : 330,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.only(left: 16),
+                                itemCount: displayColleges.length,
+                                itemBuilder: (context, index) {
+                                  final college = displayColleges[index];
+
+                                  return CollegeCard(
+                                    id: college.id,
+                                    name: college.name,
+                                    location: college.state.name,
+                                    // rank: "AIR ${college. ?? '--'}",
+                                    imageUrl: college.displayImage ?? "",
+                                  );
+                                },
                               ),
                             ),
                           ],
-                        ),
+                        );
+                      }),
 
-                        const SizedBox(height: 14),
+                      Obx(() {
+                        if (_isCheckingPremiumStatus.value) {
+                          return const SizedBox.shrink();
+                        }
 
-                        /// FAQ LIST
-                        ...faqs.map((faq) {
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            decoration: BoxDecoration(
-                              color: isDark
-                                  ? const Color(0xFF1E1E1E)
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: isDark
-                                    ? Colors.white.withOpacity(.05)
-                                    : Colors.grey.shade200,
-                              ),
-                              boxShadow: [
-                                if (!isDark)
-                                  const BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 3),
-                                  ),
-                              ],
-                            ),
-                            child: ExpansionTile(
-                              tilePadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 4,
-                              ),
-                              childrenPadding: const EdgeInsets.fromLTRB(
-                                16,
-                                0,
-                                16,
-                                16,
-                              ),
+                        return Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            horizontalPadding,
+                            20,
+                            horizontalPadding,
+                            0,
+                          ),
+                          child: HomePlansSection(),
+                        );
+                      }),
+                      const SizedBox(height: 30),
 
-                              iconColor: const Color(0xFF1565C0),
-                              collapsedIconColor: Colors.grey,
+                      CounsellingBanner(onTap: _openCounselorSection),
+                      const SizedBox(height: 30),
 
-                              title: Row(
+                      /// =========================
+                      /// FAQ SECTION
+                      /// =========================
+                      Obx(() {
+                        if (faqController.isLoading.value) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (faqController.faqList.isEmpty) {
+                          return const SizedBox();
+                        }
+
+                        final faqs = faqController.displayedFaqs;
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
+
+                        return Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              /// HEADER
+                              Row(
                                 children: [
                                   const Icon(
-                                    Icons.question_answer,
-                                    size: 18,
-                                    color: Color(0xFF1565C0),
+                                    Icons.help_outline,
+                                    color: Color.fromARGB(255, 236, 139, 4),
                                   ),
-                                  const SizedBox(width: 8),
-
-                                  Expanded(
-                                    child: Text(
-                                      faq.question,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    "FAQs",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
                               ),
 
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
+                              const SizedBox(height: 14),
+
+                              /// FAQ LIST
+                              ...faqs.map((faq) {
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? Colors.black.withOpacity(.2)
-                                        : const Color(0xFFF5F7FB),
-                                    borderRadius: BorderRadius.circular(10),
+                                        ? const Color(0xFF1E1E1E)
+                                        : Colors.white,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: isDark
+                                          ? Colors.white.withOpacity(.05)
+                                          : Colors.grey.shade200,
+                                    ),
+                                    boxShadow: [
+                                      if (!isDark)
+                                        const BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 6,
+                                          offset: Offset(0, 3),
+                                        ),
+                                    ],
                                   ),
-                                  child: Text(
-                                    faq.answer,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      height: 1.5,
+                                  child: ExpansionTile(
+                                    tilePadding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
+                                    ),
+                                    childrenPadding: const EdgeInsets.fromLTRB(
+                                      16,
+                                      0,
+                                      16,
+                                      16,
+                                    ),
+
+                                    iconColor: kHomeAccentColor,
+                                    collapsedIconColor: Colors.grey,
+
+                                    title: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.question_answer,
+                                          size: 18,
+                                          color: Color.fromARGB(
+                                            255,
+                                            236,
+                                            139,
+                                            4,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+
+                                        Expanded(
+                                          child: Text(
+                                            faq.question,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(12),
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? Colors.black.withOpacity(.2)
+                                              : const Color(0xFFF5F7FB),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          faq.answer,
+                                          style: GoogleFonts.inter(
+                                            fontSize: 13,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+
+                              const SizedBox(height: 6),
+
+                              /// SHOW MORE BUTTON
+                              if (faqController.faqList.length > 3)
+                                Center(
+                                  child: TextButton(
+                                    onPressed: faqController.toggleFaqs,
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: kHomeAccentColor,
+                                    ),
+                                    child: Text(
+                                      faqController.showAllFaqs.value
+                                          ? "Show Less"
+                                          : "View All FAQs",
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          );
-                        }),
-
-                        const SizedBox(height: 6),
-
-                        /// SHOW MORE BUTTON
-                        if (faqController.faqList.length > 3)
-                          Center(
-                            child: TextButton(
-                              onPressed: faqController.toggleFaqs,
-                              style: TextButton.styleFrom(
-                                foregroundColor: const Color(0xFF1565C0),
-                              ),
-                              child: Text(
-                                faqController.showAllFaqs.value
-                                    ? "Show Less"
-                                    : "View All FAQs",
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
+                            ],
                           ),
-                      ],
-                    ),
-                  );
-                }),
-                const SizedBox(height: 30),
-
-                // =========================
-                // NEET HERO SECTION
-                // =========================
-                NeetHeroSection(
-                  isDark: isDark,
-                  textPrimary: textPrimary,
-                  textSecondary: textSecondary,
+                        );
+                      }),
+                      // =========================
+                      // NEET HERO SECTION
+                      // =========================
+                      NeetHeroSection(
+                        isDark: isDark,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                      ),
+                    ],
+                  ),
                 ),
-                // const SizedBox(height: 30),
-
-                // =========================
-                // STATES
-                // =========================
-                // Padding(
-                //   padding: const EdgeInsets.symmetric(horizontal: 20),
-                //   child: SectionHeader(
-                //     title: 'browse_state'.tr,
-                //     onSeeAll: () {},
-                //   ),
-                // ),
-
-                // const SizedBox(height: 16),
-
-                // SizedBox(
-                //   height: 160,
-                //   child: ListView(
-                //     scrollDirection: Axis.horizontal,
-                //     padding: const EdgeInsets.symmetric(horizontal: 20),
-                //     children: [
-                //       _StateCard(
-                //         name: "MAHARASHTRA",
-                //         imageUrl:
-                //             "https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=600&auto=format&fit=crop",
-                //       ),
-                //       const SizedBox(width: 16),
-                //       _StateCard(
-                //         name: "KARNATAKA",
-                //         imageUrl:
-                //             "https://images.unsplash.com/photo-1570168007204-dfb528c6958f?q=80&w=600&auto=format&fit=crop",
-                //       ),
-                //       const SizedBox(width: 16),
-                //       _StateCard(
-                //         name: "DELHI",
-                //         imageUrl:
-                //             "https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=600&auto=format&fit=crop",
-                //       ),
-                //     ],
-                //   ),
-                // ),
-              ],
+              ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildShimmerCard(bool isTablet, bool isDark, Color border) {
+    final baseColor = isDark ? Colors.grey.shade800 : Colors.grey.shade300;
+    final highlightColor = isDark ? Colors.grey.shade700 : Colors.grey.shade100;
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      child: Container(
+        width: isTablet ? 340 : 280,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: border, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: (isTablet ? 340 : 280) * (9 / 16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(19)),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 18,
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    height: 14,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1069,7 +982,6 @@ class _InsightCardState extends State<InsightCard>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // ── icon bubble ──────────────────────────
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
@@ -1154,69 +1066,26 @@ class _InsightCardState extends State<InsightCard>
   }
 }
 
-class _StateCard extends StatelessWidget {
-  final String name;
-  final String imageUrl;
-
-  const _StateCard({required this.name, required this.imageUrl});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 120,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        image: DecorationImage(
-          image: NetworkImage(imageUrl),
-          fit: BoxFit.cover,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
-          ),
-        ),
-        padding: const EdgeInsets.all(12),
-        alignment: Alignment.bottomLeft,
-        child: Text(
-          name,
-          style: GoogleFonts.inter(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HeroChip extends StatelessWidget {
+class _GradientChip extends StatelessWidget {
   final String label;
 
-  const _HeroChip({required this.label});
+  const _GradientChip({required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+
+        /// 🔥 CHIP GRADIENT
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFF8A00), Color(0xFFFF3D6B)],
+        ),
+
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: const Color(0xFFFF3D6B).withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -1225,9 +1094,9 @@ class _HeroChip extends StatelessWidget {
       child: Text(
         label,
         style: GoogleFonts.inter(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: const Color(0xFF1565C0),
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
         ),
       ),
     );
@@ -1246,53 +1115,61 @@ class NeetHeroSection extends StatelessWidget {
     required this.textSecondary,
   });
 
+  /// 🔥 GIXA GRADIENT
+  LinearGradient get gixaGradient => const LinearGradient(
+    colors: [
+      Color(0xFFFF8A00),
+      Color(0xFFFF3D6B),
+      Color(0xFF7B3FE4),
+      Color(0xFF3A8DFF),
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final scaffoldBg = Theme.of(context).scaffoldBackgroundColor;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 30),
+
+      /// 🔥 SOFT GRADIENT BACKGROUND
       // decoration: BoxDecoration(
       //   gradient: LinearGradient(
       //     colors: [
-      //       const Color(0xFF1565C0).withOpacity(0.06),
+      //       const Color(0xFFFF3D6B).withOpacity(0.06),
+      //       const Color(0xFF3A8DFF).withOpacity(0.05),
       //       Colors.transparent,
       //     ],
       //     begin: Alignment.topCenter,
       //     end: Alignment.bottomCenter,
       //   ),
       // ),
-      decoration: BoxDecoration(
-        color: scaffoldBg,
-        boxShadow: [
-          if (!isDark)
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-        ],
-      ),
-
       child: Column(
         children: [
-          /// 🔹 Heading
+          /// 🔹 HEADING
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                Text(
-                  "Plan Your NEET UG Journey",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: width * 0.055,
-                    fontWeight: FontWeight.w700,
-                    color: textPrimary,
+                /// 🔥 GRADIENT TEXT
+                ShaderMask(
+                  shaderCallback: (bounds) => gixaGradient.createShader(bounds),
+                  child: Text(
+                    "Plan Your NEET UG&PG Journey",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: width * 0.055,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
+
+                const SizedBox(height: 10),
+
                 Text(
                   "Explore colleges, predict rank chances & counselling roadmap",
                   textAlign: TextAlign.center,
@@ -1307,110 +1184,61 @@ class NeetHeroSection extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          /// 🔹 Doctor Illustration Section
+          /// 🔹 ILLUSTRATION
           SizedBox(
             height: 320,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                /// Soft Circle Background
+                /// 🔥 GRADIENT GLOW CIRCLE
                 Container(
                   width: width * 0.55,
                   height: width * 0.55,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: const Color(0xFF1565C0).withOpacity(0.08),
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFFFF3D6B).withOpacity(0.25),
+                        const Color(0xFF7B3FE4).withOpacity(0.15),
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
 
-                /// SVG Doctor
-                SvgPicture.asset(
-                  "assets/images/doctors.svg",
-                  height: 260,
+                /// 🧞 IMAGE
+                Image.asset(
+                  "assets/icons/animated_gixa.png",
+                  height: 300,
                   fit: BoxFit.contain,
                 ),
 
-                /// Floating Chips
-                Positioned(top: 20, left: 20, child: _HeroChip(label: "MBBS")),
-                Positioned(top: 50, right: 10, child: _HeroChip(label: "BDS")),
+                /// 🔥 CHIPS
+                Positioned(
+                  top: 10,
+                  left: 40,
+                  child: _GradientChip(label: "NEET UG"),
+                ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: _GradientChip(label: "NEET PG"),
+                ),
                 Positioned(
                   bottom: 70,
-                  left: 10,
-                  child: _HeroChip(label: "AIQ"),
+                  left: 20,
+                  child: _GradientChip(label: "AIQ"),
                 ),
                 Positioned(
-                  bottom: 40,
-                  right: 20,
-                  child: _HeroChip(label: "State Quota"),
+                  bottom: 70,
+                  right: 30,
+                  child: _GradientChip(label: "State Quota"),
                 ),
               ],
-            ),
-          ),
-
-          const SizedBox(height: 30),
-
-          /// 🔹 Features Row
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                _HeroFeature(icon: Icons.school_outlined, label: "Explore"),
-                _HeroFeature(icon: Icons.analytics_outlined, label: "Predict"),
-                _HeroFeature(icon: Icons.menu_book_outlined, label: "Guide"),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 25),
-
-          /// 🔹 CTA Button
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Get.toNamed(AppRoutes.compareCollage);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1565C0),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                child: Text(
-                  "Get Started",
-                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                ),
-              ),
             ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _HeroFeature extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _HeroFeature({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 28, color: const Color(0xFF1565C0)),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: GoogleFonts.inter(fontSize: 11),
-          textAlign: TextAlign.center,
-        ),
-      ],
     );
   }
 }
