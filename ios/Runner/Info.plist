@@ -45,5 +45,13 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>FacebookAppID</key>
+	<string>2868808620127970</string>
+	<key>FacebookClientToken</key>
+	<string>a96b1cef34edda570979bc52c8200411</string>
+	<key>FacebookDisplayName</key>
+	<string>Gixa</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier will be used to deliver personalized ads to you.</string>
 </dict>
 </plist>

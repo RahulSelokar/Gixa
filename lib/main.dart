@@ -8,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'app.dart';
 import 'firebase_options.dart';
+import 'package:Gixa/controllers/analytics_controller.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -30,6 +31,8 @@ void main() async {
 
   await NotificationService.init();
   await NotificationService.requestPermission();
+
+  Get.put(AnalyticsController(), permanent: true);
 
   // Register background message handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
