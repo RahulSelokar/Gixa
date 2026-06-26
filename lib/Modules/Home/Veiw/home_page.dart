@@ -45,6 +45,7 @@ import 'package:Gixa/naivgation/controller/nav_bar_controller.dart';
 import 'package:Gixa/routes/app_routes.dart';
 import 'package:Gixa/services/auth_guard.dart';
 import 'package:Gixa/services/token_services.dart';
+import 'package:Gixa/services/app_verification_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -588,8 +589,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       }),
                       const SizedBox(height: 30),
 
-                      CounsellingBanner(onTap: _openCounselorSection),
-                      const SizedBox(height: 30),
+                      Obx(() {
+                        if (AppVerificationController.to.hideSubscriptionUi) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            CounsellingBanner(onTap: _openCounselorSection),
+                            const SizedBox(height: 30),
+                          ],
+                        );
+                      }),
 
                       /// =========================
                       /// FAQ SECTION

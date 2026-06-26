@@ -7,7 +7,12 @@ class AppVerificationController extends GetxController {
   final isQrCode = false.obs;
   final isLoading = true.obs;
 
-  bool get hideSubscriptionUi => isQrCode.value;
+  bool get hideSubscriptionUi {
+    if (GetPlatform.isIOS) {
+      return isQrCode.value;
+    }
+    return false;
+  }
 
   @override
   void onInit() {
