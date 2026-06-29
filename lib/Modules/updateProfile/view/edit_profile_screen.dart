@@ -235,6 +235,10 @@ class EditProfileView extends StatelessWidget {
 
                           final isLocked = profileController.isRankLocked;
 
+                          if (AppVerificationController.to.hideSubscriptionUi) {
+                            return const SizedBox.shrink();
+                          }
+
                           return GestureDetector(
                             onTap: () {
                               if (isLocked) {
