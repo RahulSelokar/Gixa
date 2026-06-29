@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/updateProfile/controller/update_profile_controller.dart';
+import 'package:Gixa/services/app_verification_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
