@@ -234,6 +234,11 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
               //     ),
               //   );
               // }),
+              IconButton(
+                icon: const Icon(Icons.favorite),
+                color: _textPrimary(isDark),
+                onPressed: () => Get.toNamed(AppRoutes.fevouriteCollage),
+              ),
             ],
           ),
 

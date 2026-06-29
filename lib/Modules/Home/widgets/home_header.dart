@@ -137,38 +137,42 @@ class HomeHeader extends StatelessWidget {
                   },
                 );
               },
-              child: Container(
-                padding: EdgeInsets.all(isTablet ? 12 : 10),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.grey.shade900 : Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                  ),
-                ),
-                child: Badge(
-                  isLabelVisible: alertsController.hasAlerts,
+              child: Obx(() {
+                return Badge(
+                  isLabelVisible: alertsController.alertCount.value > 0,
                   backgroundColor: Colors.redAccent,
-                  offset: const Offset(6, -6),
+                  offset: const Offset(-2, 2),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
                     vertical: 2,
                   ),
                   label: Text(
-                    alertsController.alertBadgeLabel,
+                    alertsController.alertCount.value > 99
+                        ? '99+'
+                        : alertsController.alertCount.value.toString(),
                     style: GoogleFonts.inter(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  child: Icon(
-                    Icons.notifications_none,
-                    color: textPrimary,
-                    size: isTablet ? 26 : 24,
+                  child: Container(
+                    padding: EdgeInsets.all(isTablet ? 12 : 10),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey.shade900 : Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.notifications_none,
+                      color: textPrimary,
+                      size: isTablet ? 26 : 24,
+                    ),
                   ),
-                ),
-              ),
+                );
+              }),
             ),
           ],
         ),

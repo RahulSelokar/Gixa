@@ -54,7 +54,9 @@ class SubscriptionController extends GetxController {
   String _activePlanKey(int userId) => 'active_plan_snapshot_$userId';
   String get _userIdKey => 'user_id';
 
-  bool get isSubscribed => AppVerificationController.to.hideSubscriptionUi || activePlan.value != null;
+  bool get isSubscribed =>
+      AppVerificationController.to.hideSubscriptionUi ||
+      activePlan.value != null;
   String get activePlanName => activePlan.value?.planName ?? "Free Plan";
 
   final availableStates = <StateItem>[].obs;
@@ -410,7 +412,8 @@ class SubscriptionController extends GetxController {
 
     final plan = activePlan.value;
     if (plan == null) return false;
-    if (plan.isAddon == true || _historyController.hasActiveAddonPlan()) return true;
+    if (plan.isAddon == true || _historyController.hasActiveAddonPlan())
+      return true;
 
     return plan.features.any(
       (feature) =>
@@ -425,8 +428,9 @@ class SubscriptionController extends GetxController {
 
     final plan = activePlan.value;
     if (plan == null) return false;
-    
-    if (plan.isAddon == true || _historyController.hasActiveAddonPlan()) return true;
+
+    if (plan.isAddon == true || _historyController.hasActiveAddonPlan())
+      return true;
 
     final normalizedRequired = _normalizeFeatureText(featureName);
     return plan.features.any((feature) {

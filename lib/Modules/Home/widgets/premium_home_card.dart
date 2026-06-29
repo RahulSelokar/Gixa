@@ -370,7 +370,17 @@ class _HomePlansSectionState extends State<HomePlansSection>
 
   /// Plans to show when user is NOT subscribed (core plans).
   List<SubscriptionPlan> _corePlans(List<SubscriptionPlan> plans) {
-    return plans.toList();
+    final sortedPlans = plans.toList();
+    sortedPlans.sort((a, b) {
+      final rankA = _planRank(a);
+      final rankB = _planRank(b);
+      if (rankA != rankB) return rankA.compareTo(rankB);
+      if (a.isAddon == b.isAddon) {
+        return a.planName.compareTo(b.planName);
+      }
+      return a.isAddon ? 1 : -1;
+    });
+    return sortedPlans;
   }
 
   /// Plans to show when user HAS an active plan:
@@ -391,11 +401,18 @@ class _HomePlansSectionState extends State<HomePlansSection>
     // Collect all add-on plans
     final addons = allPlans.where((p) => p.isAddon == true).toList();
 
-    // Sort: higher regular plans by rank, then add-ons
-    higherRegular.sort((a, b) => _planRank(a).compareTo(_planRank(b)));
-    addons.sort((a, b) => a.planName.compareTo(b.planName));
+    final combined = [...higherRegular, ...addons];
+    combined.sort((a, b) {
+      final rankA = _planRank(a);
+      final rankB = _planRank(b);
+      if (rankA != rankB) return rankA.compareTo(rankB);
+      if (a.isAddon == b.isAddon) {
+        return a.planName.compareTo(b.planName);
+      }
+      return a.isAddon ? 1 : -1;
+    });
 
-    return [...higherRegular, ...addons];
+    return combined;
   }
 
   bool _isCorePlan(SubscriptionPlan plan) {

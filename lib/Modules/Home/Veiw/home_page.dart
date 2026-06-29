@@ -463,7 +463,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             AuthGuard.checkAccess(
                               onAllowed: () {
                                 if (controller.canAccessCutoff()) {
-                                  Get.to(() => StateWiseDistributionGraphPage());
+                                  Get.to(
+                                    () => StateWiseDistributionGraphPage(),
+                                  );
                                 } else {
                                   Get.dialog(const PremiumLockDialog());
                                 }
@@ -498,7 +500,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         final colleges = collegeListController.colleges;
                         final displayCount = isTablet ? 3 : 2;
 
-                        if (collegeListController.isLoading.value && colleges.isEmpty) {
+                        if (collegeListController.isLoading.value &&
+                            colleges.isEmpty) {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -508,7 +511,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 ),
                                 child: SectionHeader(
                                   title: 'featured_colleges'.tr,
-                                  onSeeAll: () => Get.to(() => CollegeListPage()),
+                                  onSeeAll: () =>
+                                      Get.to(() => CollegeListPage()),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -519,7 +523,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                   padding: const EdgeInsets.only(left: 16),
                                   itemCount: displayCount,
                                   itemBuilder: (context, index) {
-                                    return _buildShimmerCard(isTablet, isDark, border);
+                                    return _buildShimmerCard(
+                                      isTablet,
+                                      isDark,
+                                      border,
+                                    );
                                   },
                                 ),
                               ),
@@ -531,7 +539,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           return const SizedBox();
                         }
 
-                        final displayColleges = colleges.take(displayCount).toList();
+                        final displayColleges = colleges
+                            .take(displayCount)
+                            .toList();
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
