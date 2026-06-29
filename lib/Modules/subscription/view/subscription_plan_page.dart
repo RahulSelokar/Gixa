@@ -915,6 +915,181 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   isLoading: false,
                   onTap: isEnabled
                       ? () async {
+                          if (controller.availableCourses.isNotEmpty) {
+                            Get.back();
+                            await _openCourseSelectionDialog(context, plan);
+                          } else {
+                            await controller.createOrderAndPay(plan.id);
+                            Get.back();
+                          }
+                        }
+                      : null,
+                  enabled: isEnabled,
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _openCourseSelectionDialog(
+    BuildContext context,
+    SubscriptionPlan plan,
+  ) async {
+    final controller = Get.find<SubscriptionController>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.82,
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF121218) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          child: Column(
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(top: 8, bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              Obx(
+                () => Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Select Courses',
+                      style: _T.heading(
+                        18,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [_T.orange, _T.pink],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${controller.selectedCourses.length} Selected',
+                        style: _T.body(
+                          12,
+                          color: Colors.white,
+                          fw: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              // Course list
+              Expanded(
+                child: Obx(() {
+                  final sortedCourses = controller.availableCourses.toList();
+                  return ListView.builder(
+                    itemCount: sortedCourses.length,
+                    itemBuilder: (_, i) {
+                      final course = sortedCourses[i];
+                      final int courseId = course.id;
+                      if (courseId == -1) return const SizedBox();
+                      return Obx(() {
+                        final isSelected = controller.selectedCourses.contains(
+                          courseId,
+                        );
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: const EdgeInsets.only(bottom: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? _T.orange.withOpacity(0.1)
+                                : (isDark
+                                      ? const Color(0xFF1E1E2E)
+                                      : Colors.grey.shade50),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isSelected
+                                  ? _T.orange.withOpacity(0.5)
+                                  : Colors.transparent,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: CheckboxListTile(
+                            value: isSelected,
+                            activeColor: _T.orange,
+                            checkColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            onChanged: (_) {
+                              if (isSelected) {
+                                controller.selectedCourses.remove(courseId);
+                              } else {
+                                controller.selectedCourses.add(courseId);
+                              }
+                              controller.selectedCourses.refresh();
+                            },
+                            title: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    course.courseName,
+                                    style: _T.body(
+                                      14,
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fw: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            subtitle: Text(
+                              'Code: ${course.courseCode}  •  Amount: ₹${course.amount}',
+                              style: _T.body(
+                                12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                        );
+                      });
+                    },
+                  );
+                }),
+              ),
+              const SizedBox(height: 10),
+
+              // Continue button
+              Obx(() {
+                final isEnabled = controller.selectedCourses.isNotEmpty;
+                return _GradientButton(
+                  label: 'Continue to Pay',
+                  isLoading: false,
+                  onTap: isEnabled
+                      ? () async {
                           await controller.createOrderAndPay(plan.id);
                           Get.back();
                         }

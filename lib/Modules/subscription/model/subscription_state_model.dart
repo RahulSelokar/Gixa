@@ -26,6 +26,9 @@ class SubscriptionStateData {
   final int selectedStateCount;
   final List<StateItem> availableStates;
   final List<StateItem> selectedStates;
+  final List<AvailableCourse> availableCourses;
+  final List<AvailableCourse> selectedCourses;
+  final double courseTotalAmount;
 
   SubscriptionStateData({
     required this.subscriptionId,
@@ -35,37 +38,41 @@ class SubscriptionStateData {
     required this.selectedStateCount,
     required this.availableStates,
     required this.selectedStates,
+    required this.availableCourses,
+    required this.selectedCourses,
+    required this.courseTotalAmount,
   });
 
   factory SubscriptionStateData.fromJson(Map<String, dynamic> json) {
     return SubscriptionStateData(
-      /// 🔥 SAFE INT PARSE
       subscriptionId:
           int.tryParse(json['subscription_id']?.toString() ?? '') ?? 0,
-
       planId: int.tryParse(json['plan_id']?.toString() ?? '') ?? 0,
-
-      /// 🔥 SAFE STRING
       planName: json['plan_name']?.toString() ?? "",
-
-      /// 🔥 NULLABLE SAFE
       allowedStateCount: json['allowed_state_count'] != null
           ? int.tryParse(json['allowed_state_count'].toString())
           : null,
-
       selectedStateCount:
           int.tryParse(json['selected_state_count']?.toString() ?? '') ?? 0,
-
-      /// 🔥 SAFE LIST PARSE
       availableStates: (json['available_states'] as List?)
               ?.map((e) => StateItem.fromJson(e ?? {}))
               .toList() ??
           [],
-
       selectedStates: (json['selected_states'] as List?)
               ?.map((e) => StateItem.fromJson(e ?? {}))
               .toList() ??
           [],
+      availableCourses: (json['available_courses'] as List?)
+              ?.map((e) => AvailableCourse.fromJson(e ?? {}))
+              .toList() ??
+          [],
+      selectedCourses: (json['selected_courses'] as List?)
+              ?.map((e) => AvailableCourse.fromJson(e ?? {}))
+              .toList() ??
+          [],
+      courseTotalAmount:
+          double.tryParse(json['course_total_amount']?.toString() ?? '0') ??
+          0.0,
     );
   }
 }
@@ -81,13 +88,36 @@ class StateItem {
 
   factory StateItem.fromJson(Map<String, dynamic> json) {
     return StateItem(
-      /// 🔥 MOST IMPORTANT FIX
       id: int.tryParse(
               (json['id'] ?? json['state_id'])?.toString() ?? '') ??
           -1,
-
-      /// 🔥 HANDLE BOTH KEYS
       name: (json['name'] ?? json['state_name'])?.toString() ?? "Unknown",
+    );
+  }
+}
+
+class AvailableCourse {
+  final int courseId;
+  final int id;
+  final String courseName;
+  final String courseCode;
+  final double amount;
+
+  AvailableCourse({
+    required this.courseId,
+    required this.id,
+    required this.courseName,
+    required this.courseCode,
+    required this.amount,
+  });
+
+  factory AvailableCourse.fromJson(Map<String, dynamic> json) {
+    return AvailableCourse(
+      courseId: int.tryParse(json['course_id']?.toString() ?? '') ?? -1,
+      id: int.tryParse(json['id']?.toString() ?? '') ?? -1,
+      courseName: json['course_name']?.toString() ?? "Unknown",
+      courseCode: json['course_code']?.toString() ?? "Unknown",
+      amount: double.tryParse(json['amount']?.toString() ?? '0') ?? 0.0,
     );
   }
 }

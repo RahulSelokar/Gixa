@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CounsellingStateData {
+  final String id;
   final String name;
   final String heroTitle;
   final String heroSubtitle;
@@ -46,6 +47,7 @@ class CounsellingStateData {
   final List<StrategyCardData> strategyCards;
 
   const CounsellingStateData({
+    required this.id,
     required this.name,
     required this.heroTitle,
     required this.heroSubtitle,
@@ -109,13 +111,27 @@ class CounsellingStep {
   });
 }
 
+class EligibilityItem {
+  final String title;
+  final String subtitle;
+  final String description;
+
+  const EligibilityItem({
+    required this.title,
+    this.subtitle = '',
+    this.description = '',
+  });
+}
+
 class EligibilityCriteria {
-  final String category;
-  final String requirement;
+  final String title;
+  final String subtitle;
+  final List<EligibilityItem> items;
 
   const EligibilityCriteria({
-    required this.category,
-    required this.requirement,
+    required this.title,
+    this.subtitle = '',
+    this.items = const [],
   });
 }
 

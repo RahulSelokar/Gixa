@@ -28,6 +28,7 @@ class SubscriptionController extends GetxController {
   final couponErrorMap = <int, String>{}.obs;
   final applyingCouponMap = <int, bool>{}.obs;
   final selectedStates = <int>[].obs;
+  final selectedCourses = <int>[].obs;
 
   /// Regular subscription plans
   List<plan_models.SubscriptionPlan> get regularPlans =>
@@ -60,8 +61,8 @@ class SubscriptionController extends GetxController {
   String get activePlanName => activePlan.value?.planName ?? "Free Plan";
 
   final availableStates = <StateItem>[].obs;
+  final availableCourses = <AvailableCourse>[].obs;
   final isStateLoading = false.obs;
-
   @override
   void onInit() {
     super.onInit();
@@ -116,7 +117,9 @@ class SubscriptionController extends GetxController {
       isStateLoading.value = true;
       final data = await SubscriptionApi.getStatesWithoutSubscription();
       availableStates.assignAll(data.availableStates);
+      availableCourses.assignAll(data.availableCourses);
       selectedStates.clear();
+      selectedCourses.assignAll(data.selectedCourses.map((e) => e.id));
     } catch (e) {
       print("❌ ERROR: $e");
     } finally {
@@ -540,14 +543,16 @@ class SubscriptionController extends GetxController {
         return;
       }
 
-      if (selectedStates.isNotEmpty) {
+      if (selectedStates.isNotEmpty || selectedCourses.isNotEmpty) {
         await SubscriptionApi.saveSubscriptionStates(
           subscriptionId: subscriptionId,
           stateIds: selectedStates,
+          courseIds: selectedCourses,
         );
       }
 
       selectedStates.clear();
+      selectedCourses.clear();
 
       final userId = _resolveCurrentUserId();
       if (userId != null) {
@@ -564,6 +569,7 @@ class SubscriptionController extends GetxController {
 
   void _onPaymentError(PaymentFailureResponse res) {
     selectedStates.clear();
+    selectedCourses.clear();
 
     String message;
 

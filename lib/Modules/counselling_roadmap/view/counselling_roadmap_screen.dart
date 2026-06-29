@@ -276,6 +276,14 @@ class _PhoneLayout extends StatelessWidget {
               Obx(() {
                 final tab = controller.selectedSectionTab.value;
                 final state = controller.selectedState;
+                if (state == null) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
                 return _SectionContent(
                   tab: tab,
                   state: state,
@@ -368,6 +376,14 @@ class _TabletLayout extends StatelessWidget {
                 Obx(() {
                   final tab = controller.selectedSectionTab.value;
                   final state = controller.selectedState;
+                  if (state == null) {
+                    return const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20),
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  }
                   return _SectionContent(
                     tab: tab,
                     state: state,
@@ -746,8 +762,8 @@ class _TopSections extends StatelessWidget {
           }),
 
           // ── UG / PG TOGGLE ──────────────────────────────────────
-          UGPGToggle(controller: controller, isDark: isDark),
-          const SizedBox(height: 20),
+          // UGPGToggle(controller: controller, isDark: isDark),
+          // const SizedBox(height: 20),
 
           // ── STATE SELECTOR ──────────────────────────────────────
           const SectionLabel(label: "Select State"),
@@ -760,7 +776,7 @@ class _TopSections extends StatelessWidget {
           const SizedBox(height: 20),
 
           // ── HERO CARD ───────────────────────────────────────────
-          HeroCard(state: state),
+          if (state != null) HeroCard(state: state),
         ],
       );
     });
@@ -865,18 +881,9 @@ class _SwipeHint extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SECTION CONTENT  (resolves which view to show — NO Stack)
-//
-// Root cause fix: the original code used Stack + mixed if/else-if, meaning
-// children overlapped and the Stack could collapse to zero height.
-// Now we use a plain if/else chain that returns exactly one widget.
-// ─────────────────────────────────────────────────────────────────────────────
 
 class _SectionContent extends StatelessWidget {
-  /// Both [tab] and [state] must be resolved by the caller inside an Obx lambda
-  /// so that GetX reactive tracking works correctly. This widget itself does
-  /// NOT access any Rx .value — it receives plain, already-resolved values.
+  
   final int tab;
   final CounsellingStateData state;
   final bool isDark;

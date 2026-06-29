@@ -137,10 +137,12 @@ class SubscriptionApi {
   static Future<dynamic> saveSubscriptionStates({
     required int subscriptionId,
     required List<int> stateIds,
+    List<int>? courseIds,
   }) async {
     final response = await ApiClient.post(ApiEndpoints.subscriptionStates, {
       "subscription_id": subscriptionId,
       "state_ids": stateIds,
+      if (courseIds != null && courseIds.isNotEmpty) "course_ids": courseIds,
     });
 
     if (response['status'] != true) {
