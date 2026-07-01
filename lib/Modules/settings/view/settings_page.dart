@@ -246,7 +246,7 @@ class _AccountManageScreenState extends State<AccountManageScreen> {
 
                 /// 🔹 SECTION 2
                 _sectionTitle("services".tr),
-                buildSection(context, isDark, [
+                Obx(() => buildSection(context, isDark, [
                   Obx(() {
                     final isDarkTheme = themeController.isDark;
                     return buildThemeTile(
@@ -284,7 +284,7 @@ class _AccountManageScreenState extends State<AccountManageScreen> {
                       Get.toNamed(AppRoutes.settings);
                     },
                   ),
-                ]),
+                ])),
 
                 /// 🔹 SECTION 3
                 _sectionTitle("support".tr),

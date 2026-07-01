@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:Gixa/services/app_verification_controller.dart';
 
 import '../controller/ticket_controller.dart';
 import 'package:Gixa/common/widgets/app_snackbar.dart';
@@ -169,29 +170,26 @@ class _CreateTicketViewState extends State<CreateTicketView> {
     );
   }
 
-  final List<String> subjectOptions = const [
-    TicketController.billingPaymentOption,
+  List<String> get subjectOptions {
+    final options = [
+      TicketController.billingPaymentOption,
+      TicketController.airRankUpdateOption,
+      TicketController.categoryUpdateOption,
+      TicketController.neetScoreUpdateOption,
+      TicketController.courseChangeOption,
+      TicketController.technicalIssueOption,
+      TicketController.appBugOption,
+      TicketController.subscriptionIssueOption,
+      TicketController.predictionIssueOption,
+      TicketController.othersOption,
+    ];
 
-    // TicketController.profileUpdateOption,
-    TicketController.airRankUpdateOption,
+    if (AppVerificationController.to.hideSubscriptionUi) {
+      options.remove(TicketController.subscriptionIssueOption);
+    }
 
-    TicketController.categoryUpdateOption,
-
-    TicketController.neetScoreUpdateOption,
-
-    TicketController.courseChangeOption,
-
-    TicketController.technicalIssueOption,
-
-    TicketController.appBugOption,
-
-    TicketController.subscriptionIssueOption,
-
-    TicketController.predictionIssueOption,
-
-    // TicketController.accountIssueOption,
-    TicketController.othersOption,
-  ];
+    return options;
+  }
 
   final TextEditingController subjectController = TextEditingController();
 
@@ -352,7 +350,7 @@ class _CreateTicketViewState extends State<CreateTicketView> {
               ),
             ),
             SliverToBoxAdapter(
-              child: _CreateFormCard(
+              child: Obx(() => _CreateFormCard(
                 controller: controller,
                 subjectController: subjectController,
                 subjectFocus: subjectFocus,
@@ -366,7 +364,7 @@ class _CreateTicketViewState extends State<CreateTicketView> {
                 borderColor: borderColor,
                 inputBg: inputBg,
                 onPickAttachment: () => _pickAttachment(context),
-              ),
+              )),
             ),
             SliverToBoxAdapter(
               child: _SectionHeader(

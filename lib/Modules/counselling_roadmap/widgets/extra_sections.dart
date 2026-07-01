@@ -32,67 +32,23 @@ class EligibilitySection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (item.title.isNotEmpty)
-                Text(
-                  item.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : GixaColors.ink,
-                  ),
+              Text(
+                item.category,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : GixaColors.ink,
                 ),
-              if (item.subtitle.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  item.subtitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
-                  ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                item.requirement,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: isDark ? Colors.grey.shade400 : Colors.grey.shade700,
+                  height: 1.4,
                 ),
-              ],
-              if (item.items.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                ...item.items.map((subItem) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (subItem.title.isNotEmpty)
-                        Text(
-                          '• ${subItem.title}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: isDark ? Colors.white : GixaColors.ink,
-                          ),
-                        ),
-                      if (subItem.subtitle.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0, top: 2),
-                          child: Text(
-                            subItem.subtitle,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-                            ),
-                          ),
-                        ),
-                      if (subItem.description.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0, top: 2),
-                          child: Text(
-                            subItem.description,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? Colors.grey.shade500 : Colors.grey.shade700,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                )),
-              ],
+              ),
             ],
           ),
         );
