@@ -29,12 +29,16 @@ class SubscriptionApi {
   static Future<SubscriptionPurchaseResponse> purchaseSubscription({
     required int planId,
     String? couponCode,
+    List<int>? stateIds,
+    List<int>? courseIds,
   }) async {
     try {
       final response = await ApiClient.post(ApiEndpoints.subscriptionPurchase, {
         "plan_id": planId,
         if (couponCode != null && couponCode.isNotEmpty)
           "coupon_code": couponCode,
+        if (stateIds != null && stateIds.isNotEmpty) "state_ids": stateIds,
+        if (courseIds != null && courseIds.isNotEmpty) "course_ids": courseIds,
       });
 
       print("[API] purchaseSubscription response: $response");
@@ -66,6 +70,8 @@ class SubscriptionApi {
     required int finalAmount,
     String? couponCode,
     int extraDays = 0,
+    List<int>? stateIds,
+    List<int>? courseIds,
   }) async {
     final response =
         await ApiClient.post(ApiEndpoints.subscriptionCreateOrder, {
@@ -74,6 +80,8 @@ class SubscriptionApi {
           "final_amount": finalAmount.toString(),
           "coupon_code": couponCode ?? "",
           "extra_days": extraDays,
+          if (stateIds != null && stateIds.isNotEmpty) "state_ids": stateIds,
+          if (courseIds != null && courseIds.isNotEmpty) "course_ids": courseIds,
         });
     print("[API] createOrder response: $response");
     return CreateOrderResponse.fromJson(response);

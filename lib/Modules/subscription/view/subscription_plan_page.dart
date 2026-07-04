@@ -941,6 +941,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     final controller = Get.find<SubscriptionController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Fetch initial price including default/locked courses
+    controller.updateCourseSelectionPrice(plan.id);
+
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1010,7 +1013,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     itemCount: sortedCourses.length,
                     itemBuilder: (_, i) {
                       final course = sortedCourses[i];
-                      final int courseId = course.id;
+                      final int courseId = course.id != -1 ? course.id : course.courseId;
                       if (courseId == -1) return const SizedBox();
                       return Obx(() {
                         final isSelected = controller.selectedCourses.contains(
@@ -1041,12 +1044,22 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                               borderRadius: BorderRadius.circular(14),
                             ),
                             onChanged: (_) {
+                              final isLocked = controller.lockedCourses.contains(courseId);
+                              if (isLocked) {
+                                AppSnackbar.show(
+                                  'Profile Course',
+                                  'This course was added during registration and is included by default.',
+                                );
+                                return;
+                              }
+
                               if (isSelected) {
                                 controller.selectedCourses.remove(courseId);
                               } else {
                                 controller.selectedCourses.add(courseId);
                               }
                               controller.selectedCourses.refresh();
+                              controller.updateCourseSelectionPrice(plan.id);
                             },
                             title: Row(
                               children: [
@@ -1064,12 +1077,20 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                                     ),
                                   ),
                                 ),
+                                if (controller.lockedCourses.contains(courseId))
+                                  Icon(
+                                    Icons.verified_user_rounded,
+                                    size: 16,
+                                    color: _T.orange,
+                                  ),
                               ],
                             ),
                             subtitle: Text(
-                              'Code: ${course.courseCode}  •  Amount: ₹${course.amount}',
+                              controller.lockedCourses.contains(courseId)
+                                  ? 'Included in Profile'
+                                  : 'Amount: ₹${course.amount}',
                               style: _T.body(
-                                12,
+                                13,
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -1084,9 +1105,24 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
               // Continue button
               Obx(() {
-                final isEnabled = controller.selectedCourses.isNotEmpty;
+                final isEnabled = true;
+                final preview = controller.previewFor(plan.id);
+                
+                String displayAmount = plan.amount;
+                if (preview != null) {
+                  final cleaned = preview.finalPayableAmount.replaceAll(RegExp(r'[^0-9.]'), '');
+                  if (cleaned.isNotEmpty) {
+                    displayAmount = double.parse(cleaned).round().toString();
+                  }
+                } else {
+                  final cleaned = plan.amount.replaceAll(RegExp(r'[^0-9.]'), '');
+                  if (cleaned.isNotEmpty) {
+                    displayAmount = double.parse(cleaned).round().toString();
+                  }
+                }
+
                 return _GradientButton(
-                  label: 'Continue to Pay',
+                  label: 'Pay ₹$displayAmount',
                   isLoading: false,
                   onTap: isEnabled
                       ? () async {
@@ -1444,7 +1480,7 @@ class _PlanCardState extends State<_PlanCard>
                     Obx(() {
                       final preview = widget.controller.previewFor(plan.id);
                       final payable = preview != null
-                          ? widget.parseAmount(preview.finalPayableAmount)
+                          ? widget.parseAmount(preview.planPayableAmount)
                           : amount;
                       final hasDiscount =
                           preview != null &&
@@ -2068,7 +2104,7 @@ class _StickyBottomBar extends StatelessWidget {
     final preview = controller.previewFor(plan.id);
     final amount = parseAmount(plan.amount);
     final payable = preview != null
-        ? parseAmount(preview.finalPayableAmount)
+        ? parseAmount(preview.planPayableAmount)
         : amount;
     final hasDiscount =
         preview != null && parseAmount(preview.couponDiscount) > 0;

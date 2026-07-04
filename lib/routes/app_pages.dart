@@ -186,7 +186,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.choiceFilling,
-      page: () =>  CounsellingRoadmapScreen(),
+      page: () => CounsellingRoadmapScreen(),
     ),
     GetPage(name: AppRoutes.ticket, page: () => CreateTicketView()),
   ];

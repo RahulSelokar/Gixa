@@ -49,9 +49,21 @@ class SessionService {
     await TokenService.clearTokens();
 
     final box = GetStorage();
-    await box.remove('phone_verified');
-    await box.remove('registration_completed');
-    await box.remove('user_id');
+    
+    // Preserve app preferences, clear everything else (like user data, tokens, histories)
+    final keysToKeep = {
+      'onboarding_completed',
+      'language_code',
+      'theme_mode',
+      'home_tour_seen',
+    };
+    
+    final allKeys = box.getKeys().toList();
+    for (final key in allKeys) {
+      if (!keysToKeep.contains(key)) {
+        await box.remove(key);
+      }
+    }
 
     if (Get.isRegistered<OtpController>()) {
       Get.find<OtpController>().reset();

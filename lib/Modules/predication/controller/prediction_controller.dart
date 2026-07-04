@@ -279,9 +279,7 @@ Generating your AI college prediction...
     return unlocked;
   }
 
-  /// =========================
-  /// USER INPUT
-  /// =========================
+ 
   var selectedState = "".obs;
   var selectedCategory = "".obs;
   var selectedCourse = "".obs;
@@ -291,11 +289,8 @@ Generating your AI college prediction...
   var selectedRoundId = 0.obs;
 
   var selectedYear = RxnInt();
-  // Default quota is empty; only set if user selects
   var selectedQuota = "".obs;
-  // var selectedRound = "Round 1".obs;
-
-  /// ðŸ”¥ Dynamic Statewise Categories
+ 
   var stateCategoryMap = <String, StateCategoryModel>{}.obs;
   var horizontalCategoryList = <String>[].obs;
   var selectedInstituteType = "Both".obs;
@@ -318,18 +313,7 @@ Generating your AI college prediction...
     print(pretty);
     print("===================================================");
 
-    //     {
-    // I/flutter (29267):   "year": 2026,
-    // I/flutter (29267):   "rank": 386506,
-    // I/flutter (29267):   "marks": 0,
-    // I/flutter (29267):   "course": "MBBS",
-    // I/flutter (29267):   "state": "Maharashtra",
-    // I/flutter (29267):   "category": "EWS",
-    // I/flutter (29267):   "gender": "M",
-    // I/flutter (29267):   "horizontal": "EWS",
-    // I/flutter (29267):   "institute_type": "both",
-    // I/flutter (29267):   "quota": "State Quota"
-    // I/flutter (29267): }
+   
   }
 
   String _getFormattedHorizontal() {
@@ -388,7 +372,7 @@ Generating your AI college prediction...
     // if (selectedHorizontals.contains("IQ")) {
     //   return "Management Quota";
     // }
-    // Otherwise, send the selected quota value
+    // Otherwise, send the selected qu ota value
     return selectedQuota.value.trim();
   }
 
@@ -410,10 +394,30 @@ Generating your AI college prediction...
     bool forceRefresh = false,
   }) async {
     try {
-      final data = await StateCategoryApiService.getStateCategories(
+      final responseMap = await StateCategoryApiService.getStateCategories(
         showGlobalNetworkError: showGlobalNetworkError,
         forceRefresh: forceRefresh,
       );
+
+      final List<StateCategoryModel> data = responseMap['categories'] ?? [];
+      final List rawSelectedCourses = responseMap['selected_courses'] ?? [];
+
+      if (rawSelectedCourses.isNotEmpty) {
+        final fetchedSelectedCourses = rawSelectedCourses
+            .whereType<Map<String, dynamic>>()
+            .map((e) => CourseModel.fromJson(e))
+            .toList();
+
+        if (fetchedSelectedCourses.isNotEmpty) {
+          courseList.assignAll(fetchedSelectedCourses);
+          final hasSelectedCourse = courseList.any(
+            (course) => course.name == selectedCourse.value,
+          );
+          if (!hasSelectedCourse) {
+            selectedCourse.value = courseList.first.name;
+          }
+        }
+      }
 
       stateCategoryMap.clear();
       if (data.isEmpty) {

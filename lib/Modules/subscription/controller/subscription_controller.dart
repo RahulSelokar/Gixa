@@ -18,6 +18,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:Gixa/common/widgets/app_snackbar.dart';
 import 'package:Gixa/services/app_verification_controller.dart';
+import 'package:Gixa/Modules/payment/view/payment_success_dialog.dart';
+import 'package:Gixa/Modules/payment/view/payment_fail_dialog.dart';
 
 class SubscriptionController extends GetxController {
   final plans = <plan_models.SubscriptionPlan>[].obs;
@@ -29,6 +31,7 @@ class SubscriptionController extends GetxController {
   final applyingCouponMap = <int, bool>{}.obs;
   final selectedStates = <int>[].obs;
   final selectedCourses = <int>[].obs;
+  final lockedCourses = <int>[].obs; // Courses from profile that cannot be unselected
 
   /// Regular subscription plans
   List<plan_models.SubscriptionPlan> get regularPlans =>
@@ -119,7 +122,12 @@ class SubscriptionController extends GetxController {
       availableStates.assignAll(data.availableStates);
       availableCourses.assignAll(data.availableCourses);
       selectedStates.clear();
-      selectedCourses.assignAll(data.selectedCourses.map((e) => e.id));
+      final lockedIds = data.selectedCourses
+          .map((e) => e.id != -1 ? e.id : e.courseId)
+          .where((id) => id != -1)
+          .toList();
+      lockedCourses.assignAll(lockedIds);
+      selectedCourses.assignAll(lockedIds);
     } catch (e) {
       print("❌ ERROR: $e");
     } finally {
@@ -257,6 +265,8 @@ class SubscriptionController extends GetxController {
       final res = await SubscriptionApi.purchaseSubscription(
         planId: planId,
         couponCode: couponCode.trim(),
+        stateIds: selectedStates.toList(),
+        courseIds: selectedCourses.toList(),
       );
 
       print("COUPON RESPONSE => ${res.status}");
@@ -329,6 +339,28 @@ class SubscriptionController extends GetxController {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // COURSE/STATE PREVIEW UPDATE
+  // ─────────────────────────────────────────────────────────────────────────
+  Future<void> updateCourseSelectionPrice(int planId) async {
+    try {
+      final preview = previewMap[planId];
+      final res = await SubscriptionApi.purchaseSubscription(
+        planId: planId,
+        couponCode: preview?.couponApplied,
+        stateIds: selectedStates.toList(),
+        courseIds: selectedCourses.toList(),
+      );
+
+      if (res.status == true && res.data != null) {
+        previewMap[planId] = res.data!;
+        previewMap.refresh();
+      }
+    } catch (e) {
+      print("Failed to update course selection price: $e");
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // REST OF CONTROLLER — unchanged
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -353,16 +385,38 @@ class SubscriptionController extends GetxController {
       final preview = previewMap[planId];
 
       final baseAmount = _parseAmount(plan.amount);
-      final finalAmount = preview != null
-          ? _parseAmount(preview.finalPayableAmount)
-          : baseAmount;
+
+      // Fetch fresh preview to include selected states and courses
+      final freshPreviewRes = await SubscriptionApi.purchaseSubscription(
+        planId: planId,
+        couponCode: preview?.couponApplied,
+        stateIds: selectedStates.toList(),
+        courseIds: selectedCourses.toList(),
+      );
+
+      int finalAmount = baseAmount;
+      int extraDays = 0;
+      String? appliedCouponCode = preview?.couponApplied;
+
+      if (freshPreviewRes.status == true && freshPreviewRes.data != null) {
+        finalAmount = _parseAmount(freshPreviewRes.data!.finalPayableAmount);
+        extraDays = freshPreviewRes.data!.extraDays;
+        appliedCouponCode = freshPreviewRes.data!.couponApplied;
+      } else {
+        finalAmount = preview != null
+            ? _parseAmount(preview.finalPayableAmount)
+            : baseAmount;
+        extraDays = preview?.extraDays ?? 0;
+      }
 
       final orderRes = await SubscriptionApi.createOrder(
         planId: planId,
         baseAmount: baseAmount,
         finalAmount: finalAmount,
-        couponCode: preview?.couponApplied,
-        extraDays: preview?.extraDays ?? 0,
+        couponCode: appliedCouponCode,
+        extraDays: extraDays,
+        stateIds: selectedStates.toList(),
+        courseIds: selectedCourses.toList(),
       );
 
       _currentOrder = orderRes.data;
@@ -560,7 +614,7 @@ class SubscriptionController extends GetxController {
         await loadActivePlanFromHistory(userId, forceRefresh: true);
       }
 
-      AppSnackbar.show("Success", "Subscription Activated");
+      Get.dialog(const PaymentSuccessDialog(), barrierDismissible: false);
     } catch (e, stack) {
       print('[_onPaymentSuccess] error: $e\n$stack');
       AppSnackbar.show("Error", e.toString());
@@ -596,7 +650,7 @@ class SubscriptionController extends GetxController {
         }
     }
 
-    AppSnackbar.show('Payment Failed', message);
+    Get.dialog(PaymentFailDialog(message: message), barrierDismissible: false);
   }
 
   Future<void> _refreshActivePlanAfterPayment(String verifiedPlanCode) async {

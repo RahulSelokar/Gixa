@@ -5,7 +5,7 @@ import 'package:Gixa/Modules/predication/model/state_category_model.dart';
 class StateCategoryApiService {
   StateCategoryApiService._();
 
-  static Future<List<StateCategoryModel>> getStateCategories({
+  static Future<Map<String, dynamic>> getStateCategories({
     List<String>? states,
     bool showGlobalNetworkError = true,
     bool forceRefresh = false,
@@ -33,17 +33,21 @@ class StateCategoryApiService {
 
       if (response['success'] == true) {
         final List data = response['data'] ?? [];
-
-        return data
+        final categories = data
             .whereType<Map<String, dynamic>>()
             .map(StateCategoryModel.fromJson)
             .toList();
+
+        return {
+          'categories': categories,
+          'selected_courses': response['selected_courses'] ?? [],
+        };
       }
 
-      return [];
+      return {};
     } catch (e) {
       print("❌ StateCategoryApi Error: $e");
-      return [];
+      return {};
     }
   }
 }

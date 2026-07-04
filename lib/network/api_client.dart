@@ -226,8 +226,9 @@ class ApiClient {
       final data = response.data;
       if (response.statusCode != null &&
           ((response.statusCode! >= 200 && response.statusCode! < 300) ||
-              response.statusCode == 409 || 
-              (data is Map && data['error_code'] == 'ALREADY_LOGGED_IN_OTHER_DEVICE'))) {
+              response.statusCode == 409 ||
+              (data is Map &&
+                  data['error_code'] == 'ALREADY_LOGGED_IN_OTHER_DEVICE'))) {
         _invalidateForMutation(endpoint);
         return Map<String, dynamic>.from(data);
       }
@@ -877,8 +878,8 @@ class ApiClient {
     }
 
     // We do not show the full-screen GlobalNetworkError here anymore
-    // because it aggressively blocks the app during transient timeouts 
-    // (e.g., waking up from background). Local UI controllers will catch 
+    // because it aggressively blocks the app during transient timeouts
+    // (e.g., waking up from background). Local UI controllers will catch
     // this AppException and show a graceful Snackbar instead.
 
     throw appException;
