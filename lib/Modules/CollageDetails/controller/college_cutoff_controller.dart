@@ -90,10 +90,16 @@ class CollegeCutoffController extends GetxController {
 
   List<MapEntry<int, String>> get courseOptions {
     final map = <int, String>{};
+    final isUGUser = _profileController.isUGUser;
+    
     for (final record
         in cutoffData.value?.categoryCutoffs ??
             const <CollegeCategoryCutoffRecord>[]) {
-      map[record.courseId] = record.courseName;
+      
+      final isCourseUG = _profileController.isCourseUG(record.courseId);
+      if (isUGUser == isCourseUG) {
+        map[record.courseId] = record.courseName;
+      }
     }
     return map.entries.toList();
   }

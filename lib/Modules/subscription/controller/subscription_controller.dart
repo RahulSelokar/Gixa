@@ -119,8 +119,18 @@ class SubscriptionController extends GetxController {
     try {
       isStateLoading.value = true;
       final data = await SubscriptionApi.getStatesWithoutSubscription();
+      
+      final profileController = Get.isRegistered<ProfileController>() 
+          ? Get.find<ProfileController>() 
+          : Get.put(ProfileController());
+          
+      final filteredCourses = data.availableCourses.where((course) {
+        final isCourseUG = profileController.isCourseUG(course.id);
+        return profileController.isUGUser == isCourseUG;
+      }).toList();
+
       availableStates.assignAll(data.availableStates);
-      availableCourses.assignAll(data.availableCourses);
+      availableCourses.assignAll(filteredCourses);
       selectedStates.clear();
       final lockedIds = data.selectedCourses
           .map((e) => e.id != -1 ? e.id : e.courseId)

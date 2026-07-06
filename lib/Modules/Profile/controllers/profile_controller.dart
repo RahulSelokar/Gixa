@@ -37,6 +37,17 @@ class ProfileController extends GetxController {
   final Map<String, int> _categoryIdByName = {};
   final Map<String, int> _stateIdByName = {};
   final Map<String, int> _courseIdByName = {};
+  final RxSet<int> _ugCourseIds = <int>{}.obs;
+
+  bool get isUGUser {
+    final cId = selectedCourseId.value;
+    if (cId == null) return true; // Default to UG
+    return _ugCourseIds.contains(cId);
+  }
+
+  bool isCourseUG(int courseId) => _ugCourseIds.contains(courseId);
+
+  bool get isPGUser => !isUGUser;
 
   Future<void>? _loadFuture;
   File? selectedProfileImage;
@@ -729,6 +740,10 @@ class ProfileController extends GetxController {
       );
 
     _courseIdByName.clear();
+    _ugCourseIds.clear();
+    for (final course in ugCourses) {
+      _ugCourseIds.add(course.id);
+    }
     for (final course in allCourses) {
       _courseIdByName[_normalizeLookup(course.name)] = course.id;
     }

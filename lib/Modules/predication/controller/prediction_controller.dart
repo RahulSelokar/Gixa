@@ -750,8 +750,18 @@ Generating your AI college prediction...
       /// State dropdown should come from statewise-availability only.
       categoryList.value = data['categories'];
 
-      /// Courses dropdown should come from backend masters.
-      final fetchedCourses = data['courses_for_ug'] as List<CourseModel>? ?? [];
+      /// Courses dropdown should come from backend masters based on user profile.
+      List<CourseModel> fetchedCourses = [];
+      if (profileController.isUGUser) {
+        fetchedCourses = data['courses_for_ug'] as List<CourseModel>? ?? [];
+      } else {
+        final pgCourses = data['courses']?['PG'] as Map<String, dynamic>? ?? {};
+        for (final level in pgCourses.values) {
+          if (level is List) {
+            fetchedCourses.addAll(level.whereType<CourseModel>());
+          }
+        }
+      }
       courseList.assignAll(fetchedCourses);
 
       /// Keep profile-selected course when valid; otherwise fallback to first.

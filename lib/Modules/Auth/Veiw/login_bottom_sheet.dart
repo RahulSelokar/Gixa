@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:Gixa/Modules/Auth/controllers/otp_controller.dart';
 import 'package:Gixa/common/app_colors.dart';
@@ -78,7 +79,7 @@ class _DragHandle extends StatelessWidget {
   }
 }
 
-class _GradientButton extends StatelessWidget {
+class _GradientButton extends StatefulWidget {
   final String label;
   final bool isLoading;
   final VoidCallback? onPressed;
@@ -90,48 +91,68 @@ class _GradientButton extends StatelessWidget {
   });
 
   @override
+  State<_GradientButton> createState() => _GradientButtonState();
+}
+
+class _GradientButtonState extends State<_GradientButton> {
+  bool _isPressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: (isLoading || onPressed == null) ? null : onPressed,
-          borderRadius: BorderRadius.circular(16),
-          child: Ink(
-            decoration: BoxDecoration(
-              gradient: (isLoading || onPressed == null)
-                  ? LinearGradient(
-                      colors: kHomeBrandGradient.colors
-                          .map((color) => color.withOpacity(0.55))
-                          .toList(),
-                      begin: kHomeBrandGradient.begin,
-                      end: kHomeBrandGradient.end,
-                    )
-                  : kHomeBrandGradient,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Center(
-              child: isLoading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(
-                      label,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 15,
-                      ),
+    final isDisabled = widget.isLoading || widget.onPressed == null;
+
+    return GestureDetector(
+      onTapDown: isDisabled ? null : (_) => setState(() => _isPressed = true),
+      onTapUp: isDisabled ? null : (_) => setState(() => _isPressed = false),
+      onTapCancel: isDisabled ? null : () => setState(() => _isPressed = false),
+      onTap: isDisabled ? null : widget.onPressed,
+      child: AnimatedScale(
+        scale: _isPressed ? 0.96 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          height: 48, // slightly smaller height for premium look
+          decoration: BoxDecoration(
+            gradient: isDisabled
+                ? LinearGradient(
+                    colors: kHomeBrandGradient.colors
+                        .map((color) => color.withOpacity(0.55))
+                        .toList(),
+                    begin: kHomeBrandGradient.begin,
+                    end: kHomeBrandGradient.end,
+                  )
+                : kHomeBrandGradient,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: _isPressed || isDisabled
+                ? []
+                : [
+                    BoxShadow(
+                      color: kHomeBrandGradient.colors.last.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
-            ),
+                  ],
+          ),
+          child: Center(
+            child: widget.isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Text(
+                    widget.label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14, // smaller font size
+                      letterSpacing: 0.5,
+                    ),
+                  ),
           ),
         ),
       ),
@@ -158,19 +179,74 @@ class _SheetScaffold extends StatelessWidget {
           constraints: BoxConstraints(maxHeight: media.size.height * 0.92),
           child: SizedBox(
             width: double.infinity,
-            child: Material(
-              color: isDark ? UColors.darkSurface : Colors.white,
-              clipBehavior: Clip.antiAlias,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
-              child: SingleChildScrollView(
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                physics: const ClampingScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(24, 14, 24, safeBottom + 24),
-                child: child,
-              ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.topCenter,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 80.0),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(32),
+                    ),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Material(
+                        color: (isDark ? UColors.darkSurface : Colors.white)
+                            .withOpacity(0.85),
+                        clipBehavior: Clip.antiAlias,
+                        child: SingleChildScrollView(
+                          keyboardDismissBehavior:
+                              ScrollViewKeyboardDismissBehavior.onDrag,
+                          physics: const ClampingScrollPhysics(),
+                          padding: EdgeInsets.fromLTRB(
+                            24,
+                            75,
+                            24,
+                            safeBottom + 24,
+                          ),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  child: IgnorePointer(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Glowing blurry decoration behind the image
+                        Container(
+                          width: 120,
+                          height: 120,
+                          margin: const EdgeInsets.only(top: 20),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    (isDark
+                                            ? kHomeAccentColor
+                                            : UColors.primary)
+                                        .withOpacity(0.35),
+                                blurRadius: 40,
+                                spreadRadius: 15,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Image.asset(
+                          'assets/images/login_genie.png',
+                          height: 160,
+                          fit: BoxFit.contain,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -241,44 +317,32 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _DragHandle(),
-            Container(
-              width: 62,
-              height: 62,
-              decoration: BoxDecoration(
-                gradient: kHomeBrandGradient,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Icon(
-                Icons.phone_android_rounded,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-            const SizedBox(height: 16),
+            // Genie image sits above, so we don't need the drag handle and icon here.
+            const SizedBox(height: 12),
             Text(
               'Continue with mobile number',
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
+                fontSize: 18, // reduced from 20
+                fontWeight: FontWeight.w800,
                 color: textColor,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               'Enter your number to verify with OTP and unlock all app features.',
-              style: TextStyle(fontSize: 13, height: 1.5, color: subTextColor),
+              style: TextStyle(fontSize: 12, height: 1.4, color: subTextColor),
             ),
-            const SizedBox(height: 22),
+            const SizedBox(height: 20),
             Text(
               'Mobile number',
               style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
                 color: kHomeAccentColor,
+                letterSpacing: 0.3,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             TextFormField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
@@ -402,7 +466,7 @@ class _OtpVerifyBottomSheetState extends State<OtpVerifyBottomSheet> {
     printHashCode();
     _otpFieldController.clear();
     listenOtp();
-    
+
     _otpResetWorker = ever(_otpController.otpInputResetTrigger, (_) {
       if (mounted) {
         _otpFieldController.clear();
@@ -501,37 +565,24 @@ class _OtpVerifyBottomSheetState extends State<OtpVerifyBottomSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _DragHandle(),
-          Container(
-            width: 62,
-            height: 62,
-            decoration: BoxDecoration(
-              gradient: kHomeBrandGradient,
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: const Icon(
-              Icons.lock_open_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-          ),
-          const SizedBox(height: 16),
+          // Genie image sits above, so we don't need the drag handle and icon here.
+          const SizedBox(height: 12),
           Text(
             'Verify OTP',
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
+              fontSize: 18, // reduced
+              fontWeight: FontWeight.w800,
               color: textColor,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
           Obx(
             () => Text(
               'Enter the 6-digit code sent to\n+91 ${_otpController.mobileNumber.value}',
-              style: TextStyle(fontSize: 13, height: 1.5, color: subTextColor),
+              style: TextStyle(fontSize: 12, height: 1.4, color: subTextColor),
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 20),
           TextField(
             controller: _otpFieldController,
             keyboardType: TextInputType.number,

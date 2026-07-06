@@ -3,6 +3,7 @@ import 'package:Gixa/Modules/subscription/controller/subscription_controller.dar
 import 'package:Gixa/Modules/subscription/features/feature_names.dart';
 import 'package:Gixa/Modules/subscription/extensions/subscription_tier_extension.dart';
 import 'package:Gixa/common/widgets/primeum_dailog.dart';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/about_section.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/collage_theme.dart';
@@ -18,6 +19,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
   final CollegeDetail college;
 
   SeatMatrixController get _seatController => Get.find<SeatMatrixController>();
+  ProfileController get _profileController => Get.find<ProfileController>();
 
   const CollegeTabContent({super.key, required this.college});
 
@@ -66,8 +68,8 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
   }
 
   Widget _fees(CollegeThemeColors colors) {
-    final ug = college.courses.ug;
-    final pg = college.courses.pg;
+    final ug = _profileController.isUGUser ? college.courses.ug : [];
+    final pg = _profileController.isPGUser ? college.courses.pg : [];
 
     if ((ug.isEmpty) && (pg.isEmpty)) {
       return const SizedBox.shrink();
@@ -166,17 +168,20 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
       tabs.add('Overview');
     }
 
-    if (college.courses.ug.isNotEmpty || college.courses.pg.isNotEmpty) {
+    final ug = _profileController.isUGUser ? college.courses.ug : [];
+    final pg = _profileController.isPGUser ? college.courses.pg : [];
+
+    if (ug.isNotEmpty || pg.isNotEmpty) {
       tabs.add('Courses');
     }
 
     final hasFees =
-        ((college.courses.ug).any(
+        (ug).any(
           (c) => c.fee != null && c.fee!.trim().isNotEmpty,
         ) ||
-        (college.courses.pg).any(
+        (pg).any(
           (c) => c.fee != null && c.fee!.trim().isNotEmpty,
-        ));
+        );
 
     if (hasFees) {
       tabs.add('Fees');

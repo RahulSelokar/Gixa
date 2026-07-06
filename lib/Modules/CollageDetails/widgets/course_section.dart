@@ -2,6 +2,8 @@ import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/collage_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
+import 'package:get/get.dart';
 
 class CoursesSection extends StatelessWidget {
   final CollegeDetail college;
@@ -10,7 +12,11 @@ class CoursesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (college.courses.ug.isEmpty && college.courses.pg.isEmpty) {
+    final profileController = Get.find<ProfileController>();
+    final ugList = profileController.isUGUser ? college.courses.ug : [];
+    final pgList = profileController.isPGUser ? college.courses.pg : [];
+
+    if (ugList.isEmpty && pgList.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -53,14 +59,14 @@ class CoursesSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _CourseCategory(
-                title: "Undergraduate (UG)",
-                items: college.courses.ug.map((e) => e.name).toList(),
-                baseColor: colors.primary,
-                colors: colors,
-              ),
-              if (college.courses.ug.isNotEmpty &&
-                  college.courses.pg.isNotEmpty)
+              if (ugList.isNotEmpty)
+                _CourseCategory(
+                  title: "Undergraduate (UG)",
+                  items: ugList.map<String>((e) => e.name.toString()).toList(),
+                  baseColor: colors.primary,
+                  colors: colors,
+                ),
+              if (ugList.isNotEmpty && pgList.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Divider(
@@ -69,14 +75,15 @@ class CoursesSection extends StatelessWidget {
                     height: 1,
                   ),
                 ),
-              _CourseCategory(
-                title: "Postgraduate (PG)",
-                items: college.courses.pg
-                    .map((e) => "${e.courseName} - ${e.specialtyType}")
-                    .toList(),
-                baseColor: colors.purple,
-                colors: colors,
-              ),
+              if (pgList.isNotEmpty)
+                _CourseCategory(
+                  title: "Postgraduate (PG)",
+                  items: pgList
+                      .map<String>((e) => "${e.courseName} - ${e.specialtyType}")
+                      .toList(),
+                  baseColor: colors.purple,
+                  colors: colors,
+                ),
             ],
           ),
         ),

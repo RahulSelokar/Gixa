@@ -20,24 +20,20 @@ class PaymentApiService {
 
     final List data = response['data'];
 
-    return data
-        .map((e) => PaymentCredentialModel.fromJson(e))
-        .toList();
+    return data.map((e) => PaymentCredentialModel.fromJson(e)).toList();
   }
-  static Future<PaymentVerificationModel>
-checkPaymentVerification({
-  bool forceRefresh = false,
-}) async {
-  final response = await ApiClient.get(
-    ApiEndpoints.appVerification,
-    requestPolicy: RequestPolicy(
-      ttl: const Duration(minutes: 1),
-      forceRefresh: forceRefresh,
-    ),
-  );
 
-  return PaymentVerificationModel.fromJson(
-    response['data'] ?? response,
-  );
-}
+  static Future<PaymentVerificationModel> checkPaymentVerification({
+    bool forceRefresh = false,
+  }) async {
+    final response = await ApiClient.get(
+      ApiEndpoints.appVerification,
+      requestPolicy: RequestPolicy(
+        ttl: const Duration(minutes: 1),
+        forceRefresh: forceRefresh,
+      ),
+    );
+
+    return PaymentVerificationModel.fromJson(response['data'] ?? response);
+  }
 }

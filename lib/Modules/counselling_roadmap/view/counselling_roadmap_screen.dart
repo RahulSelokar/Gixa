@@ -90,7 +90,7 @@ class CounsellingRoadmapScreen extends StatelessWidget {
         top: false,
         child: Obx(() {
           // Observe isUG so AnimatedSwitcher fires on UG/PG toggle
-          final _ = controller.isUG.value;
+          final _ = controller.isUG;
 
           return AnimatedSwitcher(
             duration: const Duration(milliseconds: 320),
@@ -106,7 +106,7 @@ class CounsellingRoadmapScreen extends StatelessWidget {
               ),
             ),
             child: KeyedSubtree(
-              key: ValueKey(controller.isUG.value),
+              key: ValueKey(controller.isUG),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final width = constraints.maxWidth;
@@ -745,9 +745,7 @@ class _TopSections extends StatelessWidget {
             );
           }),
 
-          // ── UG / PG TOGGLE ──────────────────────────────────────
-          UGPGToggle(controller: controller, isDark: isDark),
-          const SizedBox(height: 20),
+          // UG / PG toggle removed as it is now determined by profile
 
           // ── STATE SELECTOR ──────────────────────────────────────
           const SectionLabel(label: "Select State"),

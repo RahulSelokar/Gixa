@@ -105,6 +105,7 @@ flutter:
     - assets/icons/gixxa5.png
     - assets/images/male_avtar.png
     - assets/images/female_avtar.png
+    - assets/images/login_genie.png
     - assets/images/payment.png
     - assets/payment_fail.png
     - assets/icons/animated_gixa.png
