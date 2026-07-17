@@ -98,20 +98,25 @@ class CollegeHeaderSection extends StatelessWidget {
                     icon: Icons.account_balance_rounded,
                     colors: colors,
                   ),
+                  if (college.yearEstablished != null &&
+                      college.yearEstablished.toString().trim().isNotEmpty &&
+                      college.yearEstablished.toString().trim().toLowerCase() != 'none' &&
+                      college.yearEstablished.toString().trim().toLowerCase() != 'null') ...[
+                    const SizedBox(width: 10),
+                    _buildTag(
+                      text: "Est. ${college.yearEstablished}",
+                      baseColor: colors.primary,
+                      icon: Icons.history_rounded,
+                      colors: colors,
+                    ),
+                  ],
                   const SizedBox(width: 10),
-                  _buildTag(
-                    text: "Est. ${college.yearEstablished}",
-                    baseColor: colors.primary,
-                    icon: Icons.history_rounded,
-                    colors: colors,
-                  ),
-                  const SizedBox(width: 10),
-                  _buildTag(
-                    text: "Gixa recommended",
-                    baseColor: colors.purple,
-                    icon: Icons.auto_awesome_rounded,
-                    colors: colors,
-                  ),
+                  // _buildTag(
+                  //   text: "Gixa recommended",
+                  //   baseColor: colors.purple,
+                  //   icon: Icons.auto_awesome_rounded,
+                  //   colors: colors,
+                  // ),
                 ],
               ),
             ),

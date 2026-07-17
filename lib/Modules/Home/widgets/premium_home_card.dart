@@ -279,7 +279,10 @@ class _HomePlansSectionState extends State<HomePlansSection>
                         final card = _PlanCard(
                           plan: plan,
                           imagePath: _getGenie(index),
-                          onTap: () => Get.toNamed('/subscription'),
+                          onTap: () => Get.toNamed(
+                            '/subscription',
+                            arguments: {'planId': plan.id},
+                          ),
                           isCentered: index == _currentPage,
                           cardIndex: index,
                         );

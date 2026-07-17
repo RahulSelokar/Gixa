@@ -55,6 +55,8 @@ class RegisterController extends GetxController {
   final ugCourses = <String, List<CourseModel>>{}.obs;
   final pgCourses = <String, List<CourseModel>>{}.obs;
   final ugCourseList = <CourseModel>[].obs;
+  final pgCourseList = <CourseModel>[].obs; // NEW
+  final statewisePgCourses = <String, List<CourseModel>>{}.obs; // NEW
   final availableCourses = <CourseModel>[].obs;
 
   final selectedState = Rx<StateModel?>(null);
@@ -62,8 +64,12 @@ class RegisterController extends GetxController {
   final selectedGender = RxnString();
   final selectedCourseLevel = Rx<CourseLevel?>(null);
   final selectedCourseType = Rx<CourseType?>(null);
+  
+  final selectedCourseName = RxnString();
+  final selectedCourseCategory = RxnString();
   final selectedCourse = Rx<CourseModel?>(null);
   final selectedSpecialty = Rx<SpecialtyModel?>(null);
+
 
   @override
   void onInit() {
@@ -188,6 +194,12 @@ class RegisterController extends GetxController {
       );
 
       ugCourseList.assignAll(data['courses_for_ug'] ?? <CourseModel>[]);
+      pgCourseList.assignAll(data['courses_for_pg'] ?? <CourseModel>[]); // NEW
+      
+      final Map<String, List<CourseModel>> swPg = 
+          data['statewise_courses_for_pg'] ?? {};
+      statewisePgCourses.assignAll(swPg);
+
       _refreshAvailableCourses();
 
       print("\n🔥 STATE → CATEGORIES MAPPING:");
@@ -281,6 +293,7 @@ class RegisterController extends GetxController {
 
   void updateCategoriesByState(StateModel state) {
     selectedState.value = state;
+    _refreshAvailableCourses();
 
     MapEntry<String, List<String>>? entry;
 
@@ -356,9 +369,7 @@ class RegisterController extends GetxController {
   }
 
   Map<String, List<CourseModel>> get _currentLevelCourses {
-    if (selectedCourseLevel.value == CourseLevel.pg) {
-      return pgCourses;
-    }
+    // PG uses flat list now, so this is only left here in case it's needed elsewhere.
     return {};
   }
 
@@ -367,6 +378,8 @@ class RegisterController extends GetxController {
 
     selectedCourseLevel.value = level;
     selectedCourseType.value = null;
+    selectedCourseName.value = null;
+    selectedCourseCategory.value = null;
     selectedCourse.value = null;
     selectedSpecialty.value = null;
     _refreshAvailableCourses();
@@ -386,6 +399,48 @@ class RegisterController extends GetxController {
     selectedSpecialty.value = null;
   }
 
+  List<String> get uniqueCourseNames {
+    return availableCourses.map((c) => c.name).toSet().toList();
+  }
+
+  List<String> get availableCourseCategories {
+    if (selectedCourseName.value == null) return [];
+    return availableCourses
+        .where((c) => c.name == selectedCourseName.value)
+        .map((c) => c.category ?? '')
+        .where((c) => c.isNotEmpty)
+        .toSet()
+        .toList();
+  }
+
+  void onCourseNameSelected(String name) {
+    selectedCourseName.value = name;
+    selectedCourseCategory.value = null;
+    selectedCourse.value = null;
+    selectedSpecialty.value = null;
+    
+    final matchingCourses = availableCourses.where((c) => c.name == name).toList();
+    if (selectedCourseLevel.value == CourseLevel.ug || matchingCourses.length == 1) {
+      if (matchingCourses.isNotEmpty) {
+        onCourseSelected(matchingCourses.first);
+      }
+    }
+  }
+
+  void onCourseCategorySelected(String category) {
+    selectedCourseCategory.value = category;
+    selectedSpecialty.value = null;
+    
+    try {
+      final match = availableCourses.firstWhere(
+        (c) => c.name == selectedCourseName.value && c.category == category,
+      );
+      onCourseSelected(match);
+    } catch (_) {
+      selectedCourse.value = null;
+    }
+  }
+
   void _refreshAvailableCourses() {
     if (selectedCourseLevel.value == CourseLevel.ug) {
       availableCourses.assignAll(_ugCoursesForSelection);
@@ -393,7 +448,11 @@ class RegisterController extends GetxController {
     }
 
     if (selectedCourseLevel.value == CourseLevel.pg) {
-      availableCourses.assignAll(coursesByType);
+      if (selectedState.value != null && statewisePgCourses.containsKey(selectedState.value!.name)) {
+        availableCourses.assignAll(statewisePgCourses[selectedState.value!.name]!);
+      } else {
+        availableCourses.assignAll(pgCourseList); // NEW: Use flat list
+      }
       return;
     }
 
@@ -402,7 +461,8 @@ class RegisterController extends GetxController {
 
   bool get shouldShowSpecialty => selectedCourseLevel.value == CourseLevel.pg;
 
-  bool get shouldShowCourseType => selectedCourseLevel.value == CourseLevel.pg;
+  bool get shouldShowCourseType =>
+      false; // NEW: Course Type not needed for PG anymore
 
   bool get isDropdownValid =>
       selectedState.value != null &&

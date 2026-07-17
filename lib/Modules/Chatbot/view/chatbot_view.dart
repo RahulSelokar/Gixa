@@ -86,7 +86,9 @@ class _ChatViewState extends State<ChatView> {
                         Get.back();
                         controller.startNewSession();
                         if (controller.autoStart) {
-                          controller.startChat();
+                          controller.startChat().then((_) {
+                            controller.loadPreviousSessions('general');
+                          });
                         }
                       },
                     ),

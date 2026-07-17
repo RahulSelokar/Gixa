@@ -48,14 +48,19 @@ class AuthServices {
     }
   }
 
-  static Future<void> logoutOtherDevice({
+  static Future<ApiResponse<VerifyOtpResponse>> logoutOtherDevice({
     required String mobileNumber,
     required String deviceId,
   }) async {
-    await ApiClient.post(ApiEndpoints.logoutOtherDevice, {
-      'mobile_number': mobileNumber,
+    final Map<String, dynamic> json = await ApiClient.post(ApiEndpoints.logoutOtherDevice, {
+      // 'mobile_number': mobileNumber,
       'device_id': deviceId,
     });
+
+    return ApiResponse<VerifyOtpResponse>.fromJson(
+      json,
+      (data) => VerifyOtpResponse.fromJson(data),
+    );
   }
 
   static Future<ApiResponse<VerifyOtpResponse>> refreshToken(

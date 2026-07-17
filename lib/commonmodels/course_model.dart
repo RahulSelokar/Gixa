@@ -3,11 +3,13 @@ import 'specialty_model.dart';
 class CourseModel {
   final int id;
   final String name;
+  final String? category;
   final List<SpecialtyModel> specialties;
 
   CourseModel({
     required this.id,
     required this.name,
+    this.category,
     required this.specialties,
   });
 
@@ -15,6 +17,7 @@ class CourseModel {
     return CourseModel(
       id: json['id'],
       name: json['course_name'],
+      category: json['category'],
       specialties: (json['specialties'] as List<dynamic>? ?? [])
           .map((e) => SpecialtyModel.fromJson(e))
           .toList(),

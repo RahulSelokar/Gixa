@@ -7,6 +7,7 @@ import 'package:Gixa/Modules/subscription/features/feature_names.dart';
 import 'package:Gixa/commonmodels/category_model.dart';
 import 'package:Gixa/commonmodels/course_model.dart';
 import 'package:Gixa/commonmodels/round_model.dart';
+import 'package:Gixa/commonmodels/specialty_model.dart';
 import 'package:Gixa/commonmodels/state_model.dart';
 import 'package:Gixa/network/app_exception.dart';
 import 'package:Gixa/routes/app_routes.dart';
@@ -28,9 +29,10 @@ class PredictionController extends GetxController {
     if (p == null) return;
     userAir.value = p.allIndiaRank ?? 0;
     userMarks.value = p.neetScore ?? 0;
-    selectedState.value = p.state ?? "";
+    selectedState.value = "Select State";
     selectedCategory.value = p.category ?? "";
-    selectedCourse.value = p.course ?? "";
+    selectedCourse.value = "Select Course";
+    selectedSpecialty.value = "Select Specialty";
     selectedGender.value = p.gender ?? "M";
     selectedQuota.value = p.quota ?? "";
     selectedInstituteType.value = p.instituteType ?? "Both";
@@ -60,9 +62,16 @@ class PredictionController extends GetxController {
     });
   }
 
+  String get effectiveState {
+    if (selectedState.value == 'Select State' || selectedState.value.isEmpty) {
+      return profileController.profile.value?.state ?? '';
+    }
+    return selectedState.value;
+  }
+
   // Returns true if current state is Maharashtra
   bool get isMaharashtra =>
-      selectedState.value.trim().toLowerCase() == 'maharashtra';
+      effectiveState.trim().toLowerCase() == 'maharashtra';
 
   // Returns horizontal categories for Reservation (excludes IQ for Maharashtra)
 
@@ -94,7 +103,7 @@ class PredictionController extends GetxController {
 
   /// Returns the available quotas for the currently selected state
   List<String> get availableQuotasForSelectedState {
-    final stateData = stateCategoryMap[selectedState.value];
+    final stateData = stateCategoryMap[effectiveState];
     return stateData?.availableQuotas ?? [];
   }
 
@@ -150,7 +159,7 @@ Let's find best colleges for you 🚀
   void askCourseQuestion() {
     addBotMessage(
       "Which course are you interested in?",
-      options: courseList.map((e) => e.name).toList(),
+      options: currentAvailableCourses.map((e) => e.name).toList(),
       key: "course",
     );
   }
@@ -249,6 +258,7 @@ Generating your AI college prediction...
   var isProfileLoading = false.obs;
   var isPredictionLoading = false.obs;
   var errorMessage = ''.obs;
+  var courseError = ''.obs;
   Future<void>? _bootstrapFuture;
 
   /// =========================
@@ -279,10 +289,10 @@ Generating your AI college prediction...
     return unlocked;
   }
 
- 
   var selectedState = "".obs;
   var selectedCategory = "".obs;
-  var selectedCourse = "".obs;
+  var selectedCourse = "Select Course".obs;
+  var selectedSpecialty = "Select Specialty".obs;
 
   var roundsList = <RoundModel>[].obs;
   var selectedRound = "".obs;
@@ -290,7 +300,7 @@ Generating your AI college prediction...
 
   var selectedYear = RxnInt();
   var selectedQuota = "".obs;
- 
+
   var stateCategoryMap = <String, StateCategoryModel>{}.obs;
   var horizontalCategoryList = <String>[].obs;
   var selectedInstituteType = "Both".obs;
@@ -306,14 +316,27 @@ Generating your AI college prediction...
   var stateList = <StateModel>[].obs;
   var categoryList = <CategoryModel>[].obs;
   var courseList = <CourseModel>[].obs;
+  var specialtyList = <SpecialtyModel>[].obs; // NEW
+  var statewisePgCourses = <String, List<CourseModel>>{}.obs;
+
+  List<CourseModel> get currentAvailableCourses {
+    if (profileController.isUGUser) {
+      return courseList; // populated with UG courses from loadMasters
+    } else {
+      final stateName = effectiveState;
+      if (statewisePgCourses.containsKey(stateName) &&
+          statewisePgCourses[stateName]!.isNotEmpty) {
+        return statewisePgCourses[stateName]!;
+      }
+      return profileController.pgCourseList; // fallback
+    }
+  }
 
   void _logPredictionRequest(Map<String, dynamic> requestBody) {
     final pretty = const JsonEncoder.withIndent('  ').convert(requestBody);
     print("========== PREDICTION REQUEST (OUTGOING) ==========");
     print(pretty);
     print("===================================================");
-
-   
   }
 
   String _getFormattedHorizontal() {
@@ -410,6 +433,17 @@ Generating your AI college prediction...
 
         if (fetchedSelectedCourses.isNotEmpty) {
           courseList.assignAll(fetchedSelectedCourses);
+
+          print(
+            "====== COURSES FROM BACKEND FOR STATE: ${selectedState.value} ======",
+          );
+          for (var c in fetchedSelectedCourses) {
+            print("- ${c.name} (ID: ${c.id})");
+          }
+          print(
+            "===================================================================",
+          );
+
           final hasSelectedCourse = courseList.any(
             (course) => course.name == selectedCourse.value,
           );
@@ -424,7 +458,7 @@ Generating your AI college prediction...
         stateList.clear();
         categoryList.clear();
         horizontalCategoryList.clear();
-        selectedState.value = "";
+        selectedState.value = "Select State";
         return;
       }
 
@@ -440,15 +474,12 @@ Generating your AI college prediction...
       final selectedStateExists = stateList.any(
         (state) => state.name == selectedState.value,
       );
-      if (!selectedStateExists) {
-        selectedState.value = stateList.isNotEmpty ? stateList.first.name : "";
+      if (selectedState.value != 'Select State' && !selectedStateExists) {
+        selectedState.value = "Select State";
       }
 
-      if (selectedState.value.isNotEmpty) {
-        updateCategoriesByState(
-          selectedState.value,
-          preserveExistingCategory: true,
-        );
+      if (effectiveState.isNotEmpty) {
+        updateCategoriesByState(effectiveState, preserveExistingCategory: true);
       }
     } catch (e) {
       print("âŒ Failed to load statewise categories: $e");
@@ -508,7 +539,7 @@ Generating your AI college prediction...
 
   void onStateChanged(String state) {
     selectedState.value = state;
-    updateCategoriesByState(state);
+    updateCategoriesByState(effectiveState);
   }
 
   void loadRecentPredictions() {
@@ -588,25 +619,52 @@ Generating your AI college prediction...
   // VALIDATE INPUT
   // =====================================================
   bool _validateInputs() {
+    bool isValid = true;
+
+    if (selectedCourse.value.trim().isEmpty ||
+        selectedCourse.value == 'Select Course') {
+      courseError.value = "Please select a course";
+      isValid = false;
+    } else {
+      courseError.value = "";
+    }
+
+    bool hasSpecialties = false;
+    final targetList = profileController.isPGUser
+        ? profileController.pgCourseList
+        : profileController.ugCourseList;
+    for (final course in targetList) {
+      if (course.name == selectedCourse.value) {
+        if (course.specialties.isNotEmpty) hasSpecialties = true;
+        break;
+      }
+    }
+
+    if (hasSpecialties &&
+        (selectedSpecialty.value.trim().isEmpty ||
+            selectedSpecialty.value == 'Select Specialty')) {
+      AppSnackbar.show("Error", "Please select a specialty");
+      isValid = false;
+    }
+
     if (userAir.value == 0) {
       AppSnackbar.show("Error", "AIR not found in profile");
-      return false;
+      isValid = false;
     }
 
     if (selectedQuota.value.trim().isEmpty) {
       AppSnackbar.show("Error", "Please select quota");
-      return false;
+      isValid = false;
     }
 
-    if (selectedState.value.trim().isEmpty ||
+    if (effectiveState.trim().isEmpty ||
         selectedCategory.value.trim().isEmpty ||
-        selectedCourse.value.trim().isEmpty ||
         selectedYear.value == null) {
       AppSnackbar.show("Error", "Please fill all required fields");
-      return false;
+      isValid = false;
     }
 
-    return true;
+    return isValid;
   }
 
   // =====================================================
@@ -633,7 +691,11 @@ Generating your AI college prediction...
         "rank": userAir.value,
         "marks": userMarks.value,
         "course": selectedCourse.value.trim(),
-        "state": selectedState.value.trim(),
+        "course_level": profileController.isPGUser ? "PG" : "UG",
+        if (selectedSpecialty.value.isNotEmpty &&
+            selectedSpecialty.value != 'Select Specialty')
+          "specialty": selectedSpecialty.value.trim(),
+        "state": effectiveState.trim(),
         "category": selectedCategory.value.trim(),
         "gender": selectedGender.value,
         // if (isPwd.value) "pwd": true,
@@ -763,14 +825,17 @@ Generating your AI college prediction...
         }
       }
       courseList.assignAll(fetchedCourses);
+      statewisePgCourses.value =
+          data['statewise_courses_for_pg'] as Map<String, List<CourseModel>>? ??
+          {};
 
       /// Keep profile-selected course when valid; otherwise fallback to first.
-      final hasSelectedCourse = courseList.any(
+      final hasSelectedCourse = currentAvailableCourses.any(
         (course) => course.name == selectedCourse.value,
       );
       if (!hasSelectedCourse) {
-        selectedCourse.value = courseList.isNotEmpty
-            ? courseList.first.name
+        selectedCourse.value = currentAvailableCourses.isNotEmpty
+            ? currentAvailableCourses.first.name
             : "";
       }
     } on AppException catch (e) {

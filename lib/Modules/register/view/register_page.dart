@@ -1,4 +1,4 @@
-﻿import 'package:Gixa/Modules/register/model/register_request.dart';
+import 'package:Gixa/Modules/register/model/register_request.dart';
 import 'package:Gixa/routes/app_start_controller.dart';
 import 'package:Gixa/utils/device_utils.dart';
 import 'package:Gixa/utils/fcm_utils.dart';
@@ -153,6 +153,9 @@ class RegisterPage extends StatelessWidget {
                               if (v.length < 2) {
                                 return "Minimum 2 characters";
                               }
+                              if (!RegExp(r"^[a-zA-Z\s\-\.\']+$").hasMatch(v)) {
+                                return "Enter a valid name";
+                              }
                               return null;
                             },
                           ),
@@ -168,6 +171,9 @@ class RegisterPage extends StatelessWidget {
                             validator: (v) {
                               if (v == null || v.isEmpty) {
                                 return "Last name is required";
+                              }
+                              if (!RegExp(r"^[a-zA-Z\s\-\.\']+$").hasMatch(v)) {
+                                return "Enter a valid name";
                               }
 
                               return null;
@@ -259,85 +265,85 @@ class RegisterPage extends StatelessWidget {
 
                     const SizedBox(height: 12),
 
-                    /// PREDICT BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      height: 48,
-                      child: Obx(
-                        () => OutlinedButton.icon(
-                          onPressed: controller.isPredictingRank.value
-                              ? null
-                              : controller.predictRank,
-                          icon: controller.isPredictingRank.value
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.auto_awesome),
+                    // /// PREDICT BUTTON
+                    // SizedBox(
+                    //   width: double.infinity,
+                    //   height: 48,
+                    //   child: Obx(
+                    //     () => OutlinedButton.icon(
+                    //       onPressed: controller.isPredictingRank.value
+                    //           ? null
+                    //           : controller.predictRank,
+                    //       icon: controller.isPredictingRank.value
+                    //           ? const SizedBox(
+                    //               width: 16,
+                    //               height: 16,
+                    //               child: CircularProgressIndicator(
+                    //                 strokeWidth: 2,
+                    //               ),
+                    //             )
+                    //           : const Icon(Icons.auto_awesome),
 
-                          label: Text(
-                            controller.isPredictingRank.value
-                                ? "Predicting..."
-                                : "Predict Rank",
-                          ),
+                    //       label: Text(
+                    //         controller.isPredictingRank.value
+                    //             ? "Predicting..."
+                    //             : "Predict Rank",
+                    //       ),
 
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    //       style: OutlinedButton.styleFrom(
+                    //         shape: RoundedRectangleBorder(
+                    //           borderRadius: BorderRadius.circular(14),
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
 
-                    const SizedBox(height: 12),
+                    // const SizedBox(height: 12),
 
-                    /// HELPER INFO
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? const Color(0xFF1E2633)
-                            : const Color(0xFFF4F8FF),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: primaryColor.withOpacity(0.12),
-                        ),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            size: 18,
-                            color: primaryColor,
-                          ),
+                    // /// HELPER INFO
+                    // Container(
+                    //   padding: const EdgeInsets.symmetric(
+                    //     horizontal: 14,
+                    //     vertical: 12,
+                    //   ),
+                    //   decoration: BoxDecoration(
+                    //     color: isDark
+                    //         ? const Color(0xFF1E2633)
+                    //         : const Color(0xFFF4F8FF),
+                    //     borderRadius: BorderRadius.circular(14),
+                    //     border: Border.all(
+                    //       color: primaryColor.withOpacity(0.12),
+                    //     ),
+                    //   ),
+                    //   child: Row(
+                    //     crossAxisAlignment: CrossAxisAlignment.start,
+                    //     children: [
+                    //       Icon(
+                    //         Icons.info_outline_rounded,
+                    //         size: 18,
+                    //         color: primaryColor,
+                    //       ),
 
-                          const SizedBox(width: 10),
+                    //       const SizedBox(width: 10),
 
-                          Expanded(
-                            child: Text(
-                              "Use Predict Rank to auto-fill AIR from your NEET score, or enter AIR manually if you already know it.",
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                height: 1.4,
-                                fontWeight: FontWeight.w500,
-                                color: isDark
-                                    ? Colors.grey[300]
-                                    : Colors.grey[700],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
+                    //       Expanded(
+                    //         child: Text(
+                    //           "Use Predict Rank to auto-fill AIR from your NEET score, or enter AIR manually if you already know it.",
+                    //           style: GoogleFonts.inter(
+                    //             fontSize: 11,
+                    //             height: 1.4,
+                    //             fontWeight: FontWeight.w500,
+                    //             color: isDark
+                    //                 ? Colors.grey[300]
+                    //                 : Colors.grey[700],
+                    //           ),
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 16),
 
                     /// AIR
                     Obx(
@@ -376,60 +382,60 @@ class RegisterPage extends StatelessWidget {
                             : null,
                       ),
                     ),
-                    Obx(() {
-                      if (!controller.showAirPredictionNotice.value) {
-                        return const SizedBox.shrink();
-                      }
+                    // Obx(() {
+                    //   if (!controller.showAirPredictionNotice.value) {
+                    //     return const SizedBox.shrink();
+                    //   }
 
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 10),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? const Color(0xFF112033)
-                                : const Color(0xFFEFF6FF),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.08)
-                                  : const Color(0xFFBFDBFE),
-                            ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                Icons.info_outline_rounded,
-                                size: 18,
-                                color: isDark
-                                    ? const Color(0xFF93C5FD)
-                                    : const Color(0xFF2563EB),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  "This is a tentative AIR prediction based on your NEET score and may vary from the official rank.",
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    height: 1.4,
-                                    fontWeight: FontWeight.w500,
-                                    color: isDark
-                                        ? Colors.grey[300]
-                                        : Colors.grey[700],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }),
+                    //   return Padding(
+                    //     padding: const EdgeInsets.only(top: 10),
+                    //     child: Container(
+                    //       padding: const EdgeInsets.symmetric(
+                    //         horizontal: 14,
+                    //         vertical: 12,
+                    //       ),
+                    //       decoration: BoxDecoration(
+                    //         color: isDark
+                    //             ? const Color(0xFF112033)
+                    //             : const Color(0xFFEFF6FF),
+                    //         borderRadius: BorderRadius.circular(14),
+                    //         border: Border.all(
+                    //           color: isDark
+                    //               ? Colors.white.withOpacity(0.08)
+                    //               : const Color(0xFFBFDBFE),
+                    //         ),
+                    //       ),
+                    //       child: Row(
+                    //         crossAxisAlignment: CrossAxisAlignment.start,
+                    //         children: [
+                    //           Icon(
+                    //             Icons.info_outline_rounded,
+                    //             size: 18,
+                    //             color: isDark
+                    //                 ? const Color(0xFF93C5FD)
+                    //                 : const Color(0xFF2563EB),
+                    //           ),
+                    //           const SizedBox(width: 10),
+                    //           Expanded(
+                    //             child: Text(
+                    //               "This is a tentative AIR prediction based on your NEET score and may vary from the official rank.",
+                    //               style: GoogleFonts.inter(
+                    //                 fontSize: 11,
+                    //                 height: 1.4,
+                    //                 fontWeight: FontWeight.w500,
+                    //                 color: isDark
+                    //                     ? Colors.grey[300]
+                    //                     : Colors.grey[700],
+                    //               ),
+                    //             ),
+                    //           ),
+                    //         ],
+                    //       ),
+                    //     ),
+                    //   );
+                    // }),
 
-                    /// ðŸ”¥ ADD THIS â†’ NEET SCORE FIELD
+                    /// 🔥 ADD THIS → NEET SCORE FIELD
                     const SizedBox(height: 24),
 
                     /// PREFERENCES
@@ -446,6 +452,13 @@ class RegisterPage extends StatelessWidget {
                         if (v != null) {
                           controller.updateCategoriesByState(v);
                           controller.updateHorizontalReservationsByState(v);
+                          print('State wise course for pg: State: ${controller.selectedState.value?.name}, Course: ${controller.selectedCourse.value?.name}');
+                          
+                          print("====== COURSES AVAILABLE AFTER STATE SELECTION: ${v.name} ======");
+                          for (var c in controller.availableCourses) {
+                            print("- ${c.name} (ID: ${c.id})");
+                          }
+                          print("==============================================================");
                         }
                       },
                       icon: Icons.map_outlined,
@@ -693,17 +706,39 @@ class RegisterPage extends StatelessWidget {
                     ],
 
                     /// COURSE
-                    _dropdown(
+                    _dropdown<String>(
                       context,
                       label: "Course",
-                      value: controller.selectedCourse.value,
-                      items: controller.availableCourses,
-                      labelBuilder: (e) => e.name,
+                      value: controller.selectedCourseName.value,
+                      items: controller.uniqueCourseNames,
+                      labelBuilder: (e) => e,
                       onChanged: (v) {
-                        if (v != null) controller.onCourseSelected(v);
+                        if (v != null) {
+                          controller.onCourseNameSelected(v);
+                        }
                       },
                       icon: Icons.school_outlined,
                     ),
+                    const SizedBox(height: 16),
+
+                    /// COURSE CATEGORY
+                    if (controller.selectedCourseLevel.value == CourseLevel.pg &&
+                        controller.availableCourseCategories.isNotEmpty) ...[
+                      _dropdown<String>(
+                        context,
+                        label: "Course Category",
+                        value: controller.selectedCourseCategory.value,
+                        items: controller.availableCourseCategories,
+                        labelBuilder: (e) => e,
+                        onChanged: (v) {
+                          if (v != null) {
+                            controller.onCourseCategorySelected(v);
+                          }
+                        },
+                        icon: Icons.category_outlined,
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     const SizedBox(height: 16),
 
                     /// SPECIALTY
@@ -715,8 +750,15 @@ class RegisterPage extends StatelessWidget {
                         items:
                             controller.selectedCourse.value?.specialties ?? [],
                         labelBuilder: (e) => e.name,
-                        onChanged: (v) =>
-                            controller.selectedSpecialty.value = v,
+                        onChanged: (v) {
+                          if (v != null) {
+                            controller.selectedSpecialty.value = v;
+                            print("====== BACKEND SPECIALTY SELECTED ======");
+                            print("Name: ${v.name}");
+                            print("ID: ${v.id}");
+                            print("========================================");
+                          }
+                        },
                         icon: Icons.local_hospital_outlined,
                       ),
                     ],

@@ -4,6 +4,7 @@ import 'package:Gixa/common/widgets/primeum_dailog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 
 class CollegeTabs extends GetView<CollegeDetailController> {
   const CollegeTabs({super.key});
@@ -24,18 +25,20 @@ class CollegeTabs extends GetView<CollegeDetailController> {
       tabs.add("Overview");
     }
 
-    if ((college.courses?.ug?.isNotEmpty ?? false) ||
-        (college.courses?.pg?.isNotEmpty ?? false)) {
+    final ug = college.courses?.ug ?? [];
+    final pg = college.courses?.pg ?? [];
+
+    if (ug.isNotEmpty || pg.isNotEmpty) {
       tabs.add("Courses");
     }
 
     final hasFees =
-        ((college.courses?.ug ?? []).any(
+        (ug).any(
           (c) => c.fee != null && c.fee!.trim().isNotEmpty,
         ) ||
-        (college.courses?.pg ?? []).any(
+        (pg).any(
           (c) => c.fee != null && c.fee!.trim().isNotEmpty,
-        ));
+        );
 
     if (hasFees) {
       tabs.add("Fees");
@@ -69,9 +72,11 @@ class CollegeTabs extends GetView<CollegeDetailController> {
           String selectedTab = controller.selectedTabIndex.value;
 
           if (!tabs.contains(selectedTab)) {
-            selectedTab = tabs.first;
+            selectedTab = tabs.isNotEmpty ? tabs.first : '';
 
-            controller.selectedTabIndex.value = selectedTab;
+            Future.microtask(() {
+              controller.selectedTabIndex.value = selectedTab;
+            });
           }
 
           return ListView.separated(

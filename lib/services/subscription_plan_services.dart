@@ -73,16 +73,18 @@ class SubscriptionApi {
     List<int>? stateIds,
     List<int>? courseIds,
   }) async {
-    final response =
-        await ApiClient.post(ApiEndpoints.subscriptionCreateOrder, {
-          "plan_id": planId,
-          "base_amount": baseAmount.toString(),
-          "final_amount": finalAmount.toString(),
-          "coupon_code": couponCode ?? "",
-          "extra_days": extraDays,
-          if (stateIds != null && stateIds.isNotEmpty) "state_ids": stateIds,
-          if (courseIds != null && courseIds.isNotEmpty) "course_ids": courseIds,
-        });
+    final response = await ApiClient.post(
+      ApiEndpoints.subscriptionCreateOrder,
+      {
+        "plan_id": planId,
+        "base_amount": baseAmount.toString(),
+        "final_amount": finalAmount.toString(),
+        "coupon_code": couponCode ?? "",
+        "extra_days": extraDays,
+        if (stateIds != null && stateIds.isNotEmpty) "state_ids": stateIds,
+        if (courseIds != null && courseIds.isNotEmpty) "course_ids": courseIds,
+      },
+    );
     print("[API] createOrder response: $response");
     return CreateOrderResponse.fromJson(response);
   }

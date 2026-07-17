@@ -94,10 +94,21 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       await controller.ensurePlanCatalogLoaded();
       await controller.ensureActivePlanReady();
       await historyController.ensureLoaded();
-      // Auto-select recommended plan
+      
       if (controller.plans.isNotEmpty) {
-        final rec = controller.plans.firstWhereOrNull((p) => p.isRecommended);
-        selectedPlanId.value = rec?.id ?? controller.plans.first.id;
+        if (Get.arguments != null && Get.arguments['planId'] != null) {
+          final int pId = Get.arguments['planId'] as int;
+          selectedPlanId.value = pId;
+          final plan = controller.plans.firstWhereOrNull((p) => p.id == pId);
+          if (plan != null) {
+            // Auto open the details bottom sheet for the selected plan
+            _openConfirmSheet(context, plan);
+          }
+        } else {
+          // Auto-select recommended plan
+          final rec = controller.plans.firstWhereOrNull((p) => p.isRecommended);
+          selectedPlanId.value = rec?.id ?? controller.plans.first.id;
+        }
       }
     });
   }
@@ -846,10 +857,11 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                               children: [
                                 Expanded(
                                   child: Text(
-                                    (state.name?.toLowerCase() == 'mcc'
+                                    state.fullForm != null && state.fullForm!.isNotEmpty
+                                        ? '${state.name} (${state.fullForm})'
+                                        : (state.name.toLowerCase() == 'mcc'
                                             ? '${state.name} (All India Counseling)'
-                                            : state.name) ??
-                                        'Unknown',
+                                            : state.name) ?? 'Unknown',
                                     style: _T.body(
                                       14,
                                       color: isDark
@@ -1833,22 +1845,22 @@ class _CouponSectionState extends State<_CouponSection> {
         borderColor = _T.orange.withOpacity(.55);
       } else {
         borderColor = isAddon
-            ? Colors.white.withOpacity(.5)
+            ? (widget.isDark ? Colors.white.withOpacity(.5) : _T.orange.withOpacity(.3))
             : (widget.isDark
                   ? Colors.white.withOpacity(.25)
                   : Colors.grey.withOpacity(.25));
       }
 
       final bgColor = isAddon
-          ? Colors.white.withOpacity(0.2)
+          ? (widget.isDark ? Colors.white.withOpacity(0.2) : _T.orange.withOpacity(.05))
           : (widget.isDark ? Colors.white.withOpacity(.06) : Colors.white);
 
       final textColor = isCouponApplied
           ? Colors.green
-          : (widget.isDark ? Colors.white : const Color.fromARGB(255, 251, 198, 198));
+          : (widget.isDark ? Colors.white : Colors.black87);
 
       final hintColor = isAddon
-          ? Colors.white70
+          ? (widget.isDark ? Colors.white70 : Colors.black54)
           : (widget.isDark ? Colors.white54 : Colors.grey);
 
       return Column(
@@ -1859,14 +1871,14 @@ class _CouponSectionState extends State<_CouponSection> {
               Icon(
                 Icons.confirmation_number_rounded,
                 size: 16,
-                color: isAddon ? Colors.white : _T.orange,
+                color: isAddon ? (widget.isDark ? Colors.white : _T.orange) : _T.orange,
               ),
               const SizedBox(width: 6),
               Text(
                 'Have a coupon?',
                 style: _T.body(
                   13,
-                  color: isAddon ? Colors.white : _T.orange,
+                  color: isAddon ? (widget.isDark ? Colors.white : _T.orange) : _T.orange,
                   fw: FontWeight.w700,
                 ),
               ),
@@ -1980,12 +1992,12 @@ class _CouponSectionState extends State<_CouponSection> {
                 color: isCouponApplied
                     ? Colors.redAccent
                     : isAddon
-                    ? Colors.white
+                    ? (widget.isDark ? Colors.white : _T.orange)
                     : _T.orange,
                 textColor: isCouponApplied
                     ? Colors.white
                     : isAddon
-                    ? Colors.black
+                    ? (widget.isDark ? Colors.black : Colors.white)
                     : Colors.white,
                 isLoading: isApplying,
                 onTap: isCouponApplied

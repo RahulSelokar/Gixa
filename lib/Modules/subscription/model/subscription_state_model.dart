@@ -80,10 +80,12 @@ class SubscriptionStateData {
 class StateItem {
   final int id;
   final String name;
+  final String? fullForm;
 
   StateItem({
     required this.id,
     required this.name,
+    this.fullForm,
   });
 
   factory StateItem.fromJson(Map<String, dynamic> json) {
@@ -92,6 +94,7 @@ class StateItem {
               (json['id'] ?? json['state_id'])?.toString() ?? '') ??
           -1,
       name: (json['name'] ?? json['state_name'])?.toString() ?? "Unknown",
+      fullForm: (json['full_form'] ?? json['full_name'])?.toString(),
     );
   }
 }

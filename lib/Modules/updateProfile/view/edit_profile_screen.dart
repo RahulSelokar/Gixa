@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 class _G {
   static const orange = Color(0xFFFF6B35);
@@ -306,10 +307,6 @@ class EditProfileView extends StatelessWidget {
                           controller.courseCtrl,
                           Icons.menu_book_rounded,
                           isDark: isDark,
-                          readOnly: true,
-                          helperText: 'Course cannot be changed',
-                          suffixIcon: Icons.lock_rounded,
-                          lockedField: true,
                         ),
                         _field(
                           'State',
@@ -321,6 +318,17 @@ class EditProfileView extends StatelessWidget {
                           suffixIcon: Icons.lock_rounded,
                           lockedField: true,
                         ),
+                        if (Get.find<ProfileController>().specialtyCtrl.text.isNotEmpty)
+                          _field(
+                            'Specialty',
+                            Get.find<ProfileController>().specialtyCtrl,
+                            Icons.local_hospital_rounded,
+                            isDark: isDark,
+                            readOnly: true,
+                            helperText: 'Specialty cannot be changed',
+                            suffixIcon: Icons.lock_rounded,
+                            lockedField: true,
+                          ),
                         _field(
                           'Category',
                           controller.categoryCtrl,
@@ -685,20 +693,26 @@ class EditProfileView extends StatelessWidget {
                     ),
                   ),
                   child: Obx(
-                    () => CircleAvatar(
-                      radius: 44,
-                      backgroundColor: Colors.white.withOpacity(0.22),
-                      backgroundImage: controller.profileImage.value != null
-                          ? FileImage(controller.profileImage.value!)
-                          : null,
-                      child: controller.profileImage.value == null
-                          ? const Icon(
-                              Icons.person,
-                              size: 46,
-                              color: Colors.white,
-                            )
-                          : null,
-                    ),
+                    () {
+                      final localImg = controller.profileImage.value;
+                      final networkUrl = Get.find<ProfileController>().profile.value?.profilePictureUrl;
+                      final hasNetworkImg = networkUrl?.isNotEmpty == true;
+
+                      return CircleAvatar(
+                        radius: 44,
+                        backgroundColor: Colors.white.withOpacity(0.22),
+                        backgroundImage: localImg != null
+                            ? FileImage(localImg) as ImageProvider
+                            : (hasNetworkImg ? NetworkImage(networkUrl!) : null),
+                        child: localImg == null && !hasNetworkImg
+                            ? const Icon(
+                                Icons.person,
+                                size: 46,
+                                color: Colors.white,
+                              )
+                            : null,
+                      );
+                    },
                   ),
                 ),
                 Positioned(
@@ -1038,7 +1052,29 @@ class EditProfileView extends StatelessWidget {
       maxWidth: 1280,
       maxHeight: 1280,
     );
-    if (file != null) controller.setProfileImage(File(file.path));
+    if (file != null) {
+      CroppedFile? croppedFile = await ImageCropper().cropImage(
+        sourcePath: file.path,
+        aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: _G.pink,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'Crop Image',
+            aspectRatioLockEnabled: true,
+            resetAspectRatioEnabled: false,
+          ),
+        ],
+      );
+      if (croppedFile != null) {
+        controller.setProfileImage(File(croppedFile.path));
+      }
+    }
   }
 
   Future<void> _pickDob(BuildContext context) async {

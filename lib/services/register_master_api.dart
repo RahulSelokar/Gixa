@@ -2,6 +2,7 @@ import 'package:Gixa/commonmodels/category_model.dart';
 import 'package:Gixa/commonmodels/course_model.dart';
 import 'package:Gixa/commonmodels/quata_model.dart';
 import 'package:Gixa/commonmodels/round_model.dart';
+import 'package:Gixa/commonmodels/specialty_model.dart';
 import 'package:Gixa/commonmodels/state_model.dart';
 import 'package:Gixa/network/api_client.dart';
 import 'package:Gixa/network/api_endpoints.dart';
@@ -56,6 +57,77 @@ class RegisterMasterApi {
         (response['courses_for_ug'] as List<dynamic>? ?? [])
             .map((e) => CourseModel.fromJson(e))
             .toList();
+
+    /// 🔹 COURSES FOR PG (NEW)
+    final List<CourseModel> coursesForPg = [];
+    final List<dynamic> rawPgCourses =
+        response['courses_for_pg'] as List<dynamic>? ?? [];
+    for (var degreeItem in rawPgCourses) {
+      if (degreeItem is! Map<String, dynamic>) continue;
+
+      final degreeName = degreeItem['degree']?.toString() ?? '';
+      final categoryName = degreeItem['category']?.toString() ?? ''; // NEW
+      if (degreeName.isEmpty) continue;
+
+      final innerCourses = degreeItem['courses'] as List<dynamic>? ?? [];
+
+      final allSpecialties = <SpecialtyModel>[];
+      int courseId = 0;
+
+      for (var c in innerCourses) {
+        if (c is! Map<String, dynamic>) continue;
+        final cModel = CourseModel.fromJson(c);
+        allSpecialties.addAll(cModel.specialties);
+        if (courseId == 0) courseId = cModel.id;
+      }
+
+      coursesForPg.add(
+        CourseModel(
+          id: courseId,
+          name: degreeName,
+          category: categoryName, // NEW
+          specialties: allSpecialties,
+        ),
+      );
+    }
+
+    /// 🔹 STATEWISE COURSES FOR PG (NEW)
+    final Map<String, List<CourseModel>> statewiseCoursesForPg = {};
+    final List<dynamic> rawStatewisePgCourses =
+        response['statewise_courses_for_pg'] as List<dynamic>? ?? [];
+    for (var stateItem in rawStatewisePgCourses) {
+      if (stateItem is! Map<String, dynamic>) continue;
+      final stateName = stateItem['state']?.toString() ?? '';
+      if (stateName.isEmpty) continue;
+
+      final degreesList = stateItem['degrees'] as List<dynamic>? ?? [];
+      final parsedCourses = <CourseModel>[];
+      for (var degreeItem in degreesList) {
+        if (degreeItem is! Map<String, dynamic>) continue;
+        final degreeName = degreeItem['degree']?.toString() ?? '';
+        final categoryName = degreeItem['category']?.toString() ?? ''; // NEW
+        if (degreeName.isEmpty) continue;
+        final innerCourses = degreeItem['courses'] as List<dynamic>? ?? [];
+        final allSpecialties = <SpecialtyModel>[];
+        int courseId = 0;
+        for (var c in innerCourses) {
+          if (c is! Map<String, dynamic>) continue;
+          final cModel = CourseModel.fromJson(c);
+          allSpecialties.addAll(cModel.specialties);
+          if (courseId == 0) courseId = cModel.id;
+        }
+        parsedCourses.add(
+          CourseModel(
+            id: courseId,
+            name: degreeName,
+            category: categoryName, // NEW
+            specialties: allSpecialties,
+          ),
+        );
+      }
+      statewiseCoursesForPg[stateName] = parsedCourses;
+    }
+
     final statewiseCities = _parseStatewiseCities(response['statewise_cities']);
 
     return {
@@ -65,6 +137,8 @@ class RegisterMasterApi {
       'rounds': rounds,
       'courses': courses,
       'courses_for_ug': coursesForUg,
+      'courses_for_pg': coursesForPg,
+      'statewise_courses_for_pg': statewiseCoursesForPg,
 
       /// STATEWISE CATEGORY
       'statewise_categories': response['statewise_categories'],

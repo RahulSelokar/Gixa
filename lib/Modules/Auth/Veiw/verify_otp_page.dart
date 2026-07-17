@@ -5,7 +5,6 @@ import 'package:lottie/lottie.dart';
 import 'package:Gixa/common/app_colors.dart';
 import 'package:Gixa/utils/constants/colors.dart';
 import 'package:sms_autofill/sms_autofill.dart';
-
 import '../controllers/otp_controller.dart';
 
 class VerifyOtpPage extends StatefulWidget {
@@ -112,25 +111,60 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                     ),
                     const SizedBox(height: 10),
                     Obx(
-                      () => RichText(
-                        text: TextSpan(
-                          text: 'Enter the code sent to ',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: textGrey,
-                            height: 1.6,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: '+91 ${controller.mobileNumber.value}',
-                              style: TextStyle(
-                                color: UColors.primaryDark,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
+                      () => Row(
+                        children: [
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                text: 'Enter the code sent to ',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: textGrey,
+                                  height: 1.6,
+                                ),
+                                children: [
+                                  TextSpan(
+                                    text: '+91 ${controller.mobileNumber.value}',
+                                    style: TextStyle(
+                                      color: UColors.primaryDark,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          GestureDetector(
+                            onTap: () => Get.back(),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: UColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.edit_rounded,
+                                    size: 14,
+                                    color: UColors.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Edit',
+                                    style: TextStyle(
+                                      color: UColors.primary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -552,14 +586,19 @@ class _ModernSessionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const dangerColor = Color(0xFFEF4444);
-    const titleColor = Color(0xFF1A1A2E);
-    const bodyColor = Color(0xFF9E9EA7);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final dangerColor = const Color(0xFFEF4444);
+    final titleColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final bodyColor = isDark ? Colors.white70 : const Color(0xFF9E9EA7);
+    final bgColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final cancelBgColor = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF5F5F8);
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -573,33 +612,45 @@ class _ModernSessionDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            height: 90,
+            width: 90,
+            margin: const EdgeInsets.only(top: 8, bottom: 16),
             decoration: BoxDecoration(
-              color: dangerColor.withOpacity(0.08),
               shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.warning_amber_rounded,
-              color: dangerColor,
-              size: 30,
+              boxShadow: [
+                BoxShadow(
+                  color: dangerColor.withOpacity(0.2),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+              image: const DecorationImage(
+                image: AssetImage('assets/images/genie_doctor_logout.png'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-          const SizedBox(height: 18),
-          const Text(
+          Text(
             "Session Conflict",
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.w800,
               color: titleColor,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, height: 1.6, color: bodyColor),
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: bodyColor,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           Row(
             children: [
               Expanded(
@@ -607,12 +658,12 @@ class _ModernSessionDialog extends StatelessWidget {
                   onPressed: () => Get.back(),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    backgroundColor: const Color(0xFFF5F5F8),
+                    backgroundColor: cancelBgColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     "Cancel",
                     style: TextStyle(
                       fontWeight: FontWeight.w600,

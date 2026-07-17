@@ -24,10 +24,52 @@ class CollegeCategoryCutoffResponse {
       summary: CollegeCutoffSummary.fromJson(
         Map<String, dynamic>.from(data['summary'] as Map? ?? const {}),
       ),
-      categoryCutoffs: (data['category_cutoffs'] as List? ?? const [])
-          .map((e) => CollegeCategoryCutoffRecord.fromJson(Map<String, dynamic>.from(e as Map)))
-          .toList(),
+      categoryCutoffs: _parseCategoryCutoffs(data),
     );
+  }
+
+  static List<CollegeCategoryCutoffRecord> _parseCategoryCutoffs(Map<String, dynamic> data) {
+    final List<CollegeCategoryCutoffRecord> allCutoffs = [];
+    final Set<String> seen = {};
+
+    void addCutoffs(List? cutoffs) {
+      if (cutoffs == null) return;
+      for (final c in cutoffs) {
+        if (c is Map) {
+          final record = CollegeCategoryCutoffRecord.fromJson(Map<String, dynamic>.from(c));
+          final key = '${record.courseId}_${record.specialityId}_${record.quotaId}_${record.category}';
+          if (!seen.contains(key)) {
+            seen.add(key);
+            allCutoffs.add(record);
+          }
+        }
+      }
+    }
+
+    final coursesList = data['courses'] as List? ?? [];
+    for (final courseObj in coursesList) {
+      if (courseObj is Map) {
+        addCutoffs(courseObj['category_cutoffs'] as List?);
+
+        final specGroups = courseObj['speciality_groups'] as List? ?? [];
+        for (final groupObj in specGroups) {
+          if (groupObj is Map) {
+            final specialities = groupObj['specialities'] as List? ?? [];
+            for (final specObj in specialities) {
+              if (specObj is Map) {
+                addCutoffs(specObj['category_cutoffs'] as List?);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (allCutoffs.isEmpty) {
+      addCutoffs(data['category_cutoffs'] as List?);
+    }
+
+    return allCutoffs;
   }
 }
 
@@ -117,6 +159,9 @@ class CollegeCategoryCutoffRecord {
   final int rankDifference;
   final bool eligible;
   final String chance;
+  final int? specialityId;
+  final String? specialityName;
+  final String? specialityType;
 
   const CollegeCategoryCutoffRecord({
     required this.courseId,
@@ -132,6 +177,9 @@ class CollegeCategoryCutoffRecord {
     required this.rankDifference,
     required this.eligible,
     required this.chance,
+    this.specialityId,
+    this.specialityName,
+    this.specialityType,
   });
 
   factory CollegeCategoryCutoffRecord.fromJson(Map<String, dynamic> json) {
@@ -149,6 +197,9 @@ class CollegeCategoryCutoffRecord {
       rankDifference: _toInt(json['rank_difference']),
       eligible: json['eligible'] == true,
       chance: json['chance']?.toString() ?? '',
+      specialityId: _toNullableInt(json['speciality_id']),
+      specialityName: _toNullableString(json['speciality_name']),
+      specialityType: _toNullableString(json['speciality_type']),
     );
   }
 

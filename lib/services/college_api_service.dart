@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:Gixa/Modules/Collage/model/collage_model.dart';
 import 'package:Gixa/Modules/CollageDetails/model/college_cutoff_model.dart';
 import 'package:Gixa/Modules/CollageDetails/model/collage_details_model.dart';
@@ -221,6 +222,16 @@ class CollegeApiService {
           debugMessage: response.toString(),
         );
       }
+
+      print("══════════════════════════════════════");
+      print("📥 CUTOFF RAW RESPONSE:");
+      try {
+        final encoder = const JsonEncoder.withIndent('  ');
+        print(encoder.convert(response));
+      } catch (_) {
+        print(response);
+      }
+      print("══════════════════════════════════════");
 
       return CollegeCategoryCutoffResponse.fromJson(response);
     } catch (e) {

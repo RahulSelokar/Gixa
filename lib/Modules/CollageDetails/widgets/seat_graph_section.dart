@@ -2,80 +2,11 @@ import 'package:Gixa/Modules/Collage/model/collage_model.dart';
 import 'package:Gixa/Modules/seatMatrix/model/seat_matrix_model.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:get/get.dart';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
+import 'package:Gixa/Modules/CollageDetails/controller/collage_detail_controller.dart';
 
-// ─── Theme tokens ─────────────────────────────────────────────────────────────
-
-class _SeatTheme {
-  // final Color bg;
-  final Color cardBg;
-  final Color cardBorder;
-  final Color chipBg;
-  final Color chipBorder;
-  final Color textPrimary;
-  final Color textSecondary;
-  final Color textMuted;
-  final Color accent;
-  final Color accentSoft;
-  final Color statCard1;
-  final Color statCard2;
-  final Color statCard3;
-  final Color gridLine;
-  final Color dropdownBg;
-
-  const _SeatTheme({
-    // required this.bg,
-    required this.cardBg,
-    required this.cardBorder,
-    required this.chipBg,
-    required this.chipBorder,
-    required this.textPrimary,
-    required this.textSecondary,
-    required this.textMuted,
-    required this.accent,
-    required this.accentSoft,
-    required this.statCard1,
-    required this.statCard2,
-    required this.statCard3,
-    required this.gridLine,
-    required this.dropdownBg,
-  });
-
-  static const dark = _SeatTheme(
-    // bg: Color(0xFF0F1117),
-    cardBg: Color(0xFF181B27),
-    cardBorder: Color(0xFF252836),
-    chipBg: Color(0xFF1E2130),
-    chipBorder: Color(0xFF2E3248),
-    textPrimary: Color(0xFFF0F0F8),
-    textSecondary: Color(0xFFCBCDE0),
-    textMuted: Color(0xFF6B6F88),
-    accent: Color(0xFF7C6FFF),
-    accentSoft: Color(0xFF3D3580),
-    statCard1: Color(0xFF1C1F30),
-    statCard2: Color(0xFF1C1F30),
-    statCard3: Color(0xFF1C1F30),
-    gridLine: Color(0xFF252836),
-    dropdownBg: Color(0xFF1E2130),
-  );
-
-  static const light = _SeatTheme(
-    // bg: Color(0xFFF2F4FA),
-    cardBg: Color(0xFFFFFFFF),
-    cardBorder: Color(0xFFE4E7F2),
-    chipBg: Color(0xFFEEECFF),
-    chipBorder: Color(0xFFD0CCFF),
-    textPrimary: Color(0xFF0F1117),
-    textSecondary: Color(0xFF3A3D55),
-    textMuted: Color(0xFF9294AC),
-    accent: Color(0xFF6C63FF),
-    accentSoft: Color(0xFFECEBFF),
-    statCard1: Color(0xFFF5F4FF),
-    statCard2: Color(0xFFF0FBF8),
-    statCard3: Color(0xFFFFF3F3),
-    gridLine: Color(0xFFEBEDF5),
-    dropdownBg: Color(0xFFFFFFFF),
-  );
-}
+import 'package:Gixa/Modules/CollageDetails/widgets/collage_theme.dart';
 
 // ─── Main Widget ──────────────────────────────────────────────────────────────
 
@@ -83,16 +14,36 @@ class SeatGraphTab extends StatefulWidget {
   final List<SeatMatrixModel> seatMatrix;
   final InstituteType instituteType;
   final String collegeName;
+  final CollegeThemeColors colors;
 
   const SeatGraphTab({
     super.key,
     required this.seatMatrix,
     required this.instituteType,
     required this.collegeName,
+    required this.colors,
   });
 
   @override
   State<SeatGraphTab> createState() => _SeatGraphTabState();
+}
+
+class _ThemeProxy {
+  final CollegeThemeColors colors;
+  _ThemeProxy(this.colors);
+
+  Color get cardBg => colors.cardBackground;
+  Color get cardBorder => colors.border;
+  Color get chipBg => colors.cardBackgroundSoft;
+  Color get chipBorder => colors.subtleBorder;
+  Color get textPrimary => colors.textMain;
+  Color get textSecondary => colors.textSub;
+  Color get textMuted => colors.textMuted;
+  Color get accent => colors.primary;
+  Color get statCard1 => colors.cardBackgroundSoft;
+  Color get statCard2 => colors.surfaceHighlight;
+  Color get gridLine => colors.subtleBorder;
+  Color get dropdownBg => colors.cardBackground;
 }
 
 class _SeatGraphTabState extends State<SeatGraphTab>
@@ -102,17 +53,34 @@ class _SeatGraphTabState extends State<SeatGraphTab>
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
 
-  static const Color _purple = Color(0xFF7C6FFF);
-  static const Color _blue = Color(0xFF4F8BFF);
-  static const Color _teal = Color(0xFF00D4AA);
-  static const Color _red = Color(0xFFFF6B6B);
+  Color get _purple => widget.colors.purple;
+  Color get _blue => widget.colors.secondary;
+  Color get _teal => widget.colors.success;
+
+  _ThemeProxy get _t => _ThemeProxy(widget.colors);
 
   List<SeatMatrixModel> _preferredSeats(List<SeatMatrixModel> seats) {
-    final round1Seats = seats
+    final profileController = Get.find<ProfileController>();
+    final isUG = profileController.isUGUser;
+    
+    // Filter by UG/PG
+    var filteredSeats = seats.where((e) {
+      final level = e.courseLevel.toLowerCase();
+      if (isUG && level.contains('ug')) return true;
+      if (!isUG && level.contains('pg')) return true;
+      return false;
+    }).toList();
+    
+    // Fallback if no seats match profile
+    if (filteredSeats.isEmpty) {
+      filteredSeats = seats;
+    }
+
+    final round1Seats = filteredSeats
         .where((e) => e.counsellingRound.toLowerCase().contains("round 1"))
         .toList();
 
-    return round1Seats.isNotEmpty ? round1Seats : seats;
+    return round1Seats.isNotEmpty ? round1Seats : filteredSeats;
   }
 
   @override
@@ -153,9 +121,6 @@ class _SeatGraphTabState extends State<SeatGraphTab>
     }
   }
 
-  _SeatTheme get _t => Theme.of(context).brightness == Brightness.dark
-      ? _SeatTheme.dark
-      : _SeatTheme.light;
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +204,8 @@ class _SeatGraphTabState extends State<SeatGraphTab>
                       ],
                     ),
                     const SizedBox(height: 20),
-                    _categoryLineChart(seat, cats),
+                    _categoryBarChart(seat, cats),
+                    // Legend chips might be less necessary since BarChart has x-axis labels, but we can keep it or remove it
                     const SizedBox(height: 16),
                     _legendChips(cats),
                   ],
@@ -309,7 +275,7 @@ class _SeatGraphTabState extends State<SeatGraphTab>
         Container(
           width: 7,
           height: 7,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: _purple,
             shape: BoxShape.circle,
           ),
@@ -328,6 +294,23 @@ class _SeatGraphTabState extends State<SeatGraphTab>
   );
 
   // ─── Course Selector ─────────────────────────────────────────────────────────
+
+  String _getDisplayCourseName(String rawCourseName) {
+    try {
+      final profileController = Get.find<ProfileController>();
+      if (!profileController.isUGUser) {
+        if (Get.isRegistered<CollegeDetailController>()) {
+          final ctrl = Get.find<CollegeDetailController>();
+          final pgList = ctrl.college.value?.courses.pg ?? [];
+          final match = pgList.firstWhereOrNull((p) => p.courseName == rawCourseName);
+          if (match != null && match.specialtyType != null && match.specialtyType!.isNotEmpty) {
+            return "$rawCourseName - ${match.specialtyType}";
+          }
+        }
+      }
+    } catch (_) {}
+    return rawCourseName;
+  }
 
   Widget _courseSelector(List<String> courses) => Container(
     decoration: BoxDecoration(
@@ -390,7 +373,7 @@ class _SeatGraphTabState extends State<SeatGraphTab>
                       ),
                       style: TextStyle(
                         color: _t.textPrimary,
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
                       items: courses
@@ -398,11 +381,11 @@ class _SeatGraphTabState extends State<SeatGraphTab>
                             (c) => DropdownMenuItem(
                               value: c,
                               child: Text(
-                                c,
+                                _getDisplayCourseName(c),
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
                                   color: _t.textPrimary,
-                                  fontSize: 22,
+                                  fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -506,114 +489,125 @@ class _SeatGraphTabState extends State<SeatGraphTab>
 
   // ─── Category Line Chart ───────────────────────────────────────────────────
 
-  Widget _categoryLineChart(SeatMatrixModel seat, List<dynamic> cats) {
-    final spots = List.generate(
-      cats.length,
-      (i) => FlSpot(i.toDouble(), cats[i].seats.toDouble()),
-    );
+  Widget _categoryBarChart(SeatMatrixModel seat, List<dynamic> cats) {
+    if (cats.isEmpty) return const SizedBox();
+    
     final maxSeat = cats
         .map((c) => c.seats as int)
         .reduce((a, b) => a > b ? a : b)
         .toDouble();
-    final maxY = maxSeat * 1.35;
+    final maxY = maxSeat * 1.2;
 
     return SizedBox(
-      height: 200,
-      child: LineChart(
-        LineChartData(
-          minX: 0,
-          maxX: (cats.length - 1).toDouble(),
-          minY: 0,
+      height: 220,
+      child: BarChart(
+        swapAnimationDuration: const Duration(milliseconds: 800),
+        swapAnimationCurve: Curves.easeOutCubic,
+        BarChartData(
           maxY: maxY,
-          clipData: const FlClipData.all(),
-          backgroundColor: Colors.transparent,
-          borderData: FlBorderData(show: false),
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: maxY / 4,
-            getDrawingHorizontalLine: (_) =>
-                FlLine(color: _t.gridLine, strokeWidth: 1),
-          ),
-          titlesData: const FlTitlesData(
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          lineTouchData: LineTouchData(
-            touchCallback: (event, resp) {
-              setState(() {
-                touchedIndex = resp?.lineBarSpots?.first.spotIndex;
-              });
-            },
-            touchTooltipData: LineTouchTooltipData(
+          barTouchData: BarTouchData(
+            touchTooltipData: BarTouchTooltipData(
               getTooltipColor: (_) =>
                   Theme.of(context).brightness == Brightness.dark
                   ? const Color(0xFF252836)
                   : Colors.white,
-              tooltipRoundedRadius: 10,
-              tooltipBorder: BorderSide(color: _t.cardBorder),
-              getTooltipItems: (spots) => spots.map((s) {
-                final idx = s.x.toInt();
-                final name = idx < cats.length
-                    ? cats[idx].category as String
-                    : "";
-                return LineTooltipItem(
+              tooltipRoundedRadius: 8,
+              getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                final name = cats[groupIndex].category as String;
+                return BarTooltipItem(
                   "$name\n",
                   TextStyle(
                     color: _t.textMuted,
                     fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                   children: [
                     TextSpan(
-                      text: "${s.y.toInt()} seats",
+                      text: "${rod.toY.toInt()} seats",
                       style: TextStyle(
                         color: _t.textPrimary,
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ],
                 );
-              }).toList(),
+              },
+            ),
+            touchCallback: (event, resp) {
+              setState(() {
+                if (resp?.spot != null && event.isInterestedForInteractions) {
+                  touchedIndex = resp!.spot!.touchedBarGroupIndex;
+                } else {
+                  touchedIndex = null;
+                }
+              });
+            },
+          ),
+          titlesData: FlTitlesData(
+            show: true,
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  if (value.toInt() < 0 || value.toInt() >= cats.length) {
+                    return const SizedBox();
+                  }
+                  final isTouched = touchedIndex == value.toInt();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      cats[value.toInt()].category as String,
+                      style: TextStyle(
+                        color: isTouched ? _purple : _t.textMuted,
+                        fontWeight: isTouched ? FontWeight.bold : FontWeight.w500,
+                        fontSize: 10,
+                      ),
+                    ),
+                  );
+                },
+                reservedSize: 30,
+              ),
+            ),
+            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          ),
+          gridData: FlGridData(
+            show: true,
+            drawVerticalLine: false,
+            horizontalInterval: (maxY / 4) == 0 ? 1 : maxY / 4,
+            getDrawingHorizontalLine: (value) => FlLine(
+              color: _t.gridLine,
+              strokeWidth: 1,
             ),
           ),
-          lineBarsData: [
-            LineChartBarData(
-              spots: spots,
-              isCurved: true,
-              curveSmoothness: 0.4,
-              color: _purple,
-              barWidth: 2.5,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (spot, pct, bar, idx) => FlDotCirclePainter(
-                  radius: touchedIndex == idx ? 7 : 4.5,
-                  color: touchedIndex == idx ? Colors.white : _purple,
-                  strokeWidth: touchedIndex == idx ? 2.5 : 2,
-                  strokeColor: touchedIndex == idx ? _purple : _t.cardBg,
-                ),
-              ),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [
-                    _purple.withOpacity(
-                      Theme.of(context).brightness == Brightness.dark
-                          ? 0.20
-                          : 0.10,
+          borderData: FlBorderData(show: false),
+          barGroups: List.generate(
+            cats.length,
+            (i) {
+              final isTouched = touchedIndex == i;
+              return BarChartGroupData(
+                x: i,
+                barRods: [
+                  BarChartRodData(
+                    toY: cats[i].seats.toDouble(),
+                    color: isTouched ? _blue : _purple.withOpacity(0.8),
+                    width: 22,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(6),
+                      topRight: Radius.circular(6),
                     ),
-                    _purple.withOpacity(0.0),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-          ],
+                    backDrawRodData: BackgroundBarChartRodData(
+                      show: true,
+                      toY: maxY,
+                      color: _t.statCard1,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -686,7 +680,7 @@ class _SeatGraphTabState extends State<SeatGraphTab>
                   color: _purple.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.swap_horiz_rounded,
                   color: _purple,
                   size: 18,
@@ -705,87 +699,8 @@ class _SeatGraphTabState extends State<SeatGraphTab>
           ),
           const SizedBox(height: 20),
 
-          // Stacked bar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox(
-              height: 14,
-              child: Row(
-                children: [
-                  Flexible(
-                    flex: (aiqPct * 100).round().clamp(1, 99),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF4F8BFF), Color(0xFF7C6FFF)],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Flexible(
-                    flex: (statePct * 100).round().clamp(1, 99),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF9B59F5), Color(0xFFBB86FC)],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Pct labels under bar
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "AIQ (${(aiqPct * 100).toStringAsFixed(0)}%)",
-                style: TextStyle(
-                  color: _t.textMuted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "STATE (${(statePct * 100).toStringAsFixed(0)}%)",
-                style: TextStyle(
-                  color: _t.textMuted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Stat cards
-          Row(
-            children: [
-              Expanded(
-                child: _aiqStatTile(
-                  "All India Quota",
-                  _fmt(seat.aiqSeats),
-                  _blue,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _aiqStatTile(
-                  "State Quota",
-                  _fmt(seat.stateQuotaSeats),
-                  _purple,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-
-          // Two-line crossing chart
-          _aiqLineChart(seat),
+          // Doughnut Chart
+          _aiqPieChart(seat),
         ],
       ),
     );
@@ -822,118 +737,69 @@ class _SeatGraphTabState extends State<SeatGraphTab>
     ),
   );
 
-  Widget _aiqLineChart(SeatMatrixModel seat) {
-    // Two lines: AIQ line goes high→low, State goes low→high (crossing effect)
-    final aiqSpots = [
-      FlSpot(0, seat.aiqSeats.toDouble()),
-      FlSpot(0.5, (seat.aiqSeats + seat.stateQuotaSeats) / 2),
-      FlSpot(1, seat.stateQuotaSeats.toDouble()),
-    ];
-    final stateSpots = [
-      FlSpot(0, seat.stateQuotaSeats.toDouble()),
-      FlSpot(0.5, (seat.aiqSeats + seat.stateQuotaSeats) / 2),
-      FlSpot(1, seat.aiqSeats.toDouble()),
-    ];
-    final maxY = (seat.totalSeats.toDouble() * 1.2).ceilToDouble();
+  Widget _aiqPieChart(SeatMatrixModel seat) {
+    final total = seat.aiqSeats + seat.stateQuotaSeats;
+    final aiqPct = total == 0 ? 0.0 : (seat.aiqSeats / total * 100);
+    final statePct = total == 0 ? 0.0 : (seat.stateQuotaSeats / total * 100);
 
     return SizedBox(
-      height: 130,
-      child: LineChart(
-        LineChartData(
-          minX: 0,
-          maxX: 1,
-          minY: 0,
-          maxY: maxY,
-          backgroundColor: Colors.transparent,
-          borderData: FlBorderData(show: false),
-          gridData: const FlGridData(show: false),
-          titlesData: const FlTitlesData(
-            leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          lineTouchData: LineTouchData(
-            touchTooltipData: LineTouchTooltipData(
-              getTooltipColor: (_) =>
-                  Theme.of(context).brightness == Brightness.dark
-                  ? const Color(0xFF252836)
-                  : Colors.white,
-              tooltipRoundedRadius: 8,
-              getTooltipItems: (spots) => spots.map((s) {
-                final isAiq = s.barIndex == 0;
-                return LineTooltipItem(
-                  isAiq ? "AIQ" : "State",
-                  TextStyle(
-                    color: isAiq ? _blue : _purple,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: "\n${s.y.toInt()} seats",
-                      style: TextStyle(color: _t.textSecondary, fontSize: 11),
+      height: 200,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          PieChart(
+            swapAnimationDuration: const Duration(milliseconds: 800),
+            swapAnimationCurve: Curves.easeOutCubic,
+            PieChartData(
+              sectionsSpace: 4,
+              centerSpaceRadius: 60,
+              startDegreeOffset: -90,
+              sections: [
+                if (seat.aiqSeats > 0)
+                  PieChartSectionData(
+                    color: _blue,
+                    value: seat.aiqSeats.toDouble(),
+                    title: '${aiqPct.toStringAsFixed(1)}%',
+                    radius: 35,
+                    titleStyle: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                  ],
-                );
-              }).toList(),
+                  ),
+                if (seat.stateQuotaSeats > 0)
+                  PieChartSectionData(
+                    color: _purple,
+                    value: seat.stateQuotaSeats.toDouble(),
+                    title: '${statePct.toStringAsFixed(1)}%',
+                    radius: 35,
+                    titleStyle: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+              ],
             ),
           ),
-          lineBarsData: [
-            // AIQ line (blue)
-            LineChartBarData(
-              spots: aiqSpots,
-              isCurved: true,
-              curveSmoothness: 0.3,
-              color: _blue.withOpacity(0.8),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (_, __, ___, i) => FlDotCirclePainter(
-                  radius: i == 0 || i == 2 ? 5 : 0,
-                  color: _blue,
-                  strokeWidth: 2,
-                  strokeColor: _t.cardBg,
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Total",
+                style: TextStyle(color: _t.textMuted, fontSize: 11, fontWeight: FontWeight.w500),
+              ),
+              Text(
+                _fmt(total),
+                style: TextStyle(
+                  color: _t.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [_blue.withOpacity(0.12), _blue.withOpacity(0.0)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-            // State line (purple)
-            LineChartBarData(
-              spots: stateSpots,
-              isCurved: true,
-              curveSmoothness: 0.3,
-              color: _purple.withOpacity(0.8),
-              barWidth: 2,
-              isStrokeCapRound: true,
-              dotData: FlDotData(
-                show: true,
-                getDotPainter: (_, __, ___, i) => FlDotCirclePainter(
-                  radius: i == 0 || i == 2 ? 5 : 0,
-                  color: _purple,
-                  strokeWidth: 2,
-                  strokeColor: _t.cardBg,
-                ),
-              ),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [_purple.withOpacity(0.0), _purple.withOpacity(0.12)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }

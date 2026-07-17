@@ -119,7 +119,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ShowCaseWidget.of(context).startShowCase([
         _searchKey,
-        _rankPredictorKey,
+        // _rankPredictorKey,
         _predictionKey,
         _categoryKey,
         _featuredCollegeKey,
@@ -376,53 +376,53 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         ),
                       ),
 
-                      const SizedBox(height: 18),
+                      // const SizedBox(height: 18),
 
-                      Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
-                        ),
-
-                        child: Showcase(
-                          key: _rankPredictorKey,
-
-                          title: "NEET Rank Predictor",
-
-                          description:
-                              "Predict your expected NEET rank instantly based on your marks and get better college insights.",
-
-                          titleTextStyle: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-
-                          descTextStyle: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: Colors.white.withOpacity(0.92),
-                            height: 1.4,
-                          ),
-
-                          tooltipBackgroundColor: const Color(0xFF7B3FE4),
-
-                          targetBorderRadius: BorderRadius.circular(24),
-
-                          targetPadding: const EdgeInsets.all(6),
-
-                          blurValue: 1,
-
-                          disableMovingAnimation: false,
-
-                          tooltipPadding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
-                          ),
-
-                          child: RankPredictorShortcutCard(
-                            onTap: _openRankPredictor,
-                          ),
-                        ),
-                      ),
+                      // Padding(
+                      //   padding: EdgeInsets.symmetric(
+                      //     horizontal: horizontalPadding,
+                      //   ),
+                      // 
+                      //   child: Showcase(
+                      //     key: _rankPredictorKey,
+                      // 
+                      //     title: "NEET Rank Predictor",
+                      // 
+                      //     description:
+                      //         "Predict your expected NEET rank instantly based on your marks and get better college insights.",
+                      // 
+                      //     titleTextStyle: GoogleFonts.inter(
+                      //       fontSize: 18,
+                      //       fontWeight: FontWeight.w700,
+                      //       color: Colors.white,
+                      //     ),
+                      // 
+                      //     descTextStyle: GoogleFonts.inter(
+                      //       fontSize: 14,
+                      //       color: Colors.white.withOpacity(0.92),
+                      //       height: 1.4,
+                      //     ),
+                      // 
+                      //     tooltipBackgroundColor: const Color(0xFF7B3FE4),
+                      // 
+                      //     targetBorderRadius: BorderRadius.circular(24),
+                      // 
+                      //     targetPadding: const EdgeInsets.all(6),
+                      // 
+                      //     blurValue: 1,
+                      // 
+                      //     disableMovingAnimation: false,
+                      // 
+                      //     tooltipPadding: const EdgeInsets.symmetric(
+                      //       horizontal: 18,
+                      //       vertical: 16,
+                      //     ),
+                      // 
+                      //     child: RankPredictorShortcutCard(
+                      //       onTap: _openRankPredictor,
+                      //     ),
+                      //   ),
+                      // ),
 
                       const SizedBox(height: 14),
                       PredictionBanner(onTap: _openPredictionSection),

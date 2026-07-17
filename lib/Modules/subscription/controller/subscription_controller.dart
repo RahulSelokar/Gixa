@@ -600,7 +600,7 @@ class SubscriptionController extends GetxController {
       }
 
       final subscriptionId =
-          verifyRes.subscriptionId ?? verifyRes.data.subscriptionId;
+          verifyRes.subscriptionId ?? verifyRes.data?.subscriptionId;
 
       if (subscriptionId == null) {
         AppSnackbar.show("Error", "Subscription ID missing");

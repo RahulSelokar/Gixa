@@ -1,5 +1,6 @@
 import 'package:Gixa/Modules/CollageDetails/model/college_cutoff_model.dart';
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
+import 'package:Gixa/Modules/CollageDetails/controller/collage_detail_controller.dart';
 import 'package:Gixa/network/app_exception.dart';
 import 'package:Gixa/services/college_api_service.dart';
 import 'package:get/get.dart';
@@ -18,6 +19,8 @@ class CollegeCutoffController extends GetxController {
   final userAir = 0.obs;
   final cutoffData = Rxn<CollegeCategoryCutoffResponse>();
   final selectedCourseId = RxnInt();
+  final selectedSpecialityType = RxnString();
+  final selectedSpecialityId = RxnInt();
   final selectedQuotaId = RxnInt();
 
   @override
@@ -30,7 +33,7 @@ class CollegeCutoffController extends GetxController {
   }
 
   void _updateSelectedRecords() {
-    var records = _recordsForSelectedCourse();
+    var records = _filteredRecordsBeforeQuota();
 
     if (selectedQuotaId.value != null) {
       records = records
@@ -92,10 +95,7 @@ class CollegeCutoffController extends GetxController {
     final map = <int, String>{};
     final isUGUser = _profileController.isUGUser;
     
-    for (final record
-        in cutoffData.value?.categoryCutoffs ??
-            const <CollegeCategoryCutoffRecord>[]) {
-      
+    for (final record in cutoffData.value?.categoryCutoffs ?? const <CollegeCategoryCutoffRecord>[]) {
       final isCourseUG = _profileController.isCourseUG(record.courseId);
       if (isUGUser == isCourseUG) {
         map[record.courseId] = record.courseName;
@@ -104,16 +104,49 @@ class CollegeCutoffController extends GetxController {
     return map.entries.toList();
   }
 
+  List<MapEntry<String, String>> get specialityTypeOptions {
+    final map = <String, String>{};
+    var records = cutoffData.value?.categoryCutoffs ?? const <CollegeCategoryCutoffRecord>[];
+    if (selectedCourseId.value != null) {
+      records = records.where((r) => r.courseId == selectedCourseId.value).toList();
+    }
+
+    for (final record in records) {
+      if (record.specialityType != null && record.specialityType!.trim().isNotEmpty && record.specialityType!.toLowerCase() != 'null') {
+        map[record.specialityType!] = record.specialityType!;
+      }
+    }
+    return map.entries.toList();
+  }
+
+  List<MapEntry<int, String>> get specialityOptions {
+    final map = <int, String>{};
+    var records = cutoffData.value?.categoryCutoffs ?? const <CollegeCategoryCutoffRecord>[];
+    if (selectedCourseId.value != null) {
+      records = records.where((r) => r.courseId == selectedCourseId.value).toList();
+    }
+    if (selectedSpecialityType.value != null) {
+      records = records.where((r) => r.specialityType == selectedSpecialityType.value).toList();
+    }
+
+    for (final record in records) {
+      if (record.specialityId != null && record.specialityName != null && record.specialityName!.trim().isNotEmpty && record.specialityName!.toLowerCase() != 'null') {
+        map[record.specialityId!] = record.specialityName!;
+      }
+    }
+    return map.entries.toList();
+  }
+
   List<MapEntry<int, String>> get quotaOptions {
     final map = <int, String>{};
-    for (final record in _recordsForSelectedCourse()) {
+    for (final record in _filteredRecordsBeforeQuota()) {
       map[record.quotaId] = record.quotaName;
     }
     return map.entries.toList();
   }
 
   List<CollegeCategoryCutoffRecord> get selectedRecords {
-    var records = _recordsForSelectedCourse();
+    var records = _filteredRecordsBeforeQuota();
 
     if (selectedQuotaId.value != null) {
       records = records
@@ -213,6 +246,34 @@ class CollegeCutoffController extends GetxController {
 
   void updateCourse(int? courseId) {
     selectedCourseId.value = courseId;
+    
+    final types = specialityTypeOptions;
+    selectedSpecialityType.value = types.isEmpty ? null : types.first.key;
+    
+    final specialities = specialityOptions;
+    selectedSpecialityId.value = specialities.isEmpty ? null : specialities.first.key;
+    
+    final quotas = quotaOptions;
+    selectedQuotaId.value = quotas.isEmpty ? null : quotas.first.key;
+
+    _updateSelectedRecords();
+  }
+
+  void updateSpecialityType(String? type) {
+    selectedSpecialityType.value = type;
+    
+    final specialities = specialityOptions;
+    selectedSpecialityId.value = specialities.isEmpty ? null : specialities.first.key;
+    
+    final quotas = quotaOptions;
+    selectedQuotaId.value = quotas.isEmpty ? null : quotas.first.key;
+
+    _updateSelectedRecords();
+  }
+
+  void updateSpeciality(int? specialityId) {
+    selectedSpecialityId.value = specialityId;
+    
     final quotas = quotaOptions;
     selectedQuotaId.value = quotas.isEmpty ? null : quotas.first.key;
 
@@ -268,24 +329,57 @@ class CollegeCutoffController extends GetxController {
     final courses = courseOptions;
     if (courses.isEmpty) {
       selectedCourseId.value = null;
+      selectedSpecialityType.value = null;
+      selectedSpecialityId.value = null;
       selectedQuotaId.value = null;
       return;
     }
 
     selectedCourseId.value ??= courses.first.key;
+    
+    if (!_profileController.isUGUser) {
+      final types = specialityTypeOptions;
+      if (selectedSpecialityType.value == null && types.isNotEmpty) {
+        selectedSpecialityType.value = types.first.key;
+      }
+      
+      final specialities = specialityOptions;
+      if (selectedSpecialityId.value == null && specialities.isNotEmpty) {
+        selectedSpecialityId.value = specialities.first.key;
+      }
+    }
+
     final quotas = quotaOptions;
-    selectedQuotaId.value = quotas.isEmpty ? null : quotas.first.key;
+    if (selectedQuotaId.value == null && quotas.isNotEmpty) {
+      selectedQuotaId.value = quotas.first.key;
+    }
   }
 
-  List<CollegeCategoryCutoffRecord> _recordsForSelectedCourse() {
+  List<CollegeCategoryCutoffRecord> _filteredRecordsBeforeQuota() {
     var records =
         cutoffData.value?.categoryCutoffs ??
         const <CollegeCategoryCutoffRecord>[];
+
+    final isUGUser = _profileController.isUGUser;
+    records = records.where((r) => _profileController.isCourseUG(r.courseId) == isUGUser).toList();
 
     if (selectedCourseId.value != null) {
       records = records
           .where((record) => record.courseId == selectedCourseId.value)
           .toList();
+    }
+    
+    if (!isUGUser) {
+      if (selectedSpecialityType.value != null) {
+        records = records
+            .where((record) => record.specialityType == selectedSpecialityType.value)
+            .toList();
+      }
+      if (selectedSpecialityId.value != null) {
+        records = records
+            .where((record) => record.specialityId == selectedSpecialityId.value)
+            .toList();
+      }
     }
 
     return List<CollegeCategoryCutoffRecord>.from(records);

@@ -361,7 +361,9 @@ class _AdmissionChatViewState extends State<AdmissionChatView> {
                       onPressed: () {
                         Get.back();
                         controller.startNewSession();
-                        _startAdmissionChat();
+                        _startAdmissionChat().then((_) {
+                          controller.loadPreviousSessions('admission');
+                        });
                       },
                     ),
                   ],

@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 
 import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/Profile/models/profile_model.dart';
@@ -179,6 +179,26 @@ class UpdateProfileController extends GetxController {
     if (isLoading.value) return;
 
     try {
+      final firstName = firstNameCtrl.text.trim();
+      final lastName = lastNameCtrl.text.trim();
+      
+      if (!RegExp(r"^[a-zA-Z\s\-\.\']+$").hasMatch(firstName)) {
+        AppSnackbar.show(
+          'Validation',
+          'Enter a valid first name',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+      if (!RegExp(r"^[a-zA-Z\s\-\.\']+$").hasMatch(lastName)) {
+        AppSnackbar.show(
+          'Validation',
+          'Enter a valid last name',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
       final newNeetScoreText = neetCtrl.text.trim();
       isLoading.value = true;
       final existingNeetScore =

@@ -27,12 +27,18 @@ class AiDropdown extends StatelessWidget {
         prefixIcon: Icon(icon),
         filled: true,
         fillColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
+      isExpanded: true,
       items: items
-          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+          .map((e) => DropdownMenuItem(
+                value: e,
+                child: Text(
+                  e,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ))
           .toList(),
       onChanged: onChanged,
     );

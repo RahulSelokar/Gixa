@@ -36,9 +36,11 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
       String selectedTab = controller.selectedTabIndex.value;
 
       if (!tabs.contains(selectedTab)) {
-        selectedTab = tabs.first;
+        selectedTab = tabs.isNotEmpty ? tabs.first : '';
 
-        controller.selectedTabIndex.value = selectedTab;
+        Future.microtask(() {
+          controller.selectedTabIndex.value = selectedTab;
+        });
       }
 
       final Widget content;
@@ -68,8 +70,8 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
   }
 
   Widget _fees(CollegeThemeColors colors) {
-    final ug = _profileController.isUGUser ? college.courses.ug : [];
-    final pg = _profileController.isPGUser ? college.courses.pg : [];
+    final ug = college.courses.ug;
+    final pg = college.courses.pg;
 
     if ((ug.isEmpty) && (pg.isEmpty)) {
       return const SizedBox.shrink();
@@ -168,8 +170,8 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
       tabs.add('Overview');
     }
 
-    final ug = _profileController.isUGUser ? college.courses.ug : [];
-    final pg = _profileController.isPGUser ? college.courses.pg : [];
+    final ug = college.courses.ug;
+    final pg = college.courses.pg;
 
     if (ug.isNotEmpty || pg.isNotEmpty) {
       tabs.add('Courses');
@@ -240,6 +242,7 @@ class CollegeTabContent extends GetView<CollegeDetailController> {
         seatMatrix: seatMatrix,
         instituteType: college.instituteType,
         collegeName: college.name,
+        colors: colors,
       );
     });
   }

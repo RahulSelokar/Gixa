@@ -369,12 +369,17 @@ class _CreateTicketViewState extends State<CreateTicketView> {
             SliverToBoxAdapter(
               child: _SectionHeader(
                 title: 'Previous Tickets',
-                trailing: controller.tickets.isNotEmpty
-                    ? _GradientText(
-                        'See all',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                trailing: controller.tickets.length > 3
+                    ? GestureDetector(
+                        onTap: () {
+                          controller.showAllTickets.toggle();
+                        },
+                        child: _GradientText(
+                          controller.showAllTickets.value ? 'Show less' : 'See all',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       )
                     : null,
@@ -495,6 +500,10 @@ class _CreateTicketViewState extends State<CreateTicketView> {
       );
     }
 
+    final itemCount = controller.showAllTickets.value
+        ? controller.tickets.length
+        : (controller.tickets.length > 3 ? 3 : controller.tickets.length);
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList(
@@ -525,7 +534,7 @@ class _CreateTicketViewState extends State<CreateTicketView> {
               },
             ),
           );
-        }, childCount: controller.tickets.length),
+        }, childCount: itemCount),
       ),
     );
   }
@@ -1035,6 +1044,14 @@ class _CreateFormCard extends StatelessWidget {
                           controller.subjectError.value = '';
                         },
                       ),
+                      if (controller.subjectError.value.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, left: 4),
+                          child: Text(
+                            controller.subjectError.value,
+                            style: const TextStyle(color: Colors.red, fontSize: 11),
+                          ),
+                        ),
                     ],
                   );
                 }),

@@ -930,8 +930,11 @@ class ApiClient {
       }
 
       /// LOGGED IN USER
+      final serverMessage = _extractErrorMessage(data);
       return AppException(
-        message: 'Your session has expired. Please login again.',
+        message: serverMessage.isNotEmpty
+            ? serverMessage
+            : 'Your session has expired. Please login again.',
         debugMessage: e.message,
         statusCode: status,
         isNetworkError: false,

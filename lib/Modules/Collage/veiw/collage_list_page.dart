@@ -4,6 +4,7 @@ import 'package:Gixa/Modules/Collage/controller/collage_list_controller.dart';
 import 'package:Gixa/Modules/Collage/model/collage_model.dart';
 import 'package:Gixa/Modules/Collage/widgets/collage_list_simmer.dart';
 import 'package:Gixa/Modules/Collage/widgets/filter_bar.dart';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/comparison/controller/college_compare_controller.dart';
 import 'package:Gixa/Modules/seatMatrix/controller/seat_matrix_controller.dart';
 import 'package:Gixa/Modules/subscription/controller/subscription_controller.dart';
@@ -18,10 +19,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import '../../../routes/app_routes.dart';
 
-// ── Free colleges limit ───────────────────────────────────────────────────────
 // const int kFreeCollegeLimit = 2;
 
-// 🔥 GIXA BRAND COLORS (LOCAL TO THIS FILE)
 class _GixaColors {
   static const Color orange = Color(0xFFFF8A00);
   static const Color pink = Color(0xFFFF3D6B);
@@ -114,7 +113,6 @@ class _CollegeListPageState extends State<CollegeListPage> {
   Timer? _searchDebounce;
 
   static const kPrimaryBlue = kHomeAccentColor;
-  // ── Add these to your state class ────────────────────────────────
   int _activeFilterCount = 0;
   bool _isSearchExpanded = false;
   Worker? _tabWorker;
@@ -224,13 +222,17 @@ class _CollegeListPageState extends State<CollegeListPage> {
     String? state = controller.state;
     String? city = controller.city;
     String? mccState = controller.selectedMccState.value;
+    final profileController = Get.find<ProfileController>();
+    final isPgUser = profileController.isPGUser;
+    final userCourseLevelStr = isPgUser ? 'PG' : 'UG';
+
     String? courseName =
         controller.courseName == 'Other' ||
             courseOptions.contains(controller.courseName)
         ? controller.courseName
         : null;
-    bool isUgSelected =
-        controller.courseLevel == 'UG' ||
+    bool isCourseTypeSelected =
+        controller.courseLevel == userCourseLevelStr ||
         courseName != null ||
         otherCourseCtrl.text.trim().isNotEmpty;
     final selectedInstituteTypes = List<String>.from(
@@ -362,6 +364,7 @@ class _CollegeListPageState extends State<CollegeListPage> {
                                 value: stateOptions.any((name) => name == state)
                                     ? state
                                     : null,
+                                isExpanded: true,
                                 dropdownColor: sheetBg,
                                 style: GoogleFonts.inter(color: textColor),
                                 decoration: _filterInputDecoration(
@@ -371,9 +374,9 @@ class _CollegeListPageState extends State<CollegeListPage> {
                                 ),
                                 items: stateOptions
                                     .map(
-                                      (item) => DropdownMenuItem<String>(
-                                        value: item,
-                                        child: Text(item),
+                                      (state) => DropdownMenuItem<String>(
+                                        value: state,
+                                        child: Text(state, overflow: TextOverflow.ellipsis, maxLines: 1),
                                       ),
                                     )
                                     .toList(),
@@ -435,7 +438,7 @@ class _CollegeListPageState extends State<CollegeListPage> {
                                       .map(
                                         (item) => DropdownMenuItem<String>(
                                           value: item,
-                                          child: Text(item),
+                                          child: Text(item, overflow: TextOverflow.ellipsis, maxLines: 1),
                                         ),
                                       )
                                       .toList(),
@@ -501,13 +504,13 @@ class _CollegeListPageState extends State<CollegeListPage> {
                               runSpacing: 10,
                               children: [
                                 _buildFilterChip(
-                                  label: 'UG',
-                                  selected: isUgSelected,
+                                  label: userCourseLevelStr,
+                                  selected: isCourseTypeSelected,
                                   isDark: isDark,
                                   onTap: () {
                                     setStateSheet(() {
-                                      isUgSelected = !isUgSelected;
-                                      if (!isUgSelected) {
+                                      isCourseTypeSelected = !isCourseTypeSelected;
+                                      if (!isCourseTypeSelected) {
                                         courseName = null;
                                         otherCourseCtrl.clear();
                                       }
@@ -544,13 +547,13 @@ class _CollegeListPageState extends State<CollegeListPage> {
                                         .map(
                                           (course) => DropdownMenuItem<String>(
                                             value: course,
-                                            child: Text(course),
+                                            child: Text(course, overflow: TextOverflow.ellipsis, maxLines: 1),
                                           ),
                                         )
                                         .toList(),
                                     onChanged: (value) {
                                       setStateSheet(() {
-                                        isUgSelected = true;
+                                        isCourseTypeSelected = true;
                                         courseName = value;
                                         if (value != 'Other') {
                                           otherCourseCtrl.clear();
@@ -650,7 +653,7 @@ class _CollegeListPageState extends State<CollegeListPage> {
                                 controller.applyFilters(
                                   cityValue: city,
                                   stateValue: state,
-                                  courseLevelValue: isUgSelected ? 'UG' : null,
+                                  courseLevelValue: isCourseTypeSelected ? userCourseLevelStr : null,
                                   courseNameValue: courseName,
                                   customCourseNameValue: courseName == 'Other'
                                       ? otherCourseCtrl.text
@@ -811,6 +814,7 @@ class _CollegeListPageState extends State<CollegeListPage> {
         return true;
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: bgColor,
         appBar: AppBar(
           title: AnimatedSwitcher(

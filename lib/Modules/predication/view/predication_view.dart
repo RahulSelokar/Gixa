@@ -608,7 +608,8 @@ class _PredictionViewState extends State<PredictionView>
 
     if (primaryState.isEmpty ||
         selectedState.isEmpty ||
-        selectedState.toLowerCase() != primaryState.toLowerCase()) {
+        selectedState.toLowerCase() != primaryState.toLowerCase() ||
+        (profileController.profile.value?.horizontals ?? []).isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -726,12 +727,14 @@ class _PredictionViewState extends State<PredictionView>
           label: 'Secondary State'.tr,
           icon: Icons.map_outlined,
           value: controller.selectedState.value,
-          items: controller.stateList.map((e) => e.name).toList(),
-          itemLabelBuilder: _formatStateLabel,
+          items: ['Select State', ...controller.stateList.map((e) => e.name)],
+          itemLabelBuilder: (val) =>
+              val == 'Select State' ? 'Select State' : _formatStateLabel(val),
           enabled: true,
           onChanged: (v) {
             if (v == null) return;
             controller.onStateChanged(v);
+            print('State wise course for pg: State: ${controller.selectedState.value}, Course: ${controller.selectedCourse.value}');
           },
           isDark: isDark,
         );
@@ -744,7 +747,6 @@ class _PredictionViewState extends State<PredictionView>
           value: controller.selectedCategory.value,
           items: controller.categoryList.map((e) => e.name).toList(),
           enabled: false,
-          helperText: "Read only from your profile",
           suffixIcon: Icons.lock_outline_rounded,
           itemLabelBuilder: (item) =>
               _formatOptionLabel(item, _categoryFullForms()),
@@ -762,81 +764,133 @@ class _PredictionViewState extends State<PredictionView>
         final predCourses = p?.predictionCourses ?? [];
         final hasPredCourses = predCourses.isNotEmpty;
 
-        final dropdownItems = hasPredCourses
-            ? predCourses
-            : controller.courseList.map((e) => e.name).toList();
+        final List<String> dropdownItems = [
+          'Select Course',
+          ...(hasPredCourses
+              ? predCourses
+              : controller.currentAvailableCourses.map((e) => e.name)),
+        ];
 
         return _aiDropdown(
           label: "course".tr,
           icon: Icons.school_outlined,
           value: controller.selectedCourse.value,
           items: dropdownItems,
-          enabled: hasPredCourses,
-          suffixIcon: hasPredCourses ? null : Icons.lock_outline_rounded,
+          errorText: controller.courseError.value.isNotEmpty
+              ? controller.courseError.value
+              : null,
+          enabled: true, // Allow user to select course
+          suffixIcon: null,
           onChanged: (v) {
             if (v == null) return;
-            controller.selectedCourse.value = v;
+            if (v == 'Select Course') {
+              controller.selectedCourse.value = 'Select Course';
+            } else {
+              controller.selectedCourse.value = v;
+              controller.courseError.value = '';
+              // Reset specialty when course changes
+              controller.selectedSpecialty.value = 'Select Specialty';
+            }
+            print('State wise course for pg: State: ${controller.selectedState.value}, Course: ${controller.selectedCourse.value}');
           },
           isDark: isDark,
+        );
+      }),
+      Obx(() {
+        final profileController = Get.find<ProfileController>();
+
+        final selectedCourseName = controller.selectedCourse.value;
+        List<String> specialtyItems = ['Select Specialty'];
+
+        if (selectedCourseName != 'Select Course' &&
+            selectedCourseName.isNotEmpty) {
+          final targetList = controller.currentAvailableCourses;
+          final userRegisteredSpecialty =
+              profileController.profile.value?.specialty;
+
+          for (final course in targetList) {
+            if (course.name == selectedCourseName) {
+              for (final s in course.specialties) {
+                if (userRegisteredSpecialty != null &&
+                    userRegisteredSpecialty.isNotEmpty) {
+                  if (s.name == userRegisteredSpecialty) {
+                    specialtyItems.add(s.name);
+                  }
+                } else {
+                  specialtyItems.add(s.name);
+                }
+              }
+              break;
+            }
+          }
+        }
+
+        if (specialtyItems.length <= 1) return const SizedBox.shrink();
+
+        return Column(
+          children: [
+            const SizedBox(height: 10),
+            _aiDropdown(
+              label: "Specialty",
+              icon: Icons.local_hospital_outlined,
+              value: specialtyItems.contains(controller.selectedSpecialty.value)
+                  ? controller.selectedSpecialty.value
+                  : 'Select Specialty',
+              items: specialtyItems,
+              enabled: true,
+              suffixIcon: null,
+              onChanged: (v) {
+                if (v == null) return;
+                controller.selectedSpecialty.value = v;
+              },
+              isDark: isDark,
+            ),
+          ],
         );
       }),
     ],
   );
 
   // ─── Reservation ──────────────────────────────────────────────────
-  Widget _reservation(bool isDark) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: _cardDecoration(isDark),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Obx(
-        //   () => _pillRow(
-        //     items: ["Male", "Female"],
-        //     values: ["M", "F"],
-        //     selected: controller.selectedGender.value,
-        //     onTap: (v) => controller.selectedGender.value = v,
-        //     isDark: isDark,
-        //   ),
-        // ),
-        // const SizedBox(height: 14),
-        Obx(() {
-          final profileController = Get.find<ProfileController>();
+  Widget _reservation(bool isDark) => Obx(() {
+        final profileController = Get.find<ProfileController>();
+        final userHorizontals =
+            profileController.profile.value?.horizontals ?? [];
 
-          final userHorizontals =
-              profileController.profile.value?.horizontals ?? [];
+        if (userHorizontals.isEmpty) {
+          return const SizedBox.shrink();
+        }
 
-          controller.selectedHorizontals.length;
-
-          /// Hide reservation section if no horizontal reservation selected
-          if (userHorizontals.isEmpty) {
-            return const SizedBox.shrink();
-          }
-
-          return Column(
-            children: userHorizontals
-                .map((e) => _checkTile(e, isDark))
-                .toList(),
-          );
-        }),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            const Icon(Icons.info_outline, size: 12, color: _cyan),
-            const SizedBox(width: 5),
-            const Text(
-              "Reservations significantly affect results",
-              style: TextStyle(
-                fontSize: 10,
-                color: _cyan,
-                fontWeight: FontWeight.w500,
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: _cardDecoration(isDark),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                children: userHorizontals
+                    .map((e) => _checkTile(e, isDark))
+                    .toList(),
               ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  const Icon(Icons.info_outline, size: 12, color: _cyan),
+                  const SizedBox(width: 5),
+                  const Text(
+                    "Reservations significantly affect results",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: _cyan,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      });
 
   // ─── Preferences ─────────────────────────────────────────────────
   Widget _preferences(bool isDark) => Container(
@@ -1122,6 +1176,7 @@ class _PredictionViewState extends State<PredictionView>
     String Function(String)? itemLabelBuilder,
     bool enabled = true,
     String? helperText,
+    String? errorText,
     IconData? suffixIcon,
   }) {
     final uniqueItems = <String>[];
@@ -1133,108 +1188,83 @@ class _PredictionViewState extends State<PredictionView>
 
     final selectedValue = uniqueItems.contains(value) ? value : null;
 
+    final inputDec = InputDecoration(
+      labelText: label,
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: isDark ? Colors.white : Colors.black87,
+      ),
+      prefixIcon: Icon(icon, size: 18, color: isDark ? Colors.white : _indigo),
+      suffixIcon: suffixIcon == null
+          ? null
+          : Icon(suffixIcon, size: 18, color: isDark ? Colors.white : _indigo),
+      filled: true,
+      fillColor: enabled
+          ? (isDark ? _surface : _cardLight)
+          : (isDark ? const Color(0xFF2A3441) : Colors.grey.shade100),
+      helperText: helperText,
+      errorText: errorText,
+      helperStyle: TextStyle(
+        fontSize: 11,
+        color: isDark ? Colors.white70 : Colors.black54,
+      ),
+      errorStyle: TextStyle(fontSize: 11, color: Colors.redAccent.shade200),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.black12),
+      ),
+      disabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: isDark ? Colors.white38 : Colors.black26,
+          width: 1.2,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: _indigo.withOpacity(0.7), width: 1.5),
+      ),
+    );
+
     return IgnorePointer(
       ignoring: !enabled,
-      child: DropdownButtonFormField<String>(
-        value: selectedValue,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          color: enabled
-              ? (isDark ? Colors.white : Colors.black)
-              : (isDark ? Colors.white : Colors.black),
-        ),
-        dropdownColor: isDark ? _surface : _cardLight,
-        icon: Icon(
-          Icons.keyboard_arrow_down_rounded,
-          color: enabled ? _indigo.withOpacity(0.6) : _indigo.withOpacity(0.35),
-          size: 18,
-        ),
-        decoration: InputDecoration(
-          labelText: label,
-
-          labelStyle: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
-
-          prefixIcon: Icon(
-            icon,
-            size: 18,
-            color: isDark ? Colors.white : _indigo,
-          ),
-
-          suffixIcon: suffixIcon == null
-              ? null
-              : Icon(
-                  suffixIcon,
-                  size: 18,
-                  color: isDark ? Colors.white : _indigo,
-                ),
-
-          filled: true,
-
-          fillColor: enabled
-              ? (isDark ? _surface : _cardLight)
-              : (isDark ? const Color(0xFF2A3441) : Colors.grey.shade100),
-
-          helperText: helperText,
-
-          helperStyle: TextStyle(
-            fontSize: 11,
-            color: isDark ? Colors.white70 : Colors.black54,
-          ),
-
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 14,
-          ),
-
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: isDark ? Colors.white24 : Colors.black12,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return DropdownButtonFormField<String>(
+            value: selectedValue,
+            isExpanded: true,
+            decoration: inputDec,
+            icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white : _indigo),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: enabled
+                  ? (isDark ? Colors.white : Colors.black)
+                  : (isDark ? Colors.white70 : Colors.black54),
             ),
-          ),
-
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: isDark ? Colors.white24 : Colors.black12,
-            ),
-          ),
-
-          disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: isDark ? Colors.white38 : Colors.black26,
-              width: 1.2,
-            ),
-          ),
-
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: _indigo.withOpacity(0.7), width: 1.5),
-          ),
-        ),
-        items: uniqueItems
-            .map(
-              (e) => DropdownMenuItem(
+            dropdownColor: isDark ? _surface : _cardLight,
+            items: uniqueItems.map((e) {
+              return DropdownMenuItem<String>(
                 value: e,
                 child: Text(
                   itemLabelBuilder?.call(e) ?? e,
-                  style: const TextStyle(fontSize: 13),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
-              ),
-            )
-            .toList(),
-        onChanged: (value) {
-          if (!enabled) {
-            return;
-          }
-
-          onChanged(value);
+              );
+            }).toList(),
+            onChanged: (val) {
+              if (val != null && enabled) {
+                onChanged(val);
+              }
+            },
+          );
         },
       ),
     );

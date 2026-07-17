@@ -2,7 +2,7 @@ name: Gixa
 description: "A new Flutter project."
 
 publish_to: "none"
-version: 1.0.0+17
+version: 1.0.0+18
 
 environment:
   sdk: ^3.9.2
@@ -64,6 +64,7 @@ dependencies:
   iconsax: ^0.0.8
   facebook_app_events: ^0.28.0
   confetti: ^0.8.0
+  image_cropper: ^12.2.1
 
 
 dev_dependencies:
@@ -115,6 +116,8 @@ flutter:
     - assets/icons/G2.png
     - assets/icons/G3.png
     - assets/videos/client_fev.mp4
+    - assets/images/genie_doctor_logout.png
+    - assets/images/genie_logout_popup.png
 
   #   - images/a_dot_ham.jpeg
 

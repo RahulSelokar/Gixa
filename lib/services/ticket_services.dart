@@ -41,20 +41,35 @@ class TicketService {
   /// ✅ GET ALL TICKETS
   /// ================================
   static Future<List<TicketModel>> getTickets({required int studentId}) async {
-    final response = await ApiClient.get(
-      ApiEndpoints.getTickets,
-      queryParameters: {'student_id': studentId},
-    );
+    List<TicketModel> allTickets = [];
+    int currentPage = 1;
+    bool hasNext = true;
 
-    print("🔥 FULL TICKETS RESPONSE: $response");
+    while (hasNext) {
+      final response = await ApiClient.get(
+        ApiEndpoints.getTickets,
+        queryParameters: {
+          'student_id': studentId,
+          'page': currentPage,
+        },
+      );
 
-    if (response['status'] == 'success') {
-      final List ticketsList = response['data']['tickets'] ?? [];
+      print("🔥 FULL TICKETS RESPONSE (Page $currentPage): $response");
 
-      return ticketsList.map((e) => TicketModel.fromJson(e)).toList();
+      if (response['status'] == 'success') {
+        final data = response['data'] ?? {};
+        final List ticketsList = data['tickets'] ?? [];
+        
+        allTickets.addAll(ticketsList.map((e) => TicketModel.fromJson(e)));
+        
+        hasNext = data['has_next'] ?? false;
+        currentPage++;
+      } else {
+        break;
+      }
     }
 
-    return [];
+    return allTickets;
   }
 
   /// ================================

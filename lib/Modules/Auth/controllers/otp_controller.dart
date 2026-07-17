@@ -18,6 +18,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:Gixa/common/widgets/app_snackbar.dart';
 import 'package:Gixa/Modules/Auth/Veiw/login_bottom_sheet.dart';
+import 'package:Gixa/Modules/Auth/Veiw/verify_otp_page.dart';
 
 class OtpController extends GetxController {
   static const int _otpExpirySeconds = 60;
@@ -108,8 +109,10 @@ class OtpController extends GetxController {
 
       otpResponseTime.value = DateTime.now();
 
+      debugPrint("RAW OTP RESPONSE: ${response.data?.otp}");
       if (response.data?.otp != null) {
         otpFromBackend.value = response.data!.otp;
+        debugPrint("OTP FOR LOGIN TEST: ${response.data!.otp}");
       }
       _startTimer();
 
@@ -190,8 +193,10 @@ class OtpController extends GetxController {
 
       // OPTIONAL:
       // Remove this in production for security reasons
+      debugPrint("RAW OTP RESPONSE: ${response.data?.otp}");
       if (response.data?.otp != null) {
         otpFromBackend.value = response.data!.otp;
+        debugPrint("OTP FOR LOGIN TEST: ${response.data!.otp}");
       }
 
       // Restart timer
@@ -311,6 +316,8 @@ class OtpController extends GetxController {
           _showAlreadyLoggedInDialog(
             message: data.message,
             mobile: cleanMobile,
+            useBottomSheetFlow: useBottomSheetFlow,
+            onRegisteredSuccess: onRegisteredSuccess,
           );
         } else {
           AppSnackbar.show(
@@ -470,86 +477,57 @@ class OtpController extends GetxController {
   void _showAlreadyLoggedInDialog({
     required String message,
     required String mobile,
+    bool useBottomSheetFlow = false,
+    VoidCallback? onRegisteredSuccess,
   }) {
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Already Logged In'),
-        content: Text(
-          message.isNotEmpty
-              ? message
-              : 'This account is already active on another device.',
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () async {
-              Get.back();
-              await _forceLogoutOtherDeviceAndPrepareResend(mobile: mobile);
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            ),
-            child: const Text('Logout Other Device'),
-          ),
-        ],
-      ),
-      barrierDismissible: false,
+    showAlreadyLoggedInDialog(
+      message: message.isNotEmpty
+          ? message
+          : 'This account is already active on another device.',
+      onForceLogout: () async {
+        await _forceLogoutOtherDeviceAndPrepareResend(
+          mobile: mobile,
+          useBottomSheetFlow: useBottomSheetFlow,
+          onRegisteredSuccess: onRegisteredSuccess,
+        );
+      },
     );
   }
 
   Future<void> _forceLogoutOtherDeviceAndPrepareResend({
     required String mobile,
+    bool useBottomSheetFlow = false,
+    VoidCallback? onRegisteredSuccess,
   }) async {
     try {
       isVerifyingOtp.value = true;
 
       print('Logging out other device...');
 
-      await AuthServices.logoutOtherDevice(
+      final response = await AuthServices.logoutOtherDevice(
         mobileNumber: mobile,
         deviceId: await DeviceUtils.getDeviceId(),
       );
 
       print('Other device logged out successfully');
-
-      /// RESET OLD OTP STATE
-      _timer?.cancel();
-
-      otp.value = '';
-
-      otpFromBackend.value = '';
-
-      otpInputResetTrigger.value++;
-
-      secondsRemaining.value = _otpExpirySeconds;
-
-      canResendOtp.value = false;
-
-      mobileNumber.value = mobile.trim();
-
-      otpRequestStartTime.value = null;
-
-      /// SEND FRESH OTP IMMEDIATELY
-      final success = await sendOtp(mobileNumber.value);
-
-      if (!success) {
-        canResendOtp.value = true;
-
+      
+      if (!response.success || response.data == null) {
         AppSnackbar.show(
           'Error',
-          'Failed to send OTP. Please try again.',
+          response.message.isNotEmpty ? response.message : 'Failed to login after force logout.',
           snackPosition: SnackPosition.TOP,
         );
-
         return;
       }
 
-      AppSnackbar.show(
-        'Success',
-        'Previous device logged out. New OTP sent successfully.',
-        snackPosition: SnackPosition.TOP,
+      // Successfully logged in via logout-other-device API!
+      await _handleVerifiedOtpSuccess(
+        data: response.data!,
+        mobileNumber: mobile,
+        useBottomSheetFlow: useBottomSheetFlow,
+        onRegisteredSuccess: onRegisteredSuccess,
       );
+
     } catch (e) {
       print('Force logout error: $e');
 

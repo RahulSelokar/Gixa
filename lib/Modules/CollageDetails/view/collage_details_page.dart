@@ -31,6 +31,7 @@ class CollegeDetailPage extends StatelessWidget {
           }
 
           final college = controller.college.value;
+          print("Courses from backend: ${college?.courses}");
           if (college == null) {
             return Center(
               child: Text(

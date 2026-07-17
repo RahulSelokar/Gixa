@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:Gixa/Modules/Collage/model/collage_model.dart';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:Gixa/Modules/Search/controllers/search_controller.dart';
 import 'package:Gixa/routes/app_routes.dart';
 
@@ -295,11 +296,13 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
               return DropdownMenuItem(value: state, child: Text(state));
             }).toList(),
             onChanged: (value) {
-              controller.updateSelectedState(value);
-              if (!_isMccState(controller.selectedState.value)) {
-                controller.removeInstituteType('Deemed');
-              }
-              controller.fetchColleges();
+              Future.microtask(() {
+                controller.updateSelectedState(value);
+                if (!_isMccState(controller.selectedState.value)) {
+                  controller.removeInstituteType('Deemed');
+                }
+                controller.fetchColleges();
+              });
             },
           ),
         ),
@@ -335,8 +338,10 @@ class _CollegeSearchPageState extends State<CollegeSearchPage> {
               return DropdownMenuItem(value: course, child: Text(course));
             }).toList(),
             onChanged: (value) {
-              controller.selectedCourse.value = value;
-              controller.fetchColleges();
+              Future.microtask(() {
+                controller.selectedCourse.value = value;
+                controller.fetchColleges();
+              });
             },
           ),
         ),
@@ -1267,19 +1272,21 @@ class _FilterSheet extends StatelessWidget {
                           items: states,
 
                           onChanged: (value) {
-                            controller.updateSelectedState(value);
+                            Future.microtask(() {
+                              controller.updateSelectedState(value);
 
-                            /// reset city when state changes
-                            controller.selectedCity.value = null;
-                            controller.cityCtrl.clear();
+                              /// reset city when state changes
+                              controller.selectedCity.value = null;
+                              controller.cityCtrl.clear();
 
-                            /// reset MCC state if normal state selected
-                            if (!_isMccState(value)) {
-                              controller.selectedMccState.value = null;
+                              /// reset MCC state if normal state selected
+                              if (!_isMccState(value)) {
+                                controller.selectedMccState.value = null;
 
-                              /// remove deemed if not MCC
-                              controller.removeInstituteType('Deemed');
-                            }
+                                /// remove deemed if not MCC
+                                controller.removeInstituteType('Deemed');
+                              }
+                            });
                           },
                         ),
 
@@ -1307,11 +1314,13 @@ class _FilterSheet extends StatelessWidget {
                               items: mccStates,
 
                               onChanged: (value) {
-                                controller.selectedMccState.value = value;
+                                Future.microtask(() {
+                                  controller.selectedMccState.value = value;
 
-                                /// reset city when MCC state changes
-                                controller.selectedCity.value = null;
-                                controller.cityCtrl.clear();
+                                  /// reset city when MCC state changes
+                                  controller.selectedCity.value = null;
+                                  controller.cityCtrl.clear();
+                                });
                               },
                             );
                           }),
@@ -1356,8 +1365,10 @@ class _FilterSheet extends StatelessWidget {
                               items: cityOptions,
 
                               onChanged: (val) {
-                                controller.selectedCity.value = val;
-                                controller.cityCtrl.text = val ?? '';
+                                Future.microtask(() {
+                                  controller.selectedCity.value = val;
+                                  controller.cityCtrl.text = val ?? '';
+                                });
                               },
                             );
                           },
@@ -1369,13 +1380,15 @@ class _FilterSheet extends StatelessWidget {
 
                   _sectionLabel("Course Type"),
                   const SizedBox(height: 10),
-                  Obx(
-                    () => _chipGroup(
-                      const ["UG"],
+                  Obx(() {
+                    final profileController = Get.find<ProfileController>();
+                    final userCourseLevelStr = profileController.isPGUser ? 'PG' : 'UG';
+                    return _chipGroup(
+                      [userCourseLevelStr],
                       controller.selectedCourseLevel.value,
                       controller.setCourseLevel,
-                    ),
-                  ),
+                    );
+                  }),
                   const SizedBox(height: 24),
 
                   // _sectionLabel("Course"),
@@ -1408,7 +1421,11 @@ class _FilterSheet extends StatelessWidget {
                       value: controller.selectedCourse.value,
                       hint: "Select Course",
                       items: courses,
-                      onChanged: (val) => controller.selectedCourse.value = val,
+                      onChanged: (val) {
+                        Future.microtask(() {
+                          controller.selectedCourse.value = val;
+                        });
+                      },
                     );
                   }),
                   const SizedBox(height: 24),

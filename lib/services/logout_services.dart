@@ -11,9 +11,10 @@ import 'package:Gixa/Modules/choice_filling/controller/predication_sheet_control
 import 'package:Gixa/Modules/subscription/controller/subsciption_history_controller.dart';
 import 'package:Gixa/Modules/addon_contact/controller/addon_contact_controller.dart';
 import 'package:Gixa/Modules/counselling_roadmap/controller/counselling_roadmap_controller.dart';
+import 'package:Gixa/Modules/notification/controller/notification_controller.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:Gixa/common/widgets/app_snackbar.dart';
+import 'package:Gixa/common/widgets/session_expired_dialog.dart';
 
 class SessionService {
   static Future<void> logout() async {
@@ -27,16 +28,17 @@ class SessionService {
   }
 
   static Future<void> forceLogout([String? message]) async {
-    if (message != null &&
+    bool shouldShowMessage = message != null &&
         message.trim().isNotEmpty &&
-        message.toLowerCase() != 'unauthorized') {
-      AppSnackbar.show(
-        'Session Expired',
-        message,
-        snackPosition: SnackPosition.TOP,
-      );
-    }
+        message.toLowerCase() != 'unauthorized';
+
     await _clearAndRedirect();
+
+    if (shouldShowMessage) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        showSessionExpiredDialog(message: message);
+      });
+    }
   }
 
   static Future<void> _clearAndRedirect() async {
@@ -101,6 +103,9 @@ class SessionService {
     }
     if (Get.isRegistered<CounsellingRoadmapController>()) {
       Get.delete<CounsellingRoadmapController>(force: true);
+    }
+    if (Get.isRegistered<NotificationController>()) {
+      Get.delete<NotificationController>(force: true);
     }
 
     Get.offAllNamed(AppRoutes.mainNav);

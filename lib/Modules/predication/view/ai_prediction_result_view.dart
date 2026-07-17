@@ -226,11 +226,17 @@ class _AiPredictionResultViewState extends State<AiPredictionResultView> {
                   const SizedBox(height: 12),
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.blue.withOpacity(.08),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blue.withOpacity(.2), width: 1),
+                      border: Border.all(
+                        color: Colors.blue.withOpacity(.2),
+                        width: 1,
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -246,7 +252,9 @@ class _AiPredictionResultViewState extends State<AiPredictionResultView> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.blue.shade200 : Colors.blue.shade700,
+                              color: isDark
+                                  ? Colors.blue.shade200
+                                  : Colors.blue.shade700,
                               height: 1.4,
                             ),
                           ),
@@ -1227,253 +1235,256 @@ class _AiPredictionResultViewState extends State<AiPredictionResultView> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Center(
               child: Container(
-          width: double.infinity,
-          constraints: const BoxConstraints(maxWidth: 420),
-          padding: const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withOpacity(0.05)
-                  : Colors.black.withOpacity(0.05),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.22 : 0.05),
-                blurRadius: 18,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Premium Icon
-              Container(
-                width: 58,
-                height: 58,
+                width: double.infinity,
+                constraints: const BoxConstraints(maxWidth: 420),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      AiPredictionResultView._indigo,
-                      AiPredictionResultView._indigoDark,
-                    ],
+                  color: cardColor,
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.05)
+                        : Colors.black.withOpacity(0.05),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AiPredictionResultView._indigo.withOpacity(0.25),
-                      blurRadius: 14,
-                      offset: const Offset(0, 5),
+                      color: Colors.black.withOpacity(isDark ? 0.22 : 0.05),
+                      blurRadius: 18,
+                      offset: const Offset(0, 6),
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.workspace_premium_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              Text(
-                "No Colleges Found",
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: textColor,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.6,
-                    color: subTextColor,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextSpan(
-                      text: "Unlock ",
-                      style: TextStyle(
-                        color: AiPredictionResultView._indigo,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const TextSpan(
-                      text:
-                          "Premium to explore colleges from other states and access smarter AI-powered predictions.",
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 18),
-
-              // Features
-              Column(
-                children: [
-                  _modernFeatureTile(
-                    Icons.public_rounded,
-                    "Other State Colleges",
-                    isDark,
-                  ),
-                  _modernFeatureTile(
-                    Icons.auto_awesome_rounded,
-                    "AI Premium Suggestions",
-                    isDark,
-                  ),
-                  _modernFeatureTile(
-                    Icons.school_outlined,
-                    "More College Matches",
-                    isDark,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // Upgrade Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: controller.goToPremium,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AiPredictionResultView._indigo,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: const Text(
-                    "Upgrade Premium",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              GestureDetector(
-                onTap: () {
-                  Get.toNamed(AppRoutes.ticket);
-                  // Get.to(CounselorListView());
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.04)
-                        : const Color(0xFFF8FAFF),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AiPredictionResultView._indigo.withOpacity(0.12),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              AiPredictionResultView._indigo,
-                              AiPredictionResultView._indigoDark,
-                            ],
+                    // Premium Icon
+                    Container(
+                      width: 58,
+                      height: 58,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AiPredictionResultView._indigo,
+                            AiPredictionResultView._indigoDark,
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AiPredictionResultView._indigo.withOpacity(
+                              0.25,
+                            ),
+                            blurRadius: 14,
+                            offset: const Offset(0, 5),
                           ),
-                          borderRadius: BorderRadius.circular(12),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Text(
+                      "No Colleges Found",
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        color: textColor,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 1.6,
+                          color: subTextColor,
+                          fontWeight: FontWeight.w500,
                         ),
-                        child: const Icon(
-                          Icons.support_agent_rounded,
-                          color: Colors.white,
-                          size: 20,
+                        children: [
+                          TextSpan(
+                            text: "Unlock ",
+                            style: TextStyle(
+                              color: AiPredictionResultView._indigo,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const TextSpan(
+                            text:
+                                "Premium to explore colleges from other states and access smarter AI-powered predictions.",
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Features
+                    Column(
+                      children: [
+                        _modernFeatureTile(
+                          Icons.public_rounded,
+                          "Other State Colleges",
+                          isDark,
+                        ),
+                        _modernFeatureTile(
+                          Icons.auto_awesome_rounded,
+                          "AI Premium Suggestions",
+                          isDark,
+                        ),
+                        _modernFeatureTile(
+                          Icons.school_outlined,
+                          "More College Matches",
+                          isDark,
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Upgrade Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: controller.goToPremium,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AiPredictionResultView._indigo,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text(
+                          "Upgrade Premium",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 14),
 
-                      const SizedBox(width: 12),
-
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                    GestureDetector(
+                      onTap: () {
+                        Get.toNamed(AppRoutes.ticket);
+                        // Get.to(CounselorListView());
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.04)
+                              : const Color(0xFFF8FAFF),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AiPredictionResultView._indigo.withOpacity(
+                              0.12,
+                            ),
+                          ),
+                        ),
+                        child: Row(
                           children: [
-                            Text(
-                              "Need Counselling Help?",
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w700,
-                                color: textColor,
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AiPredictionResultView._indigo,
+                                    AiPredictionResultView._indigoDark,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.support_agent_rounded,
+                                color: Colors.white,
+                                size: 20,
                               ),
                             ),
 
-                            const SizedBox(height: 3),
+                            const SizedBox(width: 12),
 
-                            Text(
-                              "Raise a ticket and connect with our counselling team.",
-                              style: TextStyle(
-                                fontSize: 11,
-                                height: 1.4,
-                                color: subTextColor,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Need Counselling Help?",
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: textColor,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 3),
+
+                                  Text(
+                                    "Raise a ticket and connect with our counselling team.",
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      height: 1.4,
+                                      color: subTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: AiPredictionResultView._indigo
+                                    .withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 18,
+                                color: AiPredictionResultView._indigo,
                               ),
                             ),
                           ],
                         ),
                       ),
+                    ),
 
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AiPredictionResultView._indigo.withOpacity(
-                            0.08,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 18,
-                          color: AiPredictionResultView._indigo,
+                    const SizedBox(height: 8),
+
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: Text(
+                        "Edit Preferences",
+                        style: TextStyle(
+                          color: isDark ? Colors.white60 : Colors.black54,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 8),
-
-              TextButton(
-                onPressed: () => Get.back(),
-                child: Text(
-                  "Edit Preferences",
-                  style: TextStyle(
-                    color: isDark ? Colors.white60 : Colors.black54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+          const SizedBox(height: 24),
+          _buildUpgradeAddonBanner(isDark),
+        ],
       ),
-      ),
-      const SizedBox(height: 24),
-      _buildUpgradeAddonBanner(isDark),
-    ],
-  ),
-);
+    );
   }
 
   Widget _modernFeatureTile(IconData icon, String text, bool isDark) {
@@ -1561,10 +1572,14 @@ class _AiPredictionResultViewState extends State<AiPredictionResultView> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       decoration: BoxDecoration(
-        color: isDark ? AiPredictionResultView._surface : const Color(0xFFF8FAFF),
+        color: isDark
+            ? AiPredictionResultView._surface
+            : const Color(0xFFF8FAFF),
         border: Border(
           top: BorderSide(
-            color: isDark ? Colors.white.withOpacity(0.05) : AiPredictionResultView._indigo.withOpacity(0.2),
+            color: isDark
+                ? Colors.white.withOpacity(0.05)
+                : AiPredictionResultView._indigo.withOpacity(0.2),
           ),
         ),
         boxShadow: [
@@ -1585,7 +1600,9 @@ class _AiPredictionResultViewState extends State<AiPredictionResultView> {
               decoration: BoxDecoration(
                 color: AiPredictionResultView._indigo.withOpacity(0.08),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AiPredictionResultView._indigo.withOpacity(0.2)),
+                border: Border.all(
+                  color: AiPredictionResultView._indigo.withOpacity(0.2),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -1616,7 +1633,10 @@ class _AiPredictionResultViewState extends State<AiPredictionResultView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AiPredictionResultView._indigo,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 10,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),

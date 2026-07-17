@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:Gixa/Modules/CollageDetails/controller/college_cutoff_controller.dart';
 import 'package:Gixa/Modules/CollageDetails/model/college_cutoff_model.dart';
 import 'package:Gixa/Modules/CollageDetails/widgets/collage_theme.dart';
+import 'package:Gixa/Modules/Profile/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -275,6 +276,7 @@ class _CollegeCutoffTabState extends State<CollegeCutoffTab> {
           const SizedBox(height: 14),
           DropdownButtonFormField<int>(
             value: controller.selectedCourseId.value,
+            isExpanded: true,
             items: courses
                 .map(
                   (entry) => DropdownMenuItem<int>(
@@ -287,8 +289,43 @@ class _CollegeCutoffTabState extends State<CollegeCutoffTab> {
             decoration: _inputDecoration(context, 'Course'),
           ),
           const SizedBox(height: 12),
+          
+          if (!Get.find<ProfileController>().isUGUser) ...[
+            DropdownButtonFormField<String>(
+              value: controller.selectedSpecialityType.value,
+              isExpanded: true,
+              items: controller.specialityTypeOptions
+                  .map(
+                    (entry) => DropdownMenuItem<String>(
+                      value: entry.key,
+                      child: Text(entry.value),
+                    ),
+                  )
+                  .toList(),
+              onChanged: controller.updateSpecialityType,
+              decoration: _inputDecoration(context, 'Speciality Type'),
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<int>(
+              value: controller.selectedSpecialityId.value,
+              isExpanded: true,
+              items: controller.specialityOptions
+                  .map(
+                    (entry) => DropdownMenuItem<int>(
+                      value: entry.key,
+                      child: Text(entry.value),
+                    ),
+                  )
+                  .toList(),
+              onChanged: controller.updateSpeciality,
+              decoration: _inputDecoration(context, 'Speciality'),
+            ),
+            const SizedBox(height: 12),
+          ],
+          
           DropdownButtonFormField<int>(
             value: controller.selectedQuotaId.value,
+            isExpanded: true,
             items: quotas
                 .map(
                   (entry) => DropdownMenuItem<int>(

@@ -218,7 +218,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         Icons.menu_book_rounded,
                         'Course',
                         profileController.courseCtrl,
-                        readOnly: true,
                       ),
                       _rowData(
                         Icons.map_outlined,
@@ -226,6 +225,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         profileController.stateCtrl,
                         readOnly: true,
                       ),
+                      if (profileController.specialtyCtrl.text.isNotEmpty)
+                        _rowData(
+                          Icons.local_hospital_rounded,
+                          'Specialty',
+                          profileController.specialtyCtrl,
+                          readOnly: true,
+                        ),
                       _rowData(
                         Icons.category_rounded,
                         'Category',

@@ -45,7 +45,8 @@ class TicketController extends GetxController {
   var description = "".obs;
   var errorMessage = "".obs;
 
-  var selectedAttachments = <File>[].obs;
+  final selectedAttachments = <File>[].obs;
+  final showAllTickets = false.obs;
 
   var tickets = <TicketModel>[].obs;
 

@@ -1,7 +1,7 @@
 class VerifyPaymentResponse {
   final bool status;
   final String message;
-  final VerifyPaymentData data;
+  final VerifyPaymentData? data;
   final int? subscriptionId; // ✅ FIXED
 
   VerifyPaymentResponse({
@@ -13,9 +13,11 @@ class VerifyPaymentResponse {
 
   factory VerifyPaymentResponse.fromJson(Map<String, dynamic> json) {
     return VerifyPaymentResponse(
-      status: json['status'],
-      message: json['message'],
-      data: VerifyPaymentData.fromJson(json['data']),
+      status: json['status'] == true,
+      message: json['message']?.toString() ?? '',
+      data: json['data'] is Map<String, dynamic>
+          ? VerifyPaymentData.fromJson(json['data'])
+          : null,
 
       /// ✅ SAFE PARSE
       subscriptionId: json['subscription_id'] == null

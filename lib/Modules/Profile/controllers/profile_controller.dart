@@ -39,6 +39,31 @@ class ProfileController extends GetxController {
   final Map<String, int> _courseIdByName = {};
   final RxSet<int> _ugCourseIds = <int>{}.obs;
 
+  // ── PG Cascading Dropdown States ──
+  final RxString selectedCourseLevel = 'UG'.obs;
+  final RxString selectedCourseCategory = ''.obs;
+  final Rxn<CourseModel> selectedCourseModel = Rxn<CourseModel>();
+  final Map<String, Map<String, List<CourseModel>>> structuredCourses = {};
+  
+  final List<CourseModel> ugCourseList = [];
+  final List<CourseModel> pgCourseList = [];
+  
+  List<String> get availableCourseCategories {
+    if (selectedCourseLevel.value.isEmpty) return [];
+    return structuredCourses[selectedCourseLevel.value]?.keys.toList() ?? [];
+  }
+  
+  List<CourseModel> get availableCourses {
+    if (selectedCourseLevel.value.isEmpty || selectedCourseCategory.value.isEmpty) return [];
+    return structuredCourses[selectedCourseLevel.value]?[selectedCourseCategory.value] ?? [];
+  }
+  
+  List<String> get availableSpecialties {
+    final cModel = selectedCourseModel.value;
+    if (cModel == null) return [];
+    return cModel.specialties.map((e) => e.name).toList();
+  }
+
   bool get isUGUser {
     final cId = selectedCourseId.value;
     if (cId == null) return true; // Default to UG
@@ -68,6 +93,7 @@ class ProfileController extends GetxController {
   final stateCtrl = TextEditingController();
   final casteCtrl = TextEditingController();
   final categoryCtrl = TextEditingController();
+  final specialtyCtrl = TextEditingController(); // NEW
   final neetScoreCtrl = TextEditingController();
   final airCtrl = TextEditingController();
   final disabilityCtrl = TextEditingController();
@@ -250,6 +276,9 @@ class ProfileController extends GetxController {
 
       profile.value = result;
       _box.write('user_id', result.user.id);
+      
+      await _ensureMasterMappingsLoaded(); // NEW: Ensure mappings exist before fill
+      
       _fillControllers(result);
       progressController.updateProfile(result);
       progressController.update();
@@ -274,6 +303,9 @@ class ProfileController extends GetxController {
 
       profile.value = result;
       _box.write('user_id', result.user.id);
+      
+      await _ensureMasterMappingsLoaded(); // NEW: Ensure mappings exist before fill
+      
       _fillControllers(result);
       progressController.updateProfile(result);
       progressController.update();
@@ -371,9 +403,14 @@ class ProfileController extends GetxController {
     stateCtrl.text = rawState;
     categoryCtrl.text = rawCategory;
 
-    selectedCourseId.value = p.courseId ?? int.tryParse(rawCourse);
-    selectedStateId.value = p.stateId ?? int.tryParse(rawState);
-    selectedCategoryId.value = p.categoryId ?? int.tryParse(rawCategory);
+    selectedCourseId.value = p.courseId ?? _resolveCourseId(rawCourse) ?? int.tryParse(rawCourse);
+    selectedStateId.value = p.stateId ?? _resolveStateId(rawState) ?? int.tryParse(rawState);
+    selectedCategoryId.value = p.categoryId ?? _resolveCategoryId(rawCategory) ?? int.tryParse(rawCategory);
+
+    specialtyCtrl.text = p.specialty ?? '';
+
+    // Initialize cascaded dropdowns if possible (assumes ensureMasterMappingsLoaded was called during fetchProfile)
+    _syncCascadingDropdownsFromProfile(p);
 
     disabilityCtrl.text = p.disabilityDetails ?? '';
     horizontalReservationCtrl.text = (p.horizontals ?? []).join(', ');
@@ -421,6 +458,10 @@ class ProfileController extends GetxController {
     categoryCtrl.clear();
     neetScoreCtrl.clear();
     airCtrl.clear();
+    specialtyCtrl.clear();
+    selectedCourseLevel.value = 'UG';
+    selectedCourseCategory.value = '';
+    selectedCourseModel.value = null;
   }
 
   Future<void> deleteProfileImage() async {
@@ -461,7 +502,7 @@ class ProfileController extends GetxController {
       final newNeetScoreText = neetScoreCtrl.text.trim();
       final airText = airCtrl.text.trim();
       final casteText = casteCtrl.text.trim();
-      final specialtyText = '';
+      final specialtyText = specialtyCtrl.text.trim();
 
       final existingRank = profile.value?.allIndiaRank;
       final existingNeetScore = profile.value?.neetScore ?? 0;
@@ -747,6 +788,25 @@ class ProfileController extends GetxController {
     for (final course in allCourses) {
       _courseIdByName[_normalizeLookup(course.name)] = course.id;
     }
+    
+    // Store structured courses
+    final rawCourses = data['courses'];
+    if (rawCourses is Map<String, Map<String, List<CourseModel>>>) {
+      structuredCourses.clear();
+      structuredCourses.addAll(rawCourses);
+    }
+    
+    ugCourseList.clear();
+    ugCourseList.addAll(ugCourses);
+
+    final pgCourses = data['courses_for_pg'] as List<CourseModel>? ?? const [];
+    pgCourseList.clear();
+    pgCourseList.addAll(pgCourses);
+    
+    // Attempt to sync dropdowns if profile is loaded
+    if (profile.value != null) {
+      _syncCascadingDropdownsFromProfile(profile.value!);
+    }
   }
 
   Iterable<CourseModel> _flattenCourseBuckets(dynamic rawCourses) sync* {
@@ -761,6 +821,32 @@ class ProfileController extends GetxController {
         for (final item in bucket) {
           if (item is CourseModel) {
             yield item;
+          }
+        }
+      }
+    }
+  }
+
+  void _syncCascadingDropdownsFromProfile(ProfileModel p) {
+    if (structuredCourses.isEmpty) return;
+    
+    final cId = p.courseId ?? int.tryParse(p.course ?? '');
+    if (cId == null) {
+      selectedCourseLevel.value = 'UG';
+      return;
+    }
+    
+    selectedCourseLevel.value = _ugCourseIds.contains(cId) ? 'UG' : 'PG';
+    
+    for (final levelEntry in structuredCourses.entries) {
+      if (levelEntry.key != selectedCourseLevel.value) continue;
+      
+      for (final catEntry in levelEntry.value.entries) {
+        for (final course in catEntry.value) {
+          if (course.id == cId) {
+            selectedCourseCategory.value = catEntry.key;
+            selectedCourseModel.value = course;
+            return;
           }
         }
       }
@@ -820,6 +906,7 @@ class ProfileController extends GetxController {
     casteCtrl.dispose();
     neetScoreCtrl.dispose();
     airCtrl.dispose();
+    specialtyCtrl.dispose();
     super.onClose();
   }
 }
