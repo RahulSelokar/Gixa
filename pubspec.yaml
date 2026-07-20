@@ -118,6 +118,7 @@ flutter:
     - assets/videos/client_fev.mp4
     - assets/images/genie_doctor_logout.png
     - assets/images/genie_logout_popup.png
+    - assets/images/congrats_genie.png
 
   #   - images/a_dot_ham.jpeg
 

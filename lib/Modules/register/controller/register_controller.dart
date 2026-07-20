@@ -16,6 +16,7 @@ import 'package:Gixa/services/rank_predict_services.dart';
 import 'package:Gixa/services/register_master_api.dart';
 import 'package:Gixa/services/register_services.dart';
 import 'package:Gixa/services/token_services.dart';
+import 'package:Gixa/Modules/register/view/registration_success_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -501,23 +502,22 @@ class RegisterController extends GetxController {
         Get.find<OtpController>().isLoggedIn.value = true;
       }
 
-      AppSnackbar.show(
-        'Success',
-        'Registration completed successfully',
-        snackPosition: SnackPosition.TOP,
+      Get.dialog(
+        RegistrationSuccessDialog(
+          firstName: request.firstName,
+          airRank: request.allIndiaRank,
+          onContinue: () {
+            Get.offAllNamed(AppRoutes.mainNav);
+            Future.microtask(() async {
+              try {
+                final profileController = Get.find<ProfileController>();
+                await profileController.fetchProfile();
+              } catch (_) {}
+            });
+          },
+        ),
+        barrierDismissible: false,
       );
-
-      Future.delayed(const Duration(milliseconds: 700), () async {
-        Get.offAllNamed(AppRoutes.mainNav);
-
-        Future.microtask(() async {
-          try {
-            final profileController = Get.find<ProfileController>();
-
-            await profileController.fetchProfile();
-          } catch (_) {}
-        });
-      });
     } catch (e) {
       if (e is AppException) {
         AppSnackbar.show('Failed', e.message);

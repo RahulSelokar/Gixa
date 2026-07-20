@@ -13,7 +13,6 @@ class CollegeCutoffController extends GetxController {
   final CollegeApiService _service = CollegeApiService();
   late final ProfileController _profileController;
   final selectedRecordsRx = <CollegeCategoryCutoffRecord>[].obs;
-
   final isLoading = false.obs;
   final errorMessage = ''.obs;
   final userAir = 0.obs;
